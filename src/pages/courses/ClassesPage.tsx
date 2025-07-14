@@ -67,9 +67,26 @@ export function ClassesPage({ classes, setClasses, staff }: ClassesPageProps) {
   // Determine if 'SP' is selected
   const staffParticipantsSelected = selectedYears.includes('SP');
 
+  // Handle year level selection with mutual exclusivity
+  const handleYearLevelChange = (values: (number | string)[]) => {
+    const hasSP = values.includes('SP');
+    const hasOtherYears = values.some(v => v !== 'SP');
+    
+    if (hasSP && hasOtherYears) {
+      // If SP is selected, only keep SP
+      setSelectedYears(['SP']);
+    } else if (hasOtherYears && !hasSP) {
+      // If other years are selected, keep them but remove SP
+      setSelectedYears(values.filter(v => v !== 'SP'));
+    } else {
+      // Normal case - just set the values
+      setSelectedYears(values);
+    }
+  };
+
   // Generate class code
   React.useEffect(() => {
-    if (!selectedYears.length || !className.trim() || (!staffParticipantsSelected && !selectedTeachers.length)) {
+    if (!selectedYears.length || !className.trim()) {
       setClassCode('');
       return;
     }
@@ -150,15 +167,18 @@ export function ClassesPage({ classes, setClasses, staff }: ClassesPageProps) {
     const newFieldErrors: { yearLevels?: string; className?: string; classCode?: string; teacher?: string } = {};
     if (!selectedYears.length) newFieldErrors.yearLevels = 'Year level is required.';
     if (!className.trim()) newFieldErrors.className = 'Class name is required.';
+    // Only require teachers for non-staff participant classes
     if (!staffParticipantsSelected && !selectedTeachers.length) newFieldErrors.teacher = 'At least one teacher is required.';
     setFieldErrors(newFieldErrors);
     if (Object.keys(newFieldErrors).length > 0) return;
 
-    // Check if there are any teaching staff
-    const teachingStaff = staff.filter(s => s.role === 'Teaching Staff');
-    if (teachingStaff.length === 0) {
-      setError('Please add teaching staff before creating a class.');
-      return;
+    // Check if there are any teaching staff (only for non-staff participant classes)
+    if (!staffParticipantsSelected) {
+      const teachingStaff = staff.filter(s => s.role === 'Teaching Staff');
+      if (teachingStaff.length === 0) {
+        setError('Please add teaching staff before creating a class.');
+        return;
+      }
     }
 
     if (editIndex !== null) {
@@ -394,7 +414,7 @@ export function ClassesPage({ classes, setClasses, staff }: ClassesPageProps) {
                     const values = typeof e.target.value === 'string'
                       ? e.target.value.split(',').map(v => v === 'SP' ? v : Number(v))
                       : e.target.value;
-                    setSelectedYears(values as (number | string)[]);
+                    handleYearLevelChange(values as (number | string)[]);
                   },
                   open: yearLevelSelectOpen,
                   onOpen: () => setYearLevelSelectOpen(true),
@@ -416,12 +436,12 @@ export function ClassesPage({ classes, setClasses, staff }: ClassesPageProps) {
                 sx={{ mt: 0 }}
               >
                 {yearLevels.map((year) => (
-                  <MenuItem key={year} value={year}>
+                  <MenuItem key={year} value={year} disabled={staffParticipantsSelected}>
                     <Checkbox checked={selectedYears.includes(year)} />
                     <ListItemText primary={`Year ${year}`} />
                   </MenuItem>
                 ))}
-                <MenuItem key="sp" value="SP">
+                <MenuItem key="sp" value="SP" disabled={selectedYears.some(y => y !== 'SP')}>
                   <Checkbox checked={selectedYears.includes('SP')} />
                   <ListItemText primary="Staff Participants" />
                 </MenuItem>
@@ -491,10 +511,9 @@ export function ClassesPage({ classes, setClasses, staff }: ClassesPageProps) {
                 }}
                 size="small"
                 error={!staffParticipantsSelected && !!fieldErrors.teacher}
-                helperText={!staffParticipantsSelected ? fieldErrors.teacher : ''}
+                helperText={!staffParticipantsSelected ? fieldErrors.teacher : 'Optional for staff participant classes'}
                 value={selectedTeachers}
                 sx={{ mt: 0 }}
-                disabled={staffParticipantsSelected}
                 required={!staffParticipantsSelected}
               >
                 <MenuItem disabled value="">

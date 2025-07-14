@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Typography, Paper, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, InputAdornment, Snackbar, Alert, Tabs, Tab, IconButton, Tooltip } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -8,20 +9,20 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { buttonStyles } from '../../styles/buttonStyles';
 
 export interface Equipment {
-  id: number;
+  id: string;
   name: string;
   type: string;
   code: string;
   location: string;
-  status: string;
+  photo?: string;
 }
 
 const equipmentTypes = ['Tool', 'Machine', 'PPE', 'Material', 'Other'];
-const equipmentStatus = ['Available', 'In Use', 'Maintenance', 'Out of Order'];
 
 const API_BASE = 'http://localhost:3001';
 
 export default function EquipmentPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = React.useState('');
   const [equipment, setEquipment] = React.useState<Equipment[]>([]);
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -31,7 +32,6 @@ export default function EquipmentPage() {
     type: '',
     code: '',
     location: '',
-    status: '',
   });
   const [fieldError, setFieldError] = React.useState('');
   const [snackbarOpen, setSnackbarOpen] = React.useState(false);
@@ -40,6 +40,8 @@ export default function EquipmentPage() {
   const [newRoom, setNewRoom] = React.useState('');
   const [roomError, setRoomError] = React.useState('');
   const [selectedRoomTab, setSelectedRoomTab] = React.useState(0);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [equipmentToDelete, setEquipmentToDelete] = React.useState<Equipment | null>(null);
 
   // Fetch equipment and rooms on mount
   React.useEffect(() => {
@@ -56,8 +58,8 @@ export default function EquipmentPage() {
 
   const handleAddEditEquipment = () => {
     setFieldError('');
-    const { name, type, code, location, status } = newEquipment;
-    if (!name.trim() || !type || !location.trim() || !status) {
+    const { name, type, code, location } = newEquipment;
+    if (!name.trim() || !type || !location.trim()) {
       setFieldError('All fields except Serial Number are required.');
       return;
     }
@@ -69,20 +71,30 @@ export default function EquipmentPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ equipment: updated })
+      }).then(() => {
+        window.location.reload();
       });
     } else {
       // Add
-      const newEq = { ...newEquipment, id: Date.now() + Math.floor(Math.random() * 10000) };
+      const generateEquipmentId = (name, location) => {
+        const nameInitials = name.split(' ').map(word => word[0]).join('').toUpperCase();
+        const locationInitial = location ? location[0].toUpperCase() : '';
+        const randomDigits = Math.floor(10000 + Math.random() * 90000).toString();
+        return `${nameInitials}${locationInitial}${randomDigits}`;
+      }
+      const newEq = { ...newEquipment, id: generateEquipmentId(newEquipment.name, newEquipment.location) };
       const updated = [...equipment, newEq];
       setEquipment(updated);
       fetch(`${API_BASE}/equipment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ equipment: updated })
+      }).then(() => {
+        window.location.reload();
       });
     }
     setDialogOpen(false);
-    setNewEquipment({ name: '', type: '', code: '', location: '', status: '' });
+    setNewEquipment({ name: '', type: '', code: '', location: '' });
     setEditIndex(null);
     setSnackbarOpen(true);
   };
@@ -96,15 +108,13 @@ export default function EquipmentPage() {
 
   const handleDeleteClick = (idx: number) => {
     const eqToDelete = equipment[idx];
-    const updated = equipment.filter((_, i) => i !== idx);
-    setEquipment(updated);
-    fetch(`${API_BASE}/equipment/${eqToDelete.id}`, { method: 'DELETE' })
-      .then(() => setSnackbarOpen(true));
+    setEquipmentToDelete(eqToDelete);
+    setDeleteDialogOpen(true);
   };
 
   const handleDialogClose = () => {
     setDialogOpen(false);
-    setNewEquipment({ name: '', type: '', code: '', location: '', status: '' });
+    setNewEquipment({ name: '', type: '', code: '', location: '' });
     setEditIndex(null);
     setFieldError('');
   };
@@ -133,11 +143,22 @@ export default function EquipmentPage() {
     setSelectedRoomTab(rooms.length + 1); // select new room tab
   };
 
+  const handleDeleteConfirmation = () => {
+    if (equipmentToDelete) {
+      const updated = equipment.filter((_, i) => i !== equipment.findIndex(e => e.id === equipmentToDelete.id));
+      setEquipment(updated);
+      fetch(`${API_BASE}/equipment/${equipmentToDelete.id}`, { method: 'DELETE' })
+        .then(() => setSnackbarOpen(true));
+    }
+    setDeleteDialogOpen(false);
+    setEquipmentToDelete(null);
+  };
+
   return (
     <Layout
       title="Equipment"
       breadcrumbs={[
-        <Typography key="equipment" color="text.primary" sx={{ fontWeight: 600, fontSize: 18, fontFamily: 'Montserrat, sans-serif' }}>Equipment</Typography>
+        <Typography key="equipment" color="text.primary" sx={{ fontWeight: 600, fontSize: 18 }}>Equipment</Typography>
       ]}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', position: 'fixed', top: 64, left: 240, right: 0, zIndex: 1099 }}>
@@ -161,7 +182,7 @@ export default function EquipmentPage() {
             <Button
               {...buttonStyles.primary}
               startIcon={<AddIcon />}
-              onClick={() => { setDialogOpen(true); setEditIndex(null); setNewEquipment({ name: '', type: '', code: '', location: '', status: '' }); setFieldError(''); }}
+              onClick={() => { setDialogOpen(true); setEditIndex(null); setNewEquipment({ name: '', type: '', code: '', location: '' }); setFieldError(''); }}
             >
               Add Equipment
             </Button>
@@ -215,26 +236,50 @@ export default function EquipmentPage() {
                                 border: '1px solid #e0e7ff',
                                 boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
                                 transition: 'all 0.2s ease-in-out',
+                                cursor: 'pointer',
                                 '&:hover': {
                                   boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
-                                  transform: 'translateY(-1px)'
+                                  transform: 'translateY(-1px)',
+                                  bgcolor: '#f8fafc'
                                 }
-                              }}>
-                                <Box>
-                                  <Typography sx={{ fontWeight: 600, color: '#374151', fontSize: 15 }}>{eq.name}</Typography>
-                                  <Typography sx={{ fontSize: 13, color: '#6b7280' }}>
-                                    Type: {eq.type} {eq.code ? `| Serial Number: ${eq.code}` : ''} | Status: {eq.status}
-                                  </Typography>
+                              }}
+                              onClick={() => navigate(`/equipment/${eq.id}`)}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                                  {eq.photo ? (
+                                    <img src={`${API_BASE}${eq.photo}`} alt={eq.name} style={{ width: 56, height: 56, borderRadius: '8px', objectFit: 'cover' }} />
+                                  ) : (
+                                    <Box sx={{ width: 56, height: 56, borderRadius: '8px', bgcolor: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                      {/* You can put an icon here if you want */}
+                                    </Box>
+                                  )}
+                                  <Box>
+                                    <Typography sx={{ fontWeight: 600, color: '#374151', fontSize: 15 }}>{eq.name}</Typography>
+                                    <Typography sx={{ fontSize: 13, color: '#6b7280' }}>
+                                      Type: {eq.type} {eq.code ? `| Serial Number: ${eq.code}` : ''}
+                                    </Typography>
+                                  </Box>
                                 </Box>
                                 <Box sx={{ display: 'flex', gap: 1 }}>
                                   <Tooltip title="Edit" arrow>
-                                    <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={() => handleEditClick(equipment.findIndex(e => e.id === eq.id))}>
-                                      <EditIcon />
+                                    <IconButton 
+                                      size="small" 
+                                      sx={{ color: '#9ca3af' }} 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditClick(equipment.findIndex(e => e.id === eq.id));
+                                      }}>
+                                      <EditIcon sx={{ fontSize: 20 }}/>
                                     </IconButton>
                                   </Tooltip>
                                   <Tooltip title="Delete" arrow>
-                                    <IconButton size="small" sx={{ color: '#e57373' }} onClick={() => handleDeleteClick(equipment.findIndex(e => e.id === eq.id))}>
-                                      <DeleteIcon />
+                                    <IconButton 
+                                      size="small" 
+                                      sx={{ color: '#e57373' }} 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteClick(equipment.findIndex(e => e.id === eq.id));
+                                      }}>
+                                      <DeleteIcon sx={{ fontSize: 20 }}/>
                                     </IconButton>
                                   </Tooltip>
                                 </Box>
@@ -243,14 +288,16 @@ export default function EquipmentPage() {
                           )}
                         </Box>
                       </Paper>
-                    );
+                    )
                   })
                   .filter(Boolean)
               ) : (
-                // Specific room tab
+                // Single Room View
                 (() => {
                   const room = rooms[selectedRoomTab - 1];
                   const roomEquipment = searchedEquipment.filter(eq => eq.location === room);
+                  if (!room) return null;
+
                   return (
                     <Paper elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: '#f8fafc', border: '1px solid #e0e7ff' }}>
                       <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#374151' }}>{room}</Typography>
@@ -269,26 +316,50 @@ export default function EquipmentPage() {
                               border: '1px solid #e0e7ff',
                               boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
                               transition: 'all 0.2s ease-in-out',
+                              cursor: 'pointer',
                               '&:hover': {
                                 boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
-                                transform: 'translateY(-1px)'
+                                transform: 'translateY(-1px)',
+                                bgcolor: '#f8fafc'
                               }
-                            }}>
-                              <Box>
-                                <Typography sx={{ fontWeight: 600, color: '#374151', fontSize: 15 }}>{eq.name}</Typography>
-                                <Typography sx={{ fontSize: 13, color: '#6b7280' }}>
-                                  Type: {eq.type} {eq.code ? `| Serial Number: ${eq.code}` : ''} | Status: {eq.status}
-                                </Typography>
+                            }}
+                            onClick={() => navigate(`/equipment/${eq.id}`)}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                                {eq.photo ? (
+                                  <img src={`${API_BASE}${eq.photo}`} alt={eq.name} style={{ width: 56, height: 56, borderRadius: '8px', objectFit: 'cover' }} />
+                                ) : (
+                                  <Box sx={{ width: 56, height: 56, borderRadius: '8px', bgcolor: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    {/* You can put an icon here if you want */}
+                                  </Box>
+                                )}
+                                <Box>
+                                  <Typography sx={{ fontWeight: 600, color: '#374151', fontSize: 15 }}>{eq.name}</Typography>
+                                  <Typography sx={{ fontSize: 13, color: '#6b7280' }}>
+                                    Type: {eq.type} {eq.code ? `| Serial Number: ${eq.code}` : ''}
+                                  </Typography>
+                                </Box>
                               </Box>
                               <Box sx={{ display: 'flex', gap: 1 }}>
                                 <Tooltip title="Edit" arrow>
-                                  <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={() => handleEditClick(equipment.findIndex(e => e.id === eq.id))}>
-                                    <EditIcon />
+                                  <IconButton 
+                                    size="small" 
+                                    sx={{ color: '#9ca3af' }} 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditClick(equipment.findIndex(e => e.id === eq.id));
+                                    }}>
+                                    <EditIcon sx={{ fontSize: 20 }}/>
                                   </IconButton>
                                 </Tooltip>
                                 <Tooltip title="Delete" arrow>
-                                  <IconButton size="small" sx={{ color: '#e57373' }} onClick={() => handleDeleteClick(equipment.findIndex(e => e.id === eq.id))}>
-                                    <DeleteIcon />
+                                  <IconButton 
+                                    size="small" 
+                                    sx={{ color: '#e57373' }} 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteClick(equipment.findIndex(e => e.id === eq.id));
+                                    }}>
+                                    <DeleteIcon sx={{ fontSize: 20 }}/>
                                   </IconButton>
                                 </Tooltip>
                               </Box>
@@ -303,8 +374,8 @@ export default function EquipmentPage() {
             )}
           </Box>
         </Box>
-        {/* Add/Edit Equipment Dialog */}
-        <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="xs" fullWidth>
+        {/* Dialogs and Snackbars */}
+        <Dialog open={dialogOpen} onClose={handleDialogClose} PaperProps={{ sx: { borderRadius: 3, p: 1, minWidth: 420 } }}>
           <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>{editIndex !== null ? 'Edit Equipment' : 'Add Equipment'}</DialogTitle>
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
@@ -349,18 +420,6 @@ export default function EquipmentPage() {
                 <MenuItem key={room} value={room}>{room}</MenuItem>
               ))}
             </TextField>
-            <TextField
-              label="Status"
-              value={newEquipment.status}
-              onChange={e => setNewEquipment(s => ({ ...s, status: e.target.value }))}
-              select
-              fullWidth
-              size="small"
-            >
-              {equipmentStatus.map(s => (
-                <MenuItem key={s} value={s}>{s}</MenuItem>
-              ))}
-            </TextField>
             {fieldError && <Typography sx={{ color: 'error.main', fontSize: 13 }}>{fieldError}</Typography>}
           </DialogContent>
           <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
@@ -392,6 +451,31 @@ export default function EquipmentPage() {
             </Button>
             <Button {...buttonStyles.primary} onClick={handleAddRoom}>
               Add Room
+            </Button>
+          </DialogActions>
+        </Dialog>
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} maxWidth="xs" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>Delete Equipment</DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#374151' }}>
+              Are you sure you want to delete this equipment?
+            </Typography>
+            {equipmentToDelete && (
+              <Typography sx={{ fontSize: 14, color: '#6b7280', fontStyle: 'italic' }}>
+                Equipment: {equipmentToDelete.name} ({equipmentToDelete.type})
+              </Typography>
+            )}
+            <Typography sx={{ fontSize: 14, color: '#6b7280' }}>
+              This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button {...buttonStyles.cancel} onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button {...buttonStyles.danger} onClick={handleDeleteConfirmation}>
+              Delete
             </Button>
           </DialogActions>
         </Dialog>

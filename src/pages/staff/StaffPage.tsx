@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Box, Typography, Paper, Tabs, Tab, Tooltip, IconButton, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, InputAdornment } from '@mui/material';
+import { Box, Typography, Paper, Tabs, Tab, Tooltip, IconButton, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, InputAdornment, Link } from '@mui/material';
 import { Layout } from '../../components/layout/Layout';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LockResetIcon from '@mui/icons-material/LockReset';
@@ -9,6 +9,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import * as XLSX from 'xlsx';
 import DownloadIcon from '@mui/icons-material/Download';
 import { buttonStyles } from '../../styles/buttonStyles';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 // Staff type
 export interface Staff {
@@ -16,6 +17,10 @@ export interface Staff {
   name: string;
   role: string;
   userID: string;
+  email?: string;
+  progress?: {
+    [key: string]: number | { progress: number; competent?: boolean };
+  };
 }
 
 const staffRoles = ['Teaching Staff', 'Support Staff', 'Maintenance Staff'];
@@ -26,6 +31,7 @@ export default function StaffPage() {
   const [tab, setTab] = React.useState(0);
   const [search, setSearch] = React.useState('');
   const [staff, setStaff] = React.useState<Staff[]>([]);
+  const navigate = useNavigate();
   const [addDialogOpen, setAddDialogOpen] = React.useState(false);
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = React.useState(false);
@@ -35,6 +41,7 @@ export default function StaffPage() {
     surname: '',
     role: '',
     userID: '',
+    email: '',
   });
   const [editStaff, setEditStaff] = React.useState<{
     id: number | null;
@@ -42,12 +49,14 @@ export default function StaffPage() {
     surname: string;
     role: string;
     userID: string;
+    email: string;
   }>({
     id: null,
     firstName: '',
     surname: '',
     role: '',
     userID: '',
+    email: '',
   });
   const [fieldError, setFieldError] = React.useState('');
   const [editFieldError, setEditFieldError] = React.useState('');
@@ -111,7 +120,7 @@ export default function StaffPage() {
 
   const handleAddStaff = () => {
     setFieldError('');
-    const { firstName, surname, role, userID } = newStaff;
+    const { firstName, surname, role, userID, email } = newStaff;
     if (!firstName.trim() || !surname.trim() || !role || !userID.trim()) {
       setFieldError('All fields are required.');
       return;
@@ -126,6 +135,7 @@ export default function StaffPage() {
       name,
       role,
       userID: userID.trim(),
+      email: email.trim(),
     };
     // POST to backend
     fetch(`${API_BASE}/staff`, {
@@ -140,7 +150,7 @@ export default function StaffPage() {
             .then(res => res.json())
             .then(data => setStaff(data));
           setAddDialogOpen(false);
-          setNewStaff({ firstName: '', surname: '', role: '', userID: '' });
+          setNewStaff({ firstName: '', surname: '', role: '', userID: '', email: '' });
           setUserIDManuallyEdited(false);
           setFieldError('');
         } else {
@@ -157,6 +167,7 @@ export default function StaffPage() {
       surname: surnameParts.join(' '),
       role: staffMember.role,
       userID: staffMember.userID,
+      email: staffMember.email || '',
     });
     setEditFieldError('');
     setEditDialogOpen(true);
@@ -164,7 +175,7 @@ export default function StaffPage() {
 
   const handleEditStaff = () => {
     setEditFieldError('');
-    const { id, firstName, surname, role, userID } = editStaff;
+    const { id, firstName, surname, role, userID, email } = editStaff;
     if (!firstName.trim() || !surname.trim() || !role || !userID.trim()) {
       setEditFieldError('All fields are required.');
       return;
@@ -178,8 +189,26 @@ export default function StaffPage() {
       return;
     }
     const name = `${firstName.trim()} ${surname.trim()}`;
-    setStaff(prev => prev.map(s => s.id === id ? { ...s, name, role, userID: userID.trim() } : s));
-    setEditDialogOpen(false);
+    
+    fetch(`${API_BASE}/staff/${userID.trim()}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, role, userID: userID.trim(), email: email.trim() }),
+    })
+    .then(res => res.json())
+    .then(result => {
+        if (result.success) {
+            fetch(`${API_BASE}/staff`)
+                .then(res => res.json())
+                .then(data => setStaff(data));
+            setEditDialogOpen(false);
+        } else {
+            setEditFieldError(result.message || 'Failed to update staff member.');
+        }
+    })
+    .catch(() => {
+        setEditFieldError('Failed to update staff member.');
+    });
   };
 
   const handleArchiveClick = (staffMember: Staff) => {
@@ -190,7 +219,7 @@ export default function StaffPage() {
   const handleArchiveStaff = () => {
     if (selectedStaff) {
       setArchiveError('');
-      fetch(`${API_BASE}/staff/${selectedStaff.id}`, {
+      fetch(`${API_BASE}/staff/${selectedStaff.userID}`, {
         method: 'DELETE',
       })
         .then(res => res.json())
@@ -287,6 +316,7 @@ export default function StaffPage() {
           const surname = row['Surname']?.toString().trim();
           const userID = row['User ID']?.toString().trim();
           const role = row['Staff Role']?.toString().trim();
+          const email = row['Email']?.toString().trim();
           
           if (!firstName || !surname || !userID || !role) {
             const errorMsg = `Row ${i + 2}: Missing required field(s).`;
@@ -314,6 +344,7 @@ export default function StaffPage() {
             name: `${firstName} ${surname}`,
             role,
             userID,
+            email: email || '',
           });
           added++;
         });
@@ -370,10 +401,10 @@ export default function StaffPage() {
   const handleDownloadTemplate = () => {
     const ws = XLSX.utils.aoa_to_sheet([
       ['INSTRUCTIONS: Please enter one of: Teaching Staff, Support Staff, Maintenance Staff in the Staff Role column.'],
-      ['First Name', 'Surname', 'User ID', 'Staff Role'],
-      ['', '', '', 'Teaching Staff'],
-      ['', '', '', 'Support Staff'],
-      ['', '', '', 'Maintenance Staff'],
+      ['First Name', 'Surname', 'User ID', 'Staff Role', 'Email'],
+      ['', '', '', 'Teaching Staff', ''],
+      ['', '', '', 'Support Staff', ''],
+      ['', '', '', 'Maintenance Staff', ''],
     ]);
     // Add data validation for Staff Role column (Excel validation, no dropdown) for D3:D100
     if (!ws['!dataValidation']) ws['!dataValidation'] = [];
@@ -458,6 +489,7 @@ export default function StaffPage() {
                       {group.staff.map(staffMember => (
                         <Box
                           key={staffMember.id}
+                          onClick={() => navigate(`/staff/${staffMember.userID}`)}
                           sx={{
                             display: 'flex',
                             alignItems: 'center',
@@ -467,10 +499,12 @@ export default function StaffPage() {
                             bgcolor: '#fff',
                             border: '1px solid #e0e7ff',
                             boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
+                            cursor: 'pointer',
                             transition: 'all 0.2s ease-in-out',
                             '&:hover': {
                               boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
-                              transform: 'translateY(-1px)'
+                              transform: 'translateY(-1px)',
+                              borderColor: '#4ecdc4'
                             }
                           }}
                         >
@@ -479,20 +513,25 @@ export default function StaffPage() {
                             <Typography sx={{ fontSize: 13, color: '#888' }}>
                               User ID: {staffMember.userID}
                             </Typography>
+                            {staffMember.email && (
+                              <Typography sx={{ fontSize: 13, color: '#888' }}>
+                                Email: {staffMember.email}
+                              </Typography>
+                            )}
                           </Box>
                           <Box sx={{ display: 'flex', gap: 1 }}>
                             <Tooltip title="Reset staff password" arrow>
-                              <IconButton size="small" sx={{ color: '#4ecdc4' }}>
+                              <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={(e) => e.stopPropagation()}>
                                 <LockResetIcon />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Edit staff details" arrow>
-                              <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={() => handleEditClick(staffMember)}>
+                              <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={(e) => { e.stopPropagation(); handleEditClick(staffMember); }}>
                                 <EditIcon color="inherit" />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Remove / archive staff" arrow>
-                              <IconButton size="small" sx={{ color: '#e57373' }} onClick={() => handleArchiveClick(staffMember)}>
+                              <IconButton size="small" sx={{ color: '#e57373' }} onClick={(e) => { e.stopPropagation(); handleArchiveClick(staffMember); }}>
                                 <DeleteIcon />
                               </IconButton>
                             </Tooltip>
@@ -513,6 +552,7 @@ export default function StaffPage() {
                       {staffByRole[tab - 1].staff.map(staffMember => (
                         <Box
                           key={staffMember.id}
+                          onClick={() => navigate(`/staff/${staffMember.userID}`)}
                           sx={{
                             display: 'flex',
                             alignItems: 'center',
@@ -522,10 +562,12 @@ export default function StaffPage() {
                             bgcolor: '#fff',
                             border: '1px solid #e0e7ff',
                             boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
+                            cursor: 'pointer',
                             transition: 'all 0.2s ease-in-out',
                             '&:hover': {
                               boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
-                              transform: 'translateY(-1px)'
+                              transform: 'translateY(-1px)',
+                              borderColor: '#4ecdc4'
                             }
                           }}
                         >
@@ -534,20 +576,25 @@ export default function StaffPage() {
                             <Typography sx={{ fontSize: 13, color: '#888' }}>
                               User ID: {staffMember.userID}
                             </Typography>
+                            {staffMember.email && (
+                              <Typography sx={{ fontSize: 13, color: '#888' }}>
+                                Email: {staffMember.email}
+                              </Typography>
+                            )}
                           </Box>
                           <Box sx={{ display: 'flex', gap: 1 }}>
                             <Tooltip title="Reset staff password" arrow>
-                              <IconButton size="small" sx={{ color: '#4ecdc4' }}>
+                              <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={(e) => e.stopPropagation()}>
                                 <LockResetIcon />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Edit staff details" arrow>
-                              <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={() => handleEditClick(staffMember)}>
+                              <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={(e) => { e.stopPropagation(); handleEditClick(staffMember); }}>
                                 <EditIcon color="inherit" />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Remove / archive staff" arrow>
-                              <IconButton size="small" sx={{ color: '#e57373' }} onClick={() => handleArchiveClick(staffMember)}>
+                              <IconButton size="small" sx={{ color: '#e57373' }} onClick={(e) => { e.stopPropagation(); handleArchiveClick(staffMember); }}>
                                 <DeleteIcon />
                               </IconButton>
                             </Tooltip>
@@ -610,6 +657,14 @@ export default function StaffPage() {
                 <MenuItem key={r} value={r}>{r}</MenuItem>
               ))}
             </TextField>
+            <TextField
+              label="Email"
+              value={newStaff.email}
+              onChange={e => setNewStaff(s => ({ ...s, email: e.target.value }))}
+              fullWidth
+              size="small"
+              type="email"
+            />
             {fieldError && <Typography sx={{ color: 'error.main', fontSize: 13 }}>{fieldError}</Typography>}
           </DialogContent>
           <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
@@ -665,6 +720,14 @@ export default function StaffPage() {
                 <MenuItem key={r} value={r}>{r}</MenuItem>
               ))}
             </TextField>
+            <TextField
+              label="Email"
+              value={editStaff.email}
+              onChange={e => setEditStaff(s => ({ ...s, email: e.target.value }))}
+              fullWidth
+              size="small"
+              type="email"
+            />
             {editFieldError && <Typography sx={{ color: 'error.main', fontSize: 13 }}>{editFieldError}</Typography>}
           </DialogContent>
           <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>

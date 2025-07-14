@@ -2,11 +2,86 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const bodyParser = require('body-parser');
+const multer = require('multer');
+const path = require('path');
 const app = express();
 const PORT = 3001;
 
 app.use(cors());
 app.use(bodyParser.json());
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = 'uploads/equipment-photos';
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'equipment-' + req.params.id + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 25 * 1024 * 1024 // 25MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  }
+});
+
+// Configure multer for manual uploads
+const manualStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = 'uploads/equipment-manuals';
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    cb(null, 'manual-' + req.params.id + '-' + uniqueSuffix + '-' + sanitizedName);
+  }
+});
+
+const uploadManual = multer({ 
+  storage: manualStorage,
+  limits: {
+    fileSize: 25 * 1024 * 1024 // 25MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Accept PDF and Word documents
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF and Word documents are allowed'), false);
+    }
+  }
+});
+
+// Serve uploaded files statically
+app.use('/uploads', express.static('uploads'));
 
 function loadData() {
   let data = { students: [], staff: [], classes: [], equipment: [], rooms: [], lessons: [] };
@@ -539,6 +614,7 @@ app.get('/students', (req, res) => {
   const data = loadData();
   res.json(data.students);
 });
+
 app.post('/students', (req, res) => {
   const data = loadData();
   const students = req.body.students;
@@ -556,6 +632,34 @@ app.get('/staff', (req, res) => {
   const data = loadData();
   res.json(data.staff);
 });
+
+app.get('/staff/:userID', (req, res) => {
+  const data = loadData();
+  const { userID } = req.params;
+  const staffMember = data.staff.find(member => member.userID === userID);
+  if (!staffMember) {
+    return res.status(404).json({ error: 'Staff member not found' });
+  }
+  res.json(staffMember);
+});
+
+app.put('/staff/:userID', (req, res) => {
+  const { userID } = req.params;
+  const { name, role, email } = req.body;
+  const data = loadData();
+  const staffIndex = data.staff.findIndex(s => s.userID === userID);
+
+  if (staffIndex !== -1) {
+    if (name) data.staff[staffIndex].name = name;
+    if (role) data.staff[staffIndex].role = role;
+    if (email !== undefined) data.staff[staffIndex].email = email;
+    saveData(data);
+    res.json({ success: true, message: 'Staff member updated successfully.' });
+  } else {
+    res.status(404).json({ success: false, message: 'Staff member not found.' });
+  }
+});
+
 app.post('/staff', (req, res) => {
   const data = loadData();
   const staff = req.body.staff;
@@ -671,11 +775,11 @@ app.delete('/students/:userID', (req, res) => {
   res.json({ success: true });
 });
 
-app.delete('/staff/:id', (req, res) => {
+app.delete('/staff/:userID', (req, res) => {
   const data = loadData();
-  const { id } = req.params;
+  const { userID } = req.params;
   // Find the staff member
-  const staffMember = data.staff.find(member => String(member.id) === String(id));
+  const staffMember = data.staff.find(member => member.userID === userID);
   if (!staffMember) {
     return res.status(404).json({ success: false, message: 'Staff member not found' });
   }
@@ -685,7 +789,7 @@ app.delete('/staff/:id', (req, res) => {
     return res.status(400).json({ success: false, message: 'Cannot delete staff member assigned to a class.' });
   }
   const initialLength = data.staff.length;
-  data.staff = data.staff.filter(member => String(member.id) !== String(id));
+  data.staff = data.staff.filter(member => member.userID !== userID);
   if (data.staff.length === initialLength) {
     return res.status(404).json({ success: false, message: 'Staff member not found' });
   }
@@ -705,6 +809,31 @@ app.post('/equipment', (req, res) => {
   saveData(data);
   res.json({ success: true, equipment: data.equipment });
 });
+app.put('/equipment/:id', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  const { name, type, code, location } = req.body;
+
+  if (!data.equipment) data.equipment = [];
+
+  const equipmentIndex = data.equipment.findIndex(eq => String(eq.id) === String(id));
+
+  if (equipmentIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Equipment not found' });
+  }
+
+  // Update the equipment item
+  data.equipment[equipmentIndex] = {
+    ...data.equipment[equipmentIndex],
+    name,
+    type,
+    code,
+    location,
+  };
+
+  saveData(data);
+  res.json({ success: true, equipment: data.equipment[equipmentIndex] });
+});
 app.delete('/equipment/:id', (req, res) => {
   const data = loadData();
   if (!data.equipment) data.equipment = [];
@@ -714,6 +843,244 @@ app.delete('/equipment/:id', (req, res) => {
   saveData(data);
   res.json({ success: true, deleted: initialLength - data.equipment.length });
 });
+
+// Equipment photo upload endpoint
+app.post('/equipment/:id/photo', upload.single('photo'), (req, res) => {
+  try {
+    const data = loadData();
+    const { id } = req.params;
+    
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No photo file provided' });
+    }
+    
+    // Find the equipment
+    const equipment = data.equipment.find(eq => String(eq.id) === String(id));
+    if (!equipment) {
+      return res.status(404).json({ success: false, message: 'Equipment not found' });
+    }
+    
+    // Remove old photo file if it exists
+    if (equipment.photo) {
+      const oldPhotoPath = path.join(__dirname, equipment.photo.replace('/uploads/', 'uploads/'));
+      if (fs.existsSync(oldPhotoPath)) {
+        fs.unlinkSync(oldPhotoPath);
+      }
+    }
+    
+    // Update equipment with new photo path
+    equipment.photo = `/uploads/equipment-photos/${req.file.filename}`;
+    
+    saveData(data);
+    res.json({ success: true, photo: equipment.photo });
+  } catch (error) {
+    console.error('Error uploading photo:', error);
+    res.status(500).json({ success: false, message: 'Failed to upload photo' });
+  }
+});
+
+// Equipment photo delete endpoint
+app.delete('/equipment/:id/photo', (req, res) => {
+  try {
+    const data = loadData();
+    const { id } = req.params;
+    
+    // Find the equipment
+    const equipment = data.equipment.find(eq => String(eq.id) === String(id));
+    if (!equipment) {
+      return res.status(404).json({ success: false, message: 'Equipment not found' });
+    }
+    
+    // Remove photo file if it exists
+    if (equipment.photo) {
+      const photoPath = path.join(__dirname, equipment.photo.replace('/uploads/', 'uploads/'));
+      if (fs.existsSync(photoPath)) {
+        fs.unlinkSync(photoPath);
+      }
+    }
+    
+    // Remove photo reference from equipment
+    delete equipment.photo;
+    
+    saveData(data);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting photo:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete photo' });
+  }
+});
+
+// Equipment notes endpoints
+app.get('/equipment/:id/notes', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  
+  if (!data.equipmentNotes) data.equipmentNotes = {};
+  
+  const notes = data.equipmentNotes[id] || [];
+  res.json(notes);
+});
+
+app.post('/equipment/:id/notes', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  const { title, content } = req.body;
+  
+  if (!title || !content) {
+    return res.status(400).json({ success: false, message: 'Title and content are required' });
+  }
+  
+  if (!data.equipmentNotes) data.equipmentNotes = {};
+  if (!data.equipmentNotes[id]) data.equipmentNotes[id] = [];
+  
+  const newNote = {
+    id: Date.now().toString(),
+    title: title.trim(),
+    content: content.trim(),
+    createdAt: new Date().toISOString(),
+  };
+  
+  data.equipmentNotes[id].push(newNote);
+  saveData(data);
+  
+  res.json({ success: true, note: newNote });
+});
+
+app.put('/equipment/:id/notes/:noteId', (req, res) => {
+  const data = loadData();
+  const { id, noteId } = req.params;
+  const { title, content } = req.body;
+  
+  if (!title || !content) {
+    return res.status(400).json({ success: false, message: 'Title and content are required' });
+  }
+  
+  if (!data.equipmentNotes || !data.equipmentNotes[id]) {
+    return res.status(404).json({ success: false, message: 'Notes not found' });
+  }
+  
+  const noteIndex = data.equipmentNotes[id].findIndex(note => note.id === noteId);
+  if (noteIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Note not found' });
+  }
+  
+  data.equipmentNotes[id][noteIndex] = {
+    ...data.equipmentNotes[id][noteIndex],
+    title: title.trim(),
+    content: content.trim(),
+  };
+  
+  saveData(data);
+  res.json({ success: true, note: data.equipmentNotes[id][noteIndex] });
+});
+
+app.delete('/equipment/:id/notes/:noteId', (req, res) => {
+  const data = loadData();
+  const { id, noteId } = req.params;
+  
+  if (!data.equipmentNotes || !data.equipmentNotes[id]) {
+    return res.status(404).json({ success: false, message: 'Notes not found' });
+  }
+  
+  const initialLength = data.equipmentNotes[id].length;
+  data.equipmentNotes[id] = data.equipmentNotes[id].filter(note => note.id !== noteId);
+  
+  if (data.equipmentNotes[id].length === initialLength) {
+    return res.status(404).json({ success: false, message: 'Note not found' });
+  }
+  
+  saveData(data);
+  res.json({ success: true });
+});
+
+// Equipment manuals endpoints
+app.get('/equipment/:id/manuals', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  
+  if (!data.equipmentManuals) data.equipmentManuals = {};
+  
+  const manuals = data.equipmentManuals[id] || [];
+  res.json(manuals);
+});
+
+app.post('/equipment/:id/manuals', uploadManual.single('manual'), (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  const { title, url, type } = req.body;
+  
+  if (!title) {
+    return res.status(400).json({ success: false, message: 'Title is required' });
+  }
+  
+  if (!data.equipmentManuals) data.equipmentManuals = {};
+  if (!data.equipmentManuals[id]) data.equipmentManuals[id] = [];
+  
+  let newManual;
+  
+  if (type === 'link' && url) {
+    // Handle link type
+    newManual = {
+      id: Date.now().toString(),
+      title: title.trim(),
+      type: 'link',
+      url: url.trim(),
+      uploadedAt: new Date().toISOString(),
+    };
+  } else if (req.file) {
+    // Handle file upload
+    newManual = {
+      id: Date.now().toString(),
+      title: title.trim(),
+      type: 'file',
+      filename: req.file.originalname,
+      url: `/uploads/equipment-manuals/${req.file.filename}`,
+      uploadedAt: new Date().toISOString(),
+    };
+  } else {
+    return res.status(400).json({ success: false, message: 'Either file or URL is required' });
+  }
+  
+  data.equipmentManuals[id].push(newManual);
+  saveData(data);
+  
+  res.json({ success: true, manual: newManual });
+});
+
+app.delete('/equipment/:id/manuals/:manualId', (req, res) => {
+  const data = loadData();
+  const { id, manualId } = req.params;
+  
+  if (!data.equipmentManuals || !data.equipmentManuals[id]) {
+    return res.status(404).json({ success: false, message: 'Manuals not found' });
+  }
+  
+  const manualIndex = data.equipmentManuals[id].findIndex(manual => manual.id === manualId);
+  if (manualIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Manual not found' });
+  }
+  
+  const manual = data.equipmentManuals[id][manualIndex];
+  
+  // If it's a file, delete the physical file
+  if (manual.type === 'file' && manual.url) {
+    const filePath = path.join(__dirname, manual.url);
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (error) {
+      console.error('Error deleting manual file:', error);
+    }
+  }
+  
+  // Remove from data
+  data.equipmentManuals[id].splice(manualIndex, 1);
+  saveData(data);
+  
+  res.json({ success: true });
+});
+
 // Rooms endpoints
 app.get('/rooms', (req, res) => {
   const data = loadData();
@@ -787,6 +1154,39 @@ app.post('/classes/:classId/lessons', (req, res) => {
   }
 });
 
+// Add endpoint for updating class due dates
+app.post('/classes/:classId/due-dates', (req, res) => {
+  try {
+    const data = loadData();
+    const { classId } = req.params;
+    const { lessonDueDates } = req.body;
+    
+    console.log('Updating due dates for class:', classId);
+    console.log('Lesson due dates:', lessonDueDates);
+    
+    // Find the class by either id or classCode
+    const cls = data.classes.find(c => c.id === classId || c.classCode === classId);
+    
+    if (!cls) {
+      console.log('Class not found:', classId);
+      return res.status(404).json({ error: 'Class not found' });
+    }
+    
+    // Update the lesson due dates
+    cls.lessonDueDates = lessonDueDates;
+    
+    console.log('Updated class:', cls);
+    
+    // Save the data
+    saveData(data);
+    
+    res.json({ success: true, class: cls });
+  } catch (error) {
+    console.error('Error updating class due dates:', error);
+    res.status(500).json({ error: 'Failed to update class due dates' });
+  }
+});
+
 // Add PUT endpoint for editing lessons
 app.put('/lessons/:id', (req, res) => {
   const data = loadData();
@@ -823,6 +1223,50 @@ app.post('/students/:userID/progress', (req, res) => {
       return res.status(404).json({ error: 'Student not found' });
     }
 
+    // Update the student's progress with date tracking
+    const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    // Process each lesson in the progress object
+    Object.keys(progress).forEach(lessonName => {
+      const newProgress = progress[lessonName];
+      const oldProgress = student.progress?.[lessonName];
+      
+      // Convert to object format if it's a number
+      const newProgressObj = typeof newProgress === 'number' 
+        ? { progress: newProgress, competent: false }
+        : newProgress;
+      
+      const oldProgressObj = typeof oldProgress === 'number'
+        ? { progress: oldProgress, competent: false }
+        : oldProgress;
+      
+      // Check if progress reached 100% for the first time
+      if (newProgressObj.progress === 100 && 
+          (!oldProgressObj || oldProgressObj.progress < 100) &&
+          !newProgressObj.completionDate) {
+        newProgressObj.completionDate = currentDate;
+      }
+      
+      // Check if competency was marked for the first time
+      if (newProgressObj.competent === true && 
+          (!oldProgressObj || oldProgressObj.competent !== true) &&
+          !newProgressObj.competencyDate) {
+        newProgressObj.competencyDate = currentDate;
+      }
+      
+      // Preserve existing dates if not being set
+      if (oldProgressObj) {
+        if (!newProgressObj.completionDate && oldProgressObj.completionDate) {
+          newProgressObj.completionDate = oldProgressObj.completionDate;
+        }
+        if (!newProgressObj.competencyDate && oldProgressObj.competencyDate) {
+          newProgressObj.competencyDate = oldProgressObj.competencyDate;
+        }
+      }
+      
+      progress[lessonName] = newProgressObj;
+    });
+
     // Update the student's progress
     student.progress = progress;
 
@@ -833,6 +1277,93 @@ app.post('/students/:userID/progress', (req, res) => {
   } catch (error) {
     console.error('Error updating student progress:', error);
     res.status(500).json({ error: 'Failed to update student progress' });
+  }
+});
+
+// Add endpoint for updating staff progress
+app.post('/staff/:userID/progress', (req, res) => {
+  try {
+    const data = loadData();
+    const { userID } = req.params;
+    const { progress } = req.body;
+
+    // Find the staff member
+    const staffMember = data.staff.find(s => s.userID === userID);
+    if (!staffMember) {
+      return res.status(404).json({ error: 'Staff member not found' });
+    }
+
+    // Update the staff member's progress with date tracking
+    const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    // Process each lesson in the progress object
+    Object.keys(progress).forEach(lessonName => {
+      const newProgress = progress[lessonName];
+      const oldProgress = staffMember.progress?.[lessonName];
+      
+      // Convert to object format if it's a number
+      const newProgressObj = typeof newProgress === 'number' 
+        ? { progress: newProgress, competent: false }
+        : newProgress;
+      
+      const oldProgressObj = typeof oldProgress === 'number'
+        ? { progress: oldProgress, competent: false }
+        : oldProgress;
+      
+      // Check if progress reached 100% for the first time
+      if (newProgressObj.progress === 100 && 
+          (!oldProgressObj || oldProgressObj.progress < 100) &&
+          !newProgressObj.completionDate) {
+        newProgressObj.completionDate = currentDate;
+      }
+      
+      // Check if competency was marked for the first time
+      if (newProgressObj.competent === true && 
+          (!oldProgressObj || oldProgressObj.competent !== true) &&
+          !newProgressObj.competencyDate) {
+        newProgressObj.competencyDate = currentDate;
+      }
+      
+      // Preserve existing dates if not being set
+      if (oldProgressObj) {
+        if (!newProgressObj.completionDate && oldProgressObj.completionDate) {
+          newProgressObj.completionDate = oldProgressObj.completionDate;
+        }
+        if (!newProgressObj.competencyDate && oldProgressObj.competencyDate) {
+          newProgressObj.competencyDate = oldProgressObj.competencyDate;
+        }
+      }
+      
+      progress[lessonName] = newProgressObj;
+    });
+
+    // Update the staff member's progress
+    staffMember.progress = progress;
+
+    // Save the data
+    saveData(data);
+
+    res.json({ success: true, staff: staffMember });
+  } catch (error) {
+    console.error('Error updating staff progress:', error);
+    res.status(500).json({ error: 'Failed to update staff progress' });
+  }
+});
+
+// Update Student
+app.put('/students/:userID', (req, res) => {
+  const { userID } = req.params;
+  const { name, yearLevel } = req.body;
+  const data = loadData();
+  const studentIndex = data.students.findIndex(s => s.userID === userID);
+
+  if (studentIndex !== -1) {
+    if (name) data.students[studentIndex].name = name;
+    if (yearLevel) data.students[studentIndex].yearLevel = yearLevel;
+    saveData(data);
+    res.json({ success: true, message: 'Student updated successfully.' });
+  } else {
+    res.status(404).json({ success: false, message: 'Student not found.' });
   }
 });
 

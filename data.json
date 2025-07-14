@@ -3395,9 +3395,32 @@
     {
       "id": 1749809560828,
       "name": "Suzie Barry",
-      "role": "Support Staff",
+      "role": "Teaching Staff",
       "userID": "suzie.barry",
-      "tenant_id": 1
+      "tenant_id": 1,
+      "email": "",
+      "progress": {
+        "Air Compressor": {
+          "progress": 0,
+          "competent": true,
+          "competencyDate": "2025-07-14"
+        },
+        "Buffing Machine": {
+          "progress": 0,
+          "competent": true,
+          "competencyDate": "2025-07-14"
+        },
+        "Drill Press": {
+          "progress": 0,
+          "competent": true,
+          "competencyDate": "2025-07-14"
+        },
+        "Soldering Iron": {
+          "progress": 0,
+          "competent": true,
+          "competencyDate": "2025-07-14"
+        }
+      }
     }
   ],
   "classes": [
@@ -3489,10 +3512,60 @@
       "selectedLessons": [],
       "studentIds": [],
       "tenant_id": 1
+    },
+    {
+      "id": "TEST",
+      "className": "Test Class",
+      "classCode": "TEST",
+      "yearLevels": [
+        7
+      ],
+      "teachers": [],
+      "selectedLessons": [],
+      "studentIds": [
+        1,
+        2,
+        3
+      ],
+      "tenant_id": 1
+    },
+    {
+      "id": "12t2025jd",
+      "yearLevels": [
+        12
+      ],
+      "className": "Test",
+      "classCode": "12t2025jd",
+      "room": "Test",
+      "teachers": [
+        "jacob.drummond"
+      ],
+      "selectedLessons": [
+        "Essential Workshop Safety",
+        "Essential Machine Safety",
+        "Dust Hazards",
+        "Safety Signage",
+        "Buffing Machine",
+        "Air Compressor",
+        "Drill Press"
+      ],
+      "studentIds": [],
+      "tenant_id": 1
     }
   ],
-  "equipment": [],
-  "rooms": [],
+  "equipment": [
+    {
+      "name": "Bandsaw",
+      "type": "Machine",
+      "code": "9u098",
+      "location": "Workshop",
+      "id": "BW32593",
+      "photo": "/uploads/equipment-photos/equipment-BW32593-1752490385726-479435949.png"
+    }
+  ],
+  "rooms": [
+    "Workshop"
+  ],
   "lessons": [
     {
       "id": 1,
@@ -4160,5 +4233,26 @@
       "area": "Kitchen",
       "subArea": "Food Preparation"
     }
-  ]
+  ],
+  "equipmentNotes": {
+    "BW32593": [
+      {
+        "id": "1752490395126",
+        "title": "Test",
+        "content": "jnklnl",
+        "createdAt": "2025-07-14T10:53:15.126Z"
+      }
+    ]
+  },
+  "equipmentManuals": {
+    "BW32593": [
+      {
+        "id": "1752490407684",
+        "title": "Manual",
+        "type": "link",
+        "url": "https://www.facebook.com/marketplace/?ref=bookmark",
+        "uploadedAt": "2025-07-14T10:53:27.684Z"
+      }
+    ]
+  }
 }

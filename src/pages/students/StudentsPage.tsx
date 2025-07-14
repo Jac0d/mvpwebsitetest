@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { Box, Typography, Paper, Tabs, Tab, Tooltip, IconButton, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, InputAdornment } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LockResetIcon from '@mui/icons-material/LockReset';
@@ -63,6 +64,7 @@ export default function StudentsPage() {
     formatErrors: [],
     totalProcessed: 0
   });
+  const navigate = useNavigate();
 
   // Group students by year level, sorted by surname
   const studentsByYear = yearLevels.map(year => ({
@@ -170,8 +172,26 @@ export default function StudentsPage() {
       return;
     }
     const name = `${firstName.trim()} ${surname.trim()}`;
-    setStudents(prev => prev.map(s => s.userID === userID.trim() ? { ...s, name, yearLevel: yearLevel.trim(), userID: userID.trim() } : s));
-    setEditDialogOpen(false);
+    
+    fetch(`${API_BASE}/students/${userID.trim()}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, yearLevel: yearLevel.trim(), userID: userID.trim() }),
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          fetch(`${API_BASE}/students`)
+            .then(res => res.json())
+            .then(data => setStudents(data));
+          setEditDialogOpen(false);
+        } else {
+          setEditFieldError(result.message || 'Failed to update student.');
+        }
+      })
+      .catch(() => {
+        setEditFieldError('Failed to update student.');
+      });
   };
 
   const handleArchiveClick = (student: Student) => {
@@ -181,9 +201,24 @@ export default function StudentsPage() {
 
   const handleArchiveStudent = () => {
     if (selectedStudent) {
-      setStudents(prev => prev.filter(s => s.userID !== selectedStudent.userID));
-      setArchiveDialogOpen(false);
-      setSelectedStudent(null);
+      fetch(`${API_BASE}/students/${selectedStudent.userID}`, {
+        method: 'DELETE',
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            fetch(`${API_BASE}/students`)
+              .then(res => res.json())
+              .then(data => setStudents(data));
+            setArchiveDialogOpen(false);
+            setSelectedStudent(null);
+          } else {
+            setEditFieldError('Failed to archive student.');
+          }
+        })
+        .catch(() => {
+          setEditFieldError('Failed to archive student.');
+        });
     }
   };
 
@@ -433,31 +468,64 @@ export default function StudentsPage() {
                             border: '1px solid #e0e7ff',
                             boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
                             transition: 'all 0.2s ease-in-out',
+                            cursor: 'pointer',
                             '&:hover': {
                               boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
-                              transform: 'translateY(-1px)'
+                              transform: 'translateY(-1px)',
+                              borderColor: '#4ecdc4'
                             }
                           }}
+                          onClick={() => navigate(`/students/${student.id}`)}
                         >
                           <Box>
-                            <Typography sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', color: '#374151', fontSize: 15 }}>{student.name}</Typography>
+                            <Typography 
+                              sx={{ 
+                                fontWeight: 600, 
+                                fontFamily: 'Montserrat, sans-serif', 
+                                color: '#374151', 
+                                fontSize: 15
+                              }}
+                            >
+                              {student.name}
+                            </Typography>
                             <Typography sx={{ fontSize: 13, color: '#888', fontFamily: 'Montserrat, sans-serif' }}>
                               User ID: {student.userID}
                             </Typography>
                           </Box>
                           <Box sx={{ display: 'flex', gap: 1 }}>
                             <Tooltip title="Reset student's password" arrow>
-                              <IconButton size="small" sx={{ color: '#4ecdc4' }}>
+                              <IconButton 
+                                size="small" 
+                                sx={{ color: '#4ecdc4' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Handle reset password
+                                }}
+                              >
                                 <LockResetIcon />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Edit student details" arrow>
-                              <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={() => handleEditClick(student)}>
+                              <IconButton 
+                                size="small" 
+                                sx={{ color: '#4ecdc4' }} 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditClick(student);
+                                }}
+                              >
                                 <EditIcon color="inherit" />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Remove / archive student" arrow>
-                              <IconButton size="small" sx={{ color: '#e57373' }} onClick={() => handleArchiveClick(student)}>
+                              <IconButton 
+                                size="small" 
+                                sx={{ color: '#e57373' }} 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleArchiveClick(student);
+                                }}
+                              >
                                 <DeleteIcon />
                               </IconButton>
                             </Tooltip>
@@ -492,31 +560,64 @@ export default function StudentsPage() {
                                 border: '1px solid #e0e7ff',
                                 boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
                                 transition: 'all 0.2s ease-in-out',
+                                cursor: 'pointer',
                                 '&:hover': {
                                   boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
-                                  transform: 'translateY(-1px)'
+                                  transform: 'translateY(-1px)',
+                                  borderColor: '#4ecdc4'
                                 }
                               }}
+                              onClick={() => navigate(`/students/${student.id}`)}
                             >
                               <Box>
-                                <Typography sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', color: '#374151', fontSize: 15 }}>{student.name}</Typography>
+                                <Typography 
+                                  sx={{ 
+                                    fontWeight: 600, 
+                                    fontFamily: 'Montserrat, sans-serif', 
+                                    color: '#374151', 
+                                    fontSize: 15
+                                  }}
+                                >
+                                  {student.name}
+                                </Typography>
                                 <Typography sx={{ fontSize: 13, color: '#888', fontFamily: 'Montserrat, sans-serif' }}>
                                   User ID: {student.userID}
                                 </Typography>
                               </Box>
                               <Box sx={{ display: 'flex', gap: 1 }}>
                                 <Tooltip title="Reset student's password" arrow>
-                                  <IconButton size="small" sx={{ color: '#4ecdc4' }}>
+                                  <IconButton 
+                                    size="small" 
+                                    sx={{ color: '#4ecdc4' }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // Handle reset password
+                                    }}
+                                  >
                                     <LockResetIcon />
                                   </IconButton>
                                 </Tooltip>
                                 <Tooltip title="Edit student details" arrow>
-                                  <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={() => handleEditClick(student)}>
+                                  <IconButton 
+                                    size="small" 
+                                    sx={{ color: '#4ecdc4' }} 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditClick(student);
+                                    }}
+                                  >
                                     <EditIcon color="inherit" />
                                   </IconButton>
                                 </Tooltip>
                                 <Tooltip title="Remove / archive student" arrow>
-                                  <IconButton size="small" sx={{ color: '#e57373' }} onClick={() => handleArchiveClick(student)}>
+                                  <IconButton 
+                                    size="small" 
+                                    sx={{ color: '#e57373' }} 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleArchiveClick(student);
+                                    }}
+                                  >
                                     <DeleteIcon />
                                   </IconButton>
                                 </Tooltip>
