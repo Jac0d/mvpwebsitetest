@@ -60,6 +60,24 @@ const manualStorage = multer.diskStorage({
   }
 });
 
+// Configure multer for maintenance photo uploads
+const maintenancePhotoStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = 'uploads/maintenance-photos';
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    cb(null, 'maintenance-' + req.params.id + '-' + uniqueSuffix + '-' + sanitizedName);
+  }
+});
+
 const uploadManual = multer({ 
   storage: manualStorage,
   limits: {
@@ -76,6 +94,21 @@ const uploadManual = multer({
       cb(null, true);
     } else {
       cb(new Error('Only PDF and Word documents are allowed'), false);
+    }
+  }
+});
+
+const uploadMaintenancePhoto = multer({ 
+  storage: maintenancePhotoStorage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
     }
   }
 });
@@ -993,6 +1026,61 @@ app.delete('/equipment/:id/notes/:noteId', (req, res) => {
   res.json({ success: true });
 });
 
+// Equipment tag out endpoints
+app.get('/equipment/:id/tagout', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  
+  if (!data.equipmentTagOut) data.equipmentTagOut = {};
+  
+  const tagOut = data.equipmentTagOut[id] || null;
+  res.json(tagOut);
+});
+
+app.post('/equipment/:id/tagout', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  const { tagOutDate, completedBy, tagOutSteps, notes } = req.body;
+  
+  if (!tagOutDate || !completedBy || !tagOutSteps || tagOutSteps.length === 0) {
+    return res.status(400).json({ success: false, message: 'Date, completed by, and at least one step are required' });
+  }
+  
+  if (!data.equipmentTagOut) data.equipmentTagOut = {};
+  
+  const newTagOut = {
+    id: Date.now().toString(),
+    tagOutDate,
+    completedBy: completedBy.trim(),
+    tagOutSteps,
+    notes: notes ? notes.trim() : '',
+    createdAt: new Date().toISOString(),
+  };
+  
+  data.equipmentTagOut[id] = newTagOut;
+  saveData(data);
+  
+  res.json({ success: true, tagOut: newTagOut });
+});
+
+app.delete('/equipment/:id/tagout', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  
+  if (!data.equipmentTagOut) {
+    return res.status(404).json({ success: false, message: 'Tag out data not found' });
+  }
+  
+  if (!data.equipmentTagOut[id]) {
+    return res.status(404).json({ success: false, message: 'Equipment not tagged out' });
+  }
+  
+  delete data.equipmentTagOut[id];
+  saveData(data);
+  
+  res.json({ success: true });
+});
+
 // Equipment manuals endpoints
 app.get('/equipment/:id/manuals', (req, res) => {
   const data = loadData();
@@ -1080,6 +1168,63 @@ app.delete('/equipment/:id/manuals/:manualId', (req, res) => {
   
   res.json({ success: true });
 });
+
+// Equipment lesson linking endpoints
+app.get('/equipment/:id/lessons', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+
+  const equipment = data.equipment.find(eq => String(eq.id) === String(id));
+  if (!equipment) {
+    return res.status(404).json({ success: false, message: 'Equipment not found' });
+  }
+
+  let linkedLesson = null;
+  if (equipment.linkedLessonId) {
+    linkedLesson = data.lessons.find(lesson => String(lesson.id) === String(equipment.linkedLessonId)) || null;
+  }
+
+  res.json({ success: true, linkedLesson });
+});
+
+app.post('/equipment/:id/lessons', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  const { lessonId } = req.body;
+
+  const equipmentIndex = data.equipment.findIndex(eq => String(eq.id) === String(id));
+  if (equipmentIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Equipment not found' });
+  }
+
+  const lesson = data.lessons.find(l => String(l.id) === String(lessonId));
+  if (!lesson) {
+    return res.status(404).json({ success: false, message: 'Lesson not found' });
+  }
+  
+  // Link the lesson
+  data.equipment[equipmentIndex].linkedLessonId = String(lessonId);
+  saveData(data);
+
+  res.json({ success: true, linkedLesson: lesson });
+});
+
+app.delete('/equipment/:id/lessons', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+
+  const equipmentIndex = data.equipment.findIndex(eq => String(eq.id) === String(id));
+  if (equipmentIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Equipment not found' });
+  }
+
+  // Unlink the lesson
+  delete data.equipment[equipmentIndex].linkedLessonId;
+  saveData(data);
+
+  res.json({ success: true, linkedLesson: null });
+});
+
 
 // Rooms endpoints
 app.get('/rooms', (req, res) => {
@@ -1348,6 +1493,223 @@ app.post('/staff/:userID/progress', (req, res) => {
     console.error('Error updating staff progress:', error);
     res.status(500).json({ error: 'Failed to update staff progress' });
   }
+});
+
+// Equipment maintenance endpoints
+app.get('/equipment/:id/maintenance', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+
+  const equipment = data.equipment.find(eq => String(eq.id) === String(id));
+  if (!equipment) {
+    return res.status(404).json({ success: false, message: 'Equipment not found' });
+  }
+
+  const maintenanceRecords = equipment.maintenanceRecords || [];
+  res.json(maintenanceRecords);
+});
+
+app.post('/equipment/:id/maintenance', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  const { serviceDate, workUndertaken, completedBy, nextServiceDue } = req.body;
+
+  const equipmentIndex = data.equipment.findIndex(eq => String(eq.id) === String(id));
+  if (equipmentIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Equipment not found' });
+  }
+
+  if (!data.equipment[equipmentIndex].maintenanceRecords) {
+    data.equipment[equipmentIndex].maintenanceRecords = [];
+  }
+
+  const newMaintenanceRecord = {
+    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+    serviceDate,
+    workUndertaken,
+    completedBy,
+    nextServiceDue,
+    photos: [],
+    createdAt: new Date().toISOString()
+  };
+
+  data.equipment[equipmentIndex].maintenanceRecords.push(newMaintenanceRecord);
+  saveData(data);
+
+  res.json({ success: true, maintenanceRecord: newMaintenanceRecord });
+});
+
+// Add maintenance photo upload endpoint
+app.post('/equipment/:id/maintenance/:recordId/photos', uploadMaintenancePhoto.array('photos', 10), (req, res) => {
+  const data = loadData();
+  const { id, recordId } = req.params;
+
+  const equipmentIndex = data.equipment.findIndex(eq => String(eq.id) === String(id));
+  if (equipmentIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Equipment not found' });
+  }
+
+  const recordIndex = data.equipment[equipmentIndex].maintenanceRecords?.findIndex(record => record.id === recordId);
+  if (recordIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Maintenance record not found' });
+  }
+
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ success: false, message: 'No photos uploaded' });
+  }
+
+  // Add photo paths to the maintenance record
+  const photoPaths = req.files.map(file => `/uploads/maintenance-photos/${file.filename}`);
+  
+  if (!data.equipment[equipmentIndex].maintenanceRecords[recordIndex].photos) {
+    data.equipment[equipmentIndex].maintenanceRecords[recordIndex].photos = [];
+  }
+  
+  data.equipment[equipmentIndex].maintenanceRecords[recordIndex].photos.push(...photoPaths);
+  saveData(data);
+
+  res.json({ 
+    success: true, 
+    photos: photoPaths,
+    maintenanceRecord: data.equipment[equipmentIndex].maintenanceRecords[recordIndex]
+  });
+});
+
+app.put('/equipment/:id/maintenance/:recordId', (req, res) => {
+  const data = loadData();
+  const { id, recordId } = req.params;
+  const { serviceDate, workUndertaken, completedBy, nextServiceDue } = req.body;
+
+  const equipmentIndex = data.equipment.findIndex(eq => String(eq.id) === String(id));
+  if (equipmentIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Equipment not found' });
+  }
+
+  const recordIndex = data.equipment[equipmentIndex].maintenanceRecords?.findIndex(record => record.id === recordId);
+  if (recordIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Maintenance record not found' });
+  }
+
+  data.equipment[equipmentIndex].maintenanceRecords[recordIndex] = {
+    ...data.equipment[equipmentIndex].maintenanceRecords[recordIndex],
+    serviceDate,
+    workUndertaken,
+    completedBy,
+    nextServiceDue
+  };
+
+  saveData(data);
+  res.json({ success: true, maintenanceRecord: data.equipment[equipmentIndex].maintenanceRecords[recordIndex] });
+});
+
+app.delete('/equipment/:id/maintenance/:recordId', (req, res) => {
+  const data = loadData();
+  const { id, recordId } = req.params;
+
+  const equipmentIndex = data.equipment.findIndex(eq => String(eq.id) === String(id));
+  if (equipmentIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Equipment not found' });
+  }
+
+  const recordIndex = data.equipment[equipmentIndex].maintenanceRecords?.findIndex(record => record.id === recordId);
+  if (recordIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Maintenance record not found' });
+  }
+
+  data.equipment[equipmentIndex].maintenanceRecords.splice(recordIndex, 1);
+  saveData(data);
+
+  res.json({ success: true });
+});
+
+// Equipment inspection endpoints
+app.get('/equipment/:id/inspections', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+
+  const equipment = data.equipment.find(eq => String(eq.id) === String(id));
+  if (!equipment) {
+    return res.status(404).json({ success: false, message: 'Equipment not found' });
+  }
+
+  const inspectionRecords = equipment.inspectionRecords || [];
+  res.json(inspectionRecords);
+});
+
+app.post('/equipment/:id/inspections', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  const { inspectionDate, completedBy, nextInspectionDue, inspectionAreas } = req.body;
+
+  const equipmentIndex = data.equipment.findIndex(eq => String(eq.id) === String(id));
+  if (equipmentIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Equipment not found' });
+  }
+
+  if (!data.equipment[equipmentIndex].inspectionRecords) {
+    data.equipment[equipmentIndex].inspectionRecords = [];
+  }
+
+  const newInspectionRecord = {
+    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+    inspectionDate,
+    completedBy,
+    nextInspectionDue,
+    inspectionAreas,
+    createdAt: new Date().toISOString()
+  };
+
+  data.equipment[equipmentIndex].inspectionRecords.push(newInspectionRecord);
+  saveData(data);
+
+  res.json({ success: true, inspection: newInspectionRecord });
+});
+
+app.put('/equipment/:id/inspections/:recordId', (req, res) => {
+  const data = loadData();
+  const { id, recordId } = req.params;
+  const { inspectionDate, completedBy, nextInspectionDue, inspectionAreas } = req.body;
+
+  const equipmentIndex = data.equipment.findIndex(eq => String(eq.id) === String(id));
+  if (equipmentIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Equipment not found' });
+  }
+
+  const recordIndex = data.equipment[equipmentIndex].inspectionRecords?.findIndex(record => record.id === recordId);
+  if (recordIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Inspection record not found' });
+  }
+
+  data.equipment[equipmentIndex].inspectionRecords[recordIndex] = {
+    ...data.equipment[equipmentIndex].inspectionRecords[recordIndex],
+    inspectionDate,
+    completedBy,
+    nextInspectionDue,
+    inspectionAreas
+  };
+
+  saveData(data);
+  res.json({ success: true, inspection: data.equipment[equipmentIndex].inspectionRecords[recordIndex] });
+});
+
+app.delete('/equipment/:id/inspections/:recordId', (req, res) => {
+  const data = loadData();
+  const { id, recordId } = req.params;
+
+  const equipmentIndex = data.equipment.findIndex(eq => String(eq.id) === String(id));
+  if (equipmentIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Equipment not found' });
+  }
+
+  const recordIndex = data.equipment[equipmentIndex].inspectionRecords?.findIndex(record => record.id === recordId);
+  if (recordIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Inspection record not found' });
+  }
+
+  data.equipment[equipmentIndex].inspectionRecords.splice(recordIndex, 1);
+  saveData(data);
+
+  res.json({ success: true });
 });
 
 // Update Student

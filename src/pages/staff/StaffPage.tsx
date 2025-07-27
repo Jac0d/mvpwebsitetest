@@ -80,6 +80,7 @@ export default function StaffPage() {
   });
   const [archiveError, setArchiveError] = React.useState('');
   const [userIDManuallyEdited, setUserIDManuallyEdited] = React.useState(false);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Group staff by role, sorted by surname
   const staffByRole = staffRoles.map(role => ({
@@ -95,6 +96,18 @@ export default function StaffPage() {
         return aSurname.localeCompare(bSurname);
       })
   }));
+
+  // Compute which roles have staff
+  const rolesWithStaff = staffByRole.filter(group => group.staff.length > 0).map(group => group.role);
+
+  // When clicking a tab, scroll to the section and filter
+  const handleTabChange = (_: any, value: number) => {
+    // First update the tab for filtering
+    setTab(value);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   // Fetch staff on mount
   useEffect(() => {
@@ -469,18 +482,25 @@ export default function StaffPage() {
         {/* Tabs */}
         <Box sx={{ position: 'sticky', top: 0, bgcolor: '#fff', zIndex: 1, borderBottom: '1px solid #e0e7ff', pt: 1, pb: 0.5 }}>
           <Box sx={{ maxWidth: 1000, minWidth: 360, mx: 'auto', px: 8, width: '100%' }}>
-            <Tabs value={tab} onChange={(_, v) => setTab(v)} textColor="primary" indicatorColor="primary" variant="scrollable" scrollButtons="auto">
-              <Tab label="All Staff" sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
-              {staffRoles.map((r, i) => (
-                <Tab key={r} label={r} sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
+            <Tabs 
+              value={tab} 
+              onChange={handleTabChange} 
+              textColor="primary" 
+              indicatorColor="primary" 
+              variant="scrollable" 
+              scrollButtons="auto"
+            >
+              <Tab label="All Staff" sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
+              {rolesWithStaff.map((role) => (
+                <Tab key={role} label={role} sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
               ))}
             </Tabs>
           </Box>
         </Box>
         {/* Content */}
-        <Box sx={{ flex: 1, overflowY: 'auto' }}>
+        <Box sx={{ flex: 1, overflowY: 'auto' }} ref={scrollContainerRef}>
           <Box sx={{ px: 4, py: 4, maxWidth: 1000, minWidth: 540, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {tab === 0 && (
+            {tab === 0 ? (
               <>
                 {staffByRole.filter(group => group.staff.length > 0).map(group => (
                   <Paper key={group.role} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: '#f8fafc', border: '1px solid #e0e7ff' }}>
@@ -542,70 +562,76 @@ export default function StaffPage() {
                   </Paper>
                 ))}
               </>
-            )}
-            {tab > 0 && (
+            ) : (
               <>
-                {staffByRole[tab - 1].staff.length > 0 ? (
-                  <Paper elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: '#f8fafc', border: '1px solid #e0e7ff' }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#374151' }}>{staffByRole[tab - 1].role}</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      {staffByRole[tab - 1].staff.map(staffMember => (
-                        <Box
-                          key={staffMember.id}
-                          onClick={() => navigate(`/staff/${staffMember.userID}`)}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            p: 2,
-                            borderRadius: 2,
-                            bgcolor: '#fff',
-                            border: '1px solid #e0e7ff',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease-in-out',
-                            '&:hover': {
-                              boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
-                              transform: 'translateY(-1px)',
-                              borderColor: '#4ecdc4'
-                            }
-                          }}
-                        >
-                          <Box>
-                            <Typography sx={{ fontWeight: 600, color: '#374151', fontSize: 15 }}>{staffMember.name}</Typography>
-                            <Typography sx={{ fontSize: 13, color: '#888' }}>
-                              User ID: {staffMember.userID}
-                            </Typography>
-                            {staffMember.email && (
-                              <Typography sx={{ fontSize: 13, color: '#888' }}>
-                                Email: {staffMember.email}
-                              </Typography>
-                            )}
-                          </Box>
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            <Tooltip title="Reset staff password" arrow>
-                              <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={(e) => e.stopPropagation()}>
-                                <LockResetIcon />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Edit staff details" arrow>
-                              <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={(e) => { e.stopPropagation(); handleEditClick(staffMember); }}>
-                                <EditIcon color="inherit" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Remove / archive staff" arrow>
-                              <IconButton size="small" sx={{ color: '#e57373' }} onClick={(e) => { e.stopPropagation(); handleArchiveClick(staffMember); }}>
-                                <DeleteIcon />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
+                {(() => {
+                  const role = rolesWithStaff[tab - 1];
+                  const group = staffByRole.find(g => g.role === role);
+                  if (group && group.staff.length > 0) {
+                    return (
+                      <Paper elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: '#f8fafc', border: '1px solid #e0e7ff' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#374151' }}>{group.role}</Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          {group.staff.map(staffMember => (
+                            <Box
+                              key={staffMember.id}
+                              onClick={() => navigate(`/staff/${staffMember.userID}`)}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                p: 2,
+                                borderRadius: 2,
+                                bgcolor: '#fff',
+                                border: '1px solid #e0e7ff',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                '&:hover': {
+                                  boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
+                                  transform: 'translateY(-1px)',
+                                  borderColor: '#4ecdc4'
+                                }
+                              }}
+                            >
+                              <Box>
+                                <Typography sx={{ fontWeight: 600, color: '#374151', fontSize: 15 }}>{staffMember.name}</Typography>
+                                <Typography sx={{ fontSize: 13, color: '#888' }}>
+                                  User ID: {staffMember.userID}
+                                </Typography>
+                                {staffMember.email && (
+                                  <Typography sx={{ fontSize: 13, color: '#888' }}>
+                                    Email: {staffMember.email}
+                                  </Typography>
+                                )}
+                              </Box>
+                              <Box sx={{ display: 'flex', gap: 1 }}>
+                                <Tooltip title="Reset staff password" arrow>
+                                  <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={(e) => e.stopPropagation()}>
+                                    <LockResetIcon />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Edit staff details" arrow>
+                                  <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={(e) => { e.stopPropagation(); handleEditClick(staffMember); }}>
+                                    <EditIcon color="inherit" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Remove / archive staff" arrow>
+                                  <IconButton size="small" sx={{ color: '#e57373' }} onClick={(e) => { e.stopPropagation(); handleArchiveClick(staffMember); }}>
+                                    <DeleteIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            </Box>
+                          ))}
                         </Box>
-                      ))}
-                    </Box>
-                  </Paper>
-                ) : (
-                  <Typography sx={{ color: '#bbb', fontSize: 14 }}>No staff in this role.</Typography>
-                )}
+                      </Paper>
+                    );
+                  }
+                  return (
+                    <Typography sx={{ color: '#888', fontFamily: 'Montserrat, sans-serif', fontSize: 14 }}>No staff in this role.</Typography>
+                  );
+                })()}
               </>
             )}
           </Box>

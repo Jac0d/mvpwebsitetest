@@ -2016,11 +2016,11 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
       {/* Add Student Dialog */}
       <Dialog open={addStudentDialogOpen} onClose={() => setAddStudentDialogOpen(false)} maxWidth="xs" fullWidth
         PaperProps={{
-          sx: { maxWidth: 400, width: 400 }
+          sx: { maxWidth: 400, width: 400, height: 500 }
         }}
       >
         <DialogTitle sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', pb: 1 }}>{isStaffParticipantClass ? 'Select Participants' : 'Select Students'}</DialogTitle>
-        <DialogContent sx={{ maxHeight: 500, minHeight: 300, overflowY: 'auto', p: 0 }}>
+        <DialogContent sx={{ p: 0, height: '100%' }}>
           <Box sx={{ position: 'sticky', top: 0, zIndex: 2, bgcolor: '#fff', px: 3, pt: 1, pb: 2, borderBottom: '1px solid #e0e7ff' }}>
             <TextField
               fullWidth
@@ -2030,7 +2030,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
               size="small"
             />
           </Box>
-          <Box sx={{ p: 3, pt: 2 }}>
+          <Box sx={{ overflowY: 'auto', maxHeight: 400, p: 3, pt: 2 }}>
             {eligibleParticipants.length === 0 ? (
               <Typography sx={{ color: '#888', fontFamily: 'Montserrat, sans-serif' }}>
                 {isStaffParticipantClass ? 'No staff found.' : 'No students found for the selected year level(s).'}

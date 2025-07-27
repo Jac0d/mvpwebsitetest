@@ -6,6 +6,8 @@ import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DownloadIcon from '@mui/icons-material/Download';
+import * as XLSX from 'xlsx';
 import { buttonStyles } from '../../styles/buttonStyles';
 
 export interface Equipment {
@@ -42,6 +44,7 @@ export default function EquipmentPage() {
   const [selectedRoomTab, setSelectedRoomTab] = React.useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [equipmentToDelete, setEquipmentToDelete] = React.useState<Equipment | null>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Fetch equipment and rooms on mount
   React.useEffect(() => {
@@ -55,6 +58,15 @@ export default function EquipmentPage() {
     (eq.code || '').toLowerCase().includes(search.toLowerCase()) ||
     eq.type.toLowerCase().includes(search.toLowerCase())
   );
+
+  // When clicking a tab, scroll to the section and filter
+  const handleTabChange = (_: any, value: number) => {
+    // First update the tab for filtering
+    setSelectedRoomTab(value);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const handleAddEditEquipment = () => {
     setFieldError('');
@@ -154,6 +166,40 @@ export default function EquipmentPage() {
     setEquipmentToDelete(null);
   };
 
+  const exportEquipmentToExcel = () => {
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    
+    // Prepare data for export
+    const equipmentData = equipment.map(eq => ({
+      'Equipment ID': eq.id,
+      'Name': eq.name,
+      'Type': eq.type,
+      'Serial Number': eq.code || '',
+      'Location': eq.location,
+      'Photo URL': eq.photo || ''
+    }));
+
+    // Create worksheet
+    const ws = XLSX.utils.json_to_sheet(equipmentData);
+    
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 15 }, // Equipment ID
+      { wch: 30 }, // Name
+      { wch: 15 }, // Type
+      { wch: 20 }, // Serial Number
+      { wch: 20 }, // Location
+      { wch: 40 }  // Photo URL
+    ];
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Equipment Inventory');
+
+    // Save file
+    XLSX.writeFile(wb, 'Equipment_Inventory.xlsx');
+  };
+
   return (
     <Layout
       title="Equipment"
@@ -193,12 +239,26 @@ export default function EquipmentPage() {
             >
               Add Room
             </Button>
+            <Button
+              {...buttonStyles.primary}
+              startIcon={<DownloadIcon />}
+              onClick={exportEquipmentToExcel}
+            >
+              Download Excel
+            </Button>
           </Box>
         </Box>
         {/* Room Tabs */}
-        <Box sx={{ bgcolor: '#fff', borderBottom: '1px solid #e0e7ff', pt: 1, pb: 0.5 }}>
+        <Box sx={{ position: 'sticky', top: 0, bgcolor: '#fff', zIndex: 1, borderBottom: '1px solid #e0e7ff', pt: 1, pb: 0.5 }}>
           <Box sx={{ maxWidth: 1000, minWidth: 360, mx: 'auto', px: 8, width: '100%' }}>
-            <Tabs value={selectedRoomTab} onChange={(_, v) => setSelectedRoomTab(v)} textColor="primary" indicatorColor="primary" variant="scrollable" scrollButtons="auto">
+            <Tabs 
+              value={selectedRoomTab} 
+              onChange={handleTabChange} 
+              textColor="primary" 
+              indicatorColor="primary" 
+              variant="scrollable" 
+              scrollButtons="auto"
+            >
               <Tab label="All Rooms" sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
               {rooms.map((room, i) => (
                 <Tab key={room} label={room} sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
@@ -207,7 +267,7 @@ export default function EquipmentPage() {
           </Box>
         </Box>
         {/* Equipment List */}
-        <Box sx={{ flex: 1, overflowY: 'auto' }}>
+        <Box sx={{ flex: 1, overflowY: 'auto' }} ref={scrollContainerRef}>
           <Box sx={{ px: 4, py: 4, maxWidth: 1000, minWidth: 540, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
             {rooms.length === 0 ? (
               <Typography sx={{ color: '#bbb', fontSize: 14 }}>No rooms found. Please add a room first.</Typography>

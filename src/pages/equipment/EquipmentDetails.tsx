@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
-import { Box, Typography, Tabs, Tab, Link, Paper, Tooltip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Avatar, List, ListItem, ListItemText, ListItemSecondaryAction, Chip, Divider, Radio } from '@mui/material';
+import { Box, Typography, Tabs, Tab, Link, Paper, Tooltip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Avatar, List, ListItem, ListItemText, ListItemSecondaryAction, Chip, Divider, Radio, Autocomplete, Checkbox, Snackbar, Alert } from '@mui/material';
 import { Layout } from '../../components/layout/Layout';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -25,6 +25,10 @@ import FactoryIcon from '@mui/icons-material/Factory';
 import KitchenIcon from '@mui/icons-material/Kitchen';
 import IronIcon from '@mui/icons-material/Iron';
 import HomeRepairServiceIcon from '@mui/icons-material/HomeRepairService';
+import BlockIcon from '@mui/icons-material/Block';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import HandshakeIcon from '@mui/icons-material/Handshake';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 import { buttonStyles } from '../../styles/buttonStyles';
 
 export interface Equipment {
@@ -43,10 +47,31 @@ interface EquipmentDetailsProps {
 const equipmentTypes = ['Tool', 'Machine', 'PPE', 'Material', 'Other'];
 const API_BASE = 'http://localhost:3001';
 
+const tagOutSteps = [
+  'Ensure the machine is switched off',
+  'Switch off the power source/s at the isolating control/s or unplug electrical lead from the GPO',
+  'Apply lock to the isolation control or to electrical plug & attach suitable tag/s',
+  'Test equipment control buttons to ensure power has been disconnected'
+];
+
+const untagSteps = [
+  'Perform the required maintenance checks and/or cleaning process',
+  'Ensure all guards and protective devices are reinstated',
+  'Check that all tools and/or cleaning products are removed from around the machine',
+  'Remove lock/s, lockout devices and tag/s',
+  'Reconnect power source/s',
+  'Ensure everyone is clear of the machine and start machine'
+];
+
 export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [tab, setTab] = useState(0);
+  
+  // Notification states
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
@@ -128,6 +153,137 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
   const [manualError, setManualError] = useState('');
   const [isUploadingManual, setIsUploadingManual] = useState(false);
   
+  // Maintenance records state
+  const [maintenanceRecords, setMaintenanceRecords] = useState<Array<{
+    id: string;
+    serviceDate: string;
+    workUndertaken: string;
+    completedBy: string;
+    nextServiceDue: string;
+    photos?: string[];
+    createdAt: string;
+  }>>([]);
+  const [maintenanceDialogOpen, setMaintenanceDialogOpen] = useState(false);
+  const [editingMaintenance, setEditingMaintenance] = useState<{
+    id: string | null;
+    serviceDate: string;
+    workUndertaken: string;
+    completedBy: string;
+    nextServiceDue: string;
+    photos: File[];
+  }>({
+    id: null,
+    serviceDate: '',
+    workUndertaken: '',
+    completedBy: '',
+    nextServiceDue: '',
+    photos: [],
+  });
+  const [maintenanceDetailDialogOpen, setMaintenanceDetailDialogOpen] = useState(false);
+  const [selectedMaintenance, setSelectedMaintenance] = useState<{
+    id: string;
+    serviceDate: string;
+    workUndertaken: string;
+    completedBy: string;
+    nextServiceDue: string;
+    createdAt: string;
+    photos?: string[];
+  } | null>(null);
+  const [maintenanceError, setMaintenanceError] = useState('');
+  const [deleteMaintenanceDialogOpen, setDeleteMaintenanceDialogOpen] = useState(false);
+  const [maintenanceToDelete, setMaintenanceToDelete] = useState<{
+    id: string;
+    serviceDate: string;
+  } | null>(null);
+
+  // Inspection records state
+  const [inspectionRecords, setInspectionRecords] = useState<Array<{
+    id: string;
+    inspectionDate: string;
+    completedBy: string;
+    nextInspectionDue: string;
+    inspectionAreas: string[];
+    createdAt: string;
+  }>>([]);
+  const [inspectionDialogOpen, setInspectionDialogOpen] = useState(false);
+  const [editingInspection, setEditingInspection] = useState<{
+    id: string | null;
+    inspectionDate: string;
+    completedBy: string;
+    nextInspectionDue: string;
+    inspectionAreas: string[];
+  }>({
+    id: null,
+    inspectionDate: '',
+    completedBy: '',
+    nextInspectionDue: '',
+    inspectionAreas: [],
+  });
+  const [inspectionDetailDialogOpen, setInspectionDetailDialogOpen] = useState(false);
+  const [selectedInspection, setSelectedInspection] = useState<{
+    id: string;
+    inspectionDate: string;
+    completedBy: string;
+    nextInspectionDue: string;
+    inspectionAreas: string[];
+    createdAt: string;
+  } | null>(null);
+
+  // Tag/Lock Out state
+  const [tagOutDialogOpen, setTagOutDialogOpen] = useState(false);
+  const [editingTagOut, setEditingTagOut] = useState<{
+    id: string | null;
+    tagOutDate: string;
+    completedBy: string;
+    tagOutSteps: string[];
+    notes: string;
+  }>({
+    id: null,
+    tagOutDate: '',
+    completedBy: '',
+    tagOutSteps: [],
+    notes: '',
+  });
+  const [tagOutError, setTagOutError] = useState('');
+  const [isTaggedOut, setIsTaggedOut] = useState(false);
+  const [currentTagOut, setCurrentTagOut] = useState<{
+    id: string;
+    tagOutDate: string;
+    completedBy: string;
+    tagOutSteps: string[];
+    notes: string;
+    createdAt: string;
+  } | null>(null);
+
+  // Untag Equipment state
+  const [untagDialogOpen, setUntagDialogOpen] = useState(false);
+  const [editingUntag, setEditingUntag] = useState<{
+    untagDate: string;
+    completedBy: string;
+    untagSteps: string[];
+    notes: string;
+  }>({
+    untagDate: '',
+    completedBy: '',
+    untagSteps: [],
+    notes: '',
+  });
+  const [untagError, setUntagError] = useState('');
+  const [inspectionError, setInspectionError] = useState('');
+  const [deleteInspectionDialogOpen, setDeleteInspectionDialogOpen] = useState(false);
+  const [inspectionToDelete, setInspectionToDelete] = useState<{
+    id: string;
+    inspectionDate: string;
+  } | null>(null);
+  
+  // Staff state for autocomplete
+  const [staff, setStaff] = useState<Array<{
+    userID: string;
+    name: string;
+    role?: string;
+    email?: string;
+  }>>([]);
+  
   // Find equipment by ID
   const equipmentItem = equipment.find(eq => eq.id === id);
   
@@ -162,6 +318,52 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
         .catch(error => console.error('Error fetching manuals:', error));
     }
   }, [equipmentItem?.id]);
+
+  // Fetch maintenance records on mount
+  React.useEffect(() => {
+    if (equipmentItem?.id) {
+      fetch(`${API_BASE}/equipment/${equipmentItem.id}/maintenance`)
+        .then(res => res.json())
+        .then(data => setMaintenanceRecords(data))
+        .catch(error => console.error('Error fetching maintenance records:', error));
+    }
+  }, [equipmentItem?.id]);
+
+  // Fetch inspection records on mount
+  React.useEffect(() => {
+    if (equipmentItem?.id) {
+      fetch(`${API_BASE}/equipment/${equipmentItem.id}/inspections`)
+        .then(res => res.json())
+        .then(data => setInspectionRecords(data))
+        .catch(error => console.error('Error fetching inspection records:', error));
+    }
+  }, [equipmentItem?.id]);
+
+  // Fetch tag out status on mount
+  React.useEffect(() => {
+    if (equipmentItem?.id) {
+      fetch(`${API_BASE}/equipment/${equipmentItem.id}/tagout`)
+        .then(res => res.json())
+        .then(data => {
+          if (data) {
+            setIsTaggedOut(true);
+            setCurrentTagOut(data);
+          } else {
+            setIsTaggedOut(false);
+            setCurrentTagOut(null);
+          }
+        })
+        .catch(error => console.error('Error fetching tag out status:', error));
+    }
+  }, [equipmentItem?.id]);
+
+  // Fetch staff data on mount
+  React.useEffect(() => {
+    fetch(`${API_BASE}/staff`)
+      .then(res => res.json())
+      .then(data => setStaff(data))
+      .catch(error => console.error('Error fetching staff:', error));
+  }, []);
 
   // Set initial scroll position
   useEffect(() => {
@@ -229,6 +431,12 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
     };
   }, [debouncedHandleScroll, scrollTimeout]);
 
+  const showNotification = (message: string, severity: 'success' | 'error') => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
   const handleEditClick = (equipment: Equipment) => {
     setEditEquipment({
       id: equipment.id,
@@ -258,14 +466,17 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
       .then(res => res.json())
       .then(result => {
         if (result.success) {
+          showNotification('Equipment updated successfully!', 'success');
           // Refresh the page to get updated data
           window.location.reload();
         } else {
           setEditFieldError('Failed to update equipment.');
+          showNotification('Failed to update equipment.', 'error');
         }
       })
       .catch(() => {
         setEditFieldError('Failed to update equipment.');
+        showNotification('Failed to update equipment.', 'error');
       });
   };
 
@@ -288,10 +499,12 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
         .then(res => res.json())
         .then(result => {
           if (result.success) {
+            showNotification('Equipment deleted successfully!', 'success');
             // Navigate back to equipment page
             navigate('/equipment');
           } else {
             setEditFieldError('Failed to delete equipment.');
+            showNotification('Failed to delete equipment.', 'error');
           }
         })
         .catch(() => {
@@ -335,14 +548,17 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
       .then(res => res.json())
       .then(result => {
         if (result.success) {
+          showNotification('Photo uploaded successfully!', 'success');
           // Refresh the page to show the new photo
           window.location.reload();
         } else {
           setPhotoError('Failed to upload photo. Please try again.');
+          showNotification('Failed to upload photo. Please try again.', 'error');
         }
       })
       .catch(() => {
         setPhotoError('Failed to upload photo. Please check your connection and try again.');
+        showNotification('Failed to upload photo. Please check your connection and try again.', 'error');
       })
       .finally(() => {
         setIsUploadingPhoto(false);
@@ -361,12 +577,16 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
         .then(res => res.json())
         .then(result => {
           if (result.success) {
+            showNotification('Photo removed successfully!', 'success');
             // Refresh the page to get updated data
             window.location.reload();
+          } else {
+            showNotification('Failed to remove photo.', 'error');
           }
         })
         .catch(error => {
           console.error('Error deleting photo:', error);
+          showNotification('Failed to remove photo.', 'error');
         });
     }
     setDeletePhotoDialogOpen(false);
@@ -418,13 +638,16 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             );
             setNoteDialogOpen(false);
             setEditingNote({ id: null, title: '', content: '' });
+            showNotification('Note updated successfully!', 'success');
           } else {
             setNoteError('Failed to update note.');
+            showNotification('Failed to update note.', 'error');
           }
         })
         .catch(error => {
           console.error('Error updating note:', error);
           setNoteError('Failed to update note.');
+          showNotification('Failed to update note.', 'error');
         });
     } else {
       // Add new note
@@ -439,13 +662,16 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             setNotes(prevNotes => [...prevNotes, result.note]);
             setNoteDialogOpen(false);
             setEditingNote({ id: null, title: '', content: '' });
+            showNotification('Note added successfully!', 'success');
           } else {
             setNoteError('Failed to add note.');
+            showNotification('Failed to add note.', 'error');
           }
         })
         .catch(error => {
           console.error('Error adding note:', error);
           setNoteError('Failed to add note.');
+          showNotification('Failed to add note.', 'error');
         });
     }
   };
@@ -468,12 +694,15 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
       .then(result => {
         if (result.success) {
           setNotes(prevNotes => prevNotes.filter(note => note.id !== noteToDelete.id));
+          showNotification('Note deleted successfully!', 'success');
         } else {
           console.error('Failed to delete note');
+          showNotification('Failed to delete note.', 'error');
         }
       })
       .catch(error => {
         console.error('Error deleting note:', error);
+        showNotification('Failed to delete note.', 'error');
       })
       .finally(() => {
         setDeleteNoteDialogOpen(false);
@@ -569,13 +798,16 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             setManuals(prevManuals => [...prevManuals, result.manual]);
             setManualDialogOpen(false);
             setEditingManual({ id: null, title: '', type: 'link', url: '', file: null });
+            showNotification('Manual uploaded successfully!', 'success');
           } else {
             setManualError('Failed to upload manual.');
+            showNotification('Failed to upload manual.', 'error');
           }
         })
         .catch(error => {
           console.error('Error uploading manual:', error);
           setManualError('Failed to upload manual.');
+          showNotification('Failed to upload manual.', 'error');
         })
         .finally(() => {
           setIsUploadingManual(false);
@@ -593,13 +825,16 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             setManuals(prevManuals => [...prevManuals, result.manual]);
             setManualDialogOpen(false);
             setEditingManual({ id: null, title: '', type: 'link', url: '', file: null });
+            showNotification('Manual saved successfully!', 'success');
           } else {
             setManualError('Failed to save manual.');
+            showNotification('Failed to save manual.', 'error');
           }
         })
         .catch(error => {
           console.error('Error saving manual:', error);
           setManualError('Failed to save manual.');
+          showNotification('Failed to save manual.', 'error');
         })
         .finally(() => {
           setIsUploadingManual(false);
@@ -617,13 +852,374 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
       .then(result => {
         if (result.success) {
           setManuals(prevManuals => prevManuals.filter(manual => manual.id !== manualId));
+          showNotification('Manual deleted successfully!', 'success');
         } else {
           console.error('Failed to delete manual');
+          showNotification('Failed to delete manual.', 'error');
         }
       })
       .catch(error => {
         console.error('Error deleting manual:', error);
+        showNotification('Failed to delete manual.', 'error');
       });
+  };
+
+  // Maintenance management functions
+  const handleOpenMaintenanceDialog = () => {
+    setEditingMaintenance({ id: null, serviceDate: '', workUndertaken: '', completedBy: '', nextServiceDue: '', photos: [] });
+    setMaintenanceError('');
+    setMaintenanceDialogOpen(true);
+  };
+
+  const handleEditMaintenance = (maintenance: { id: string; serviceDate: string; workUndertaken: string; completedBy: string; nextServiceDue: string; createdAt: string; photos?: string[] }) => {
+    setEditingMaintenance({ id: maintenance.id, serviceDate: maintenance.serviceDate, workUndertaken: maintenance.workUndertaken, completedBy: maintenance.completedBy, nextServiceDue: maintenance.nextServiceDue, photos: [] });
+    setMaintenanceError('');
+    setMaintenanceDialogOpen(true);
+  };
+
+  const handleSaveMaintenance = () => {
+    setMaintenanceError('');
+    const { serviceDate, workUndertaken, completedBy, nextServiceDue } = editingMaintenance;
+    
+    if (!serviceDate.trim() || !workUndertaken.trim() || !completedBy.trim()) {
+      setMaintenanceError('Service date, work undertaken, and completed by are required.');
+      return;
+    }
+
+    if (!equipmentItem?.id) {
+      setMaintenanceError('Equipment not found.');
+      return;
+    }
+
+    if (editingMaintenance.id) {
+      // Edit existing maintenance record
+      fetch(`${API_BASE}/equipment/${equipmentItem.id}/maintenance/${editingMaintenance.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serviceDate: serviceDate.trim(), workUndertaken: workUndertaken.trim(), completedBy: completedBy.trim(), nextServiceDue: nextServiceDue.trim() })
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            setMaintenanceRecords(prevRecords => 
+              prevRecords.map(record => 
+                record.id === editingMaintenance.id 
+                  ? result.maintenanceRecord
+                  : record
+              )
+            );
+            setMaintenanceDialogOpen(false);
+            setEditingMaintenance({ id: null, serviceDate: '', workUndertaken: '', completedBy: '', nextServiceDue: '', photos: [] });
+            showNotification('Maintenance record updated successfully!', 'success');
+          } else {
+            setMaintenanceError('Failed to update maintenance record.');
+            showNotification('Failed to update maintenance record.', 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error updating maintenance record:', error);
+          setMaintenanceError('Failed to update maintenance record.');
+          showNotification('Failed to update maintenance record.', 'error');
+        });
+    } else {
+      // Add new maintenance record
+      fetch(`${API_BASE}/equipment/${equipmentItem.id}/maintenance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serviceDate: serviceDate.trim(), workUndertaken: workUndertaken.trim(), completedBy: completedBy.trim(), nextServiceDue: nextServiceDue.trim() })
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            const newRecord = result.maintenanceRecord;
+            
+            // Upload photos if any
+            if (editingMaintenance.photos.length > 0) {
+              const formData = new FormData();
+              editingMaintenance.photos.forEach(photo => {
+                formData.append('photos', photo);
+              });
+
+              return fetch(`${API_BASE}/equipment/${equipmentItem.id}/maintenance/${newRecord.id}/photos`, {
+                method: 'POST',
+                body: formData
+              })
+                .then(res => res.json())
+                .then(photoResult => {
+                  if (photoResult.success) {
+                    newRecord.photos = photoResult.photos;
+                  }
+                  return newRecord;
+                })
+                .catch(error => {
+                  console.error('Error uploading photos:', error);
+                  return newRecord; // Return the record even if photo upload fails
+                });
+            }
+            return newRecord;
+          } else {
+            throw new Error('Failed to add maintenance record.');
+          }
+        })
+        .then(newRecord => {
+          setMaintenanceRecords(prevRecords => [...prevRecords, newRecord]);
+          setMaintenanceDialogOpen(false);
+          setEditingMaintenance({ id: null, serviceDate: '', workUndertaken: '', completedBy: '', nextServiceDue: '', photos: [] });
+          showNotification('Maintenance record added successfully!', 'success');
+        })
+        .catch(error => {
+          console.error('Error adding maintenance record:', error);
+          setMaintenanceError('Failed to add maintenance record.');
+          showNotification('Failed to add maintenance record.', 'error');
+        });
+    }
+  };
+
+  const handleDeleteMaintenance = (recordId: string) => {
+    const recordToDelete = maintenanceRecords.find(record => record.id === recordId);
+    if (recordToDelete) {
+      setMaintenanceToDelete({ id: recordToDelete.id, serviceDate: recordToDelete.serviceDate });
+      setDeleteMaintenanceDialogOpen(true);
+    }
+  };
+
+  const handleConfirmDeleteMaintenance = () => {
+    if (!equipmentItem?.id || !maintenanceToDelete) return;
+    
+    fetch(`${API_BASE}/equipment/${equipmentItem.id}/maintenance/${maintenanceToDelete.id}`, {
+      method: 'DELETE'
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          setMaintenanceRecords(prevRecords => prevRecords.filter(record => record.id !== maintenanceToDelete.id));
+        } else {
+          console.error('Failed to delete maintenance record');
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting maintenance record:', error);
+      })
+      .finally(() => {
+        setDeleteMaintenanceDialogOpen(false);
+        setMaintenanceToDelete(null);
+      });
+  };
+
+  const handleViewMaintenance = (maintenance: { id: string; serviceDate: string; workUndertaken: string; completedBy: string; nextServiceDue: string; createdAt: string; photos?: string[] }) => {
+    setSelectedMaintenance(maintenance);
+    setMaintenanceDetailDialogOpen(true);
+  };
+
+  // Photo upload handlers for maintenance
+  const handleMaintenancePhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newPhotos = Array.from(files);
+      setEditingMaintenance(prev => ({ ...prev, photos: [...prev.photos, ...newPhotos] }));
+    }
+  };
+
+  const handleRemoveMaintenancePhoto = (index: number) => {
+    setEditingMaintenance(prev => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Date calculation handlers
+  const handleCalculateNextService = (months: number) => {
+    if (!editingMaintenance.serviceDate) {
+      setMaintenanceError('Please set a service date first.');
+      return;
+    }
+    
+    const serviceDate = new Date(editingMaintenance.serviceDate);
+    const nextServiceDate = new Date(serviceDate);
+    nextServiceDate.setMonth(nextServiceDate.getMonth() + months);
+    
+    setEditingMaintenance(prev => ({
+      ...prev,
+      nextServiceDue: nextServiceDate.toISOString().split('T')[0]
+    }));
+  };
+
+  const handleSetToday = () => {
+    const today = new Date().toISOString().split('T')[0];
+    setEditingMaintenance(prev => ({
+      ...prev,
+      serviceDate: today
+    }));
+  };
+
+  // Inspection areas data with descriptions
+  const inspectionAreas = [
+    { name: 'General Condition', description: 'Signs of damage, corrosion, wear, or fatigue' },
+    { name: 'Guards & Safety Covers', description: 'In place, secure, undamaged, not bypassed or removed' },
+    { name: 'Emergency Stop', description: 'Working correctly, clearly labelled, easily accessible' },
+    { name: 'Power Supply / Cables', description: 'No fraying, kinks, exposed wires, correct plugs fitted' },
+    { name: 'Controls & Switches', description: 'Operational, labelled, no sticking or malfunction' },
+    { name: 'Moving Parts / Belts', description: 'Tension, alignment, wear, lubrication as required' },
+    { name: 'Fasteners / Fittings', description: 'Bolts, screws, brackets tight and not missing' },
+    { name: 'Noise & Vibration', description: 'Any abnormal sounds or excessive vibration during operation' },
+    { name: 'Signage & Labels', description: 'Warning stickers, SOP nearby, risk level displayed' },
+    { name: 'Filters / Vents', description: 'Clear of dust, grease, debris – especially on extraction units' },
+    { name: 'Function Test', description: 'Machine operates as expected under normal conditions' },
+    { name: 'Lockout / Tagout Items', description: 'Tags, locks in place for out-of-service equipment' },
+    { name: 'Cleanliness', description: 'Free from dust, oil, shavings, spills' },
+    { name: 'SOP Accessibility', description: 'Printed and legible SOP nearby or attached to equipment' },
+    { name: 'Maintenance Log Updated', description: 'EMR signed, dated, and issues noted for action' }
+  ];
+
+  // Inspection handlers
+  const handleOpenInspectionDialog = () => {
+    setEditingInspection({
+      id: null,
+      inspectionDate: '',
+      completedBy: '',
+      nextInspectionDue: '',
+      inspectionAreas: [],
+    });
+    setInspectionError('');
+    setInspectionDialogOpen(true);
+  };
+
+  const handleEditInspection = (inspection: { id: string; inspectionDate: string; completedBy: string; nextInspectionDue: string; inspectionAreas: string[]; createdAt: string }) => {
+    setEditingInspection({
+      id: inspection.id,
+      inspectionDate: inspection.inspectionDate,
+      completedBy: inspection.completedBy,
+      nextInspectionDue: inspection.nextInspectionDue,
+      inspectionAreas: inspection.inspectionAreas,
+    });
+    setInspectionError('');
+    setInspectionDialogOpen(true);
+  };
+
+  const handleSaveInspection = () => {
+    setInspectionError('');
+    const { inspectionDate, completedBy, inspectionAreas } = editingInspection;
+    if (!inspectionDate || !completedBy || inspectionAreas.length === 0) {
+      setInspectionError('Inspection date, completed by, and at least one inspection area are required.');
+      return;
+    }
+
+    if (editingInspection.id && equipmentItem?.id) {
+      // Edit existing inspection
+      fetch(`${API_BASE}/equipment/${equipmentItem.id}/inspections/${editingInspection.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingInspection)
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            const updated = inspectionRecords.map(record => 
+              record.id === editingInspection.id ? result.inspection : record
+            );
+            setInspectionRecords(updated);
+            setInspectionDialogOpen(false);
+            setEditingInspection({
+              id: null,
+              inspectionDate: '',
+              completedBy: '',
+              nextInspectionDue: '',
+              inspectionAreas: [],
+            });
+            showNotification('Inspection record updated successfully!', 'success');
+          } else {
+            setInspectionError('Failed to update inspection record.');
+            showNotification('Failed to update inspection record.', 'error');
+          }
+        })
+        .catch(() => {
+          setInspectionError('Failed to update inspection record.');
+          showNotification('Failed to update inspection record.', 'error');
+        });
+    } else if (equipmentItem?.id) {
+      // Add new inspection
+      fetch(`${API_BASE}/equipment/${equipmentItem.id}/inspections`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingInspection)
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            const newRecord = result.inspection;
+            const updated = [...inspectionRecords, newRecord];
+            setInspectionRecords(updated);
+            setInspectionDialogOpen(false);
+            setEditingInspection({
+              id: null,
+              inspectionDate: '',
+              completedBy: '',
+              nextInspectionDue: '',
+              inspectionAreas: [],
+            });
+            showNotification('Inspection record added successfully!', 'success');
+          } else {
+            setInspectionError('Failed to add inspection record.');
+            showNotification('Failed to add inspection record.', 'error');
+          }
+        })
+        .catch(() => {
+          setInspectionError('Failed to add inspection record.');
+          showNotification('Failed to add inspection record.', 'error');
+        });
+    }
+  };
+
+  const handleDeleteInspection = (recordId: string) => {
+    const inspectionToDelete = inspectionRecords.find(r => r.id === recordId);
+    if (inspectionToDelete) {
+      setInspectionToDelete(inspectionToDelete);
+      setDeleteInspectionDialogOpen(true);
+    }
+  };
+
+  const handleConfirmDeleteInspection = () => {
+    if (inspectionToDelete && equipmentItem?.id) {
+      fetch(`${API_BASE}/equipment/${equipmentItem.id}/inspections/${inspectionToDelete.id}`, {
+        method: 'DELETE'
+      })
+        .then(() => {
+          const updated = inspectionRecords.filter(r => r.id !== inspectionToDelete.id);
+          setInspectionRecords(updated);
+          setDeleteInspectionDialogOpen(false);
+          setInspectionToDelete(null);
+        });
+    }
+  };
+
+  const handleViewInspection = (inspection: { id: string; inspectionDate: string; completedBy: string; nextInspectionDue: string; inspectionAreas: string[]; createdAt: string }) => {
+    setSelectedInspection(inspection);
+    setInspectionDetailDialogOpen(true);
+  };
+
+  // Date calculation handlers for inspections
+  const handleCalculateNextInspection = (months: number) => {
+    if (!editingInspection.inspectionDate) {
+      setInspectionError('Please set an inspection date first.');
+      return;
+    }
+    
+    const inspectionDate = new Date(editingInspection.inspectionDate);
+    const nextInspectionDate = new Date(inspectionDate);
+    nextInspectionDate.setMonth(nextInspectionDate.getMonth() + months);
+    
+    setEditingInspection(prev => ({
+      ...prev,
+      nextInspectionDue: nextInspectionDate.toISOString().split('T')[0]
+    }));
+  };
+
+  const handleSetInspectionToday = () => {
+    const today = new Date().toISOString().split('T')[0];
+    setEditingInspection(prev => ({
+      ...prev,
+      inspectionDate: today
+    }));
   };
 
   // --- LESSON LINKING STATE ---
@@ -644,14 +1240,14 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
     }
   }, [linkLessonDialogOpen]);
 
-  // Optionally: Fetch linked lesson for this equipment (if backend supports it)
-  // useEffect(() => {
-  //   if (equipmentItem?.id) {
-  //     fetch(`${API_BASE}/equipment/${equipmentItem.id}/lessons`)
-  //       .then(res => res.json())
-  //       .then(data => setLinkedLesson(data.linkedLesson || null));
-  //   }
-  // }, [equipmentItem?.id]);
+  // Fetch linked lesson for this equipment
+  useEffect(() => {
+    if (equipmentItem?.id) {
+      fetch(`${API_BASE}/equipment/${equipmentItem.id}/lessons`)
+        .then(res => res.json())
+        .then(data => setLinkedLesson(data.linkedLesson || null));
+    }
+  }, [equipmentItem?.id]);
 
   // --- LESSON ICONS (copy from ClassDetails) ---
   const lessonIcons: { [key: string]: JSX.Element } = {
@@ -679,6 +1275,269 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
       const originalIndexB = allLessons.findIndex(l => l.name === b);
       return originalIndexA - originalIndexB;
     });
+  };
+
+  const handleLinkLesson = () => {
+    if (!equipmentItem?.id || !selectedLesson) return;
+    
+    // Find the lesson by name to get its ID
+    const lesson = lessons.find(l => l.name === selectedLesson);
+    if (!lesson) {
+      console.error('Lesson not found');
+      return;
+    }
+    
+    fetch(`${API_BASE}/equipment/${equipmentItem.id}/lessons`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lessonId: lesson.id })
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          setLinkedLesson(result.linkedLesson);
+          setLinkLessonDialogOpen(false);
+          showNotification('Lesson linked successfully!', 'success');
+        } else {
+          console.error('Failed to link lesson');
+          showNotification('Failed to link lesson.', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error linking lesson:', error);
+        showNotification('Failed to link lesson.', 'error');
+      });
+  };
+
+  const handleUnlinkLesson = () => {
+    if (!equipmentItem?.id || !linkedLesson) return;
+    
+    fetch(`${API_BASE}/equipment/${equipmentItem.id}/lessons`, {
+      method: 'DELETE'
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          setLinkedLesson(null);
+          showNotification('Lesson unlinked successfully!', 'success');
+        } else {
+          console.error('Failed to unlink lesson');
+          showNotification('Failed to unlink lesson.', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error unlinking lesson:', error);
+        showNotification('Failed to unlink lesson.', 'error');
+      });
+  };
+
+  // Tag/Lock Out handlers
+  const handleOpenTagOutDialog = () => {
+    if (isTaggedOut) {
+      // If already tagged out, untag it
+                              handleOpenUntagDialog();
+    } else {
+      // Open tag out dialog
+      setEditingTagOut({
+        id: null,
+        tagOutDate: new Date().toISOString().split('T')[0],
+        completedBy: '',
+        tagOutSteps: [],
+        notes: '',
+      });
+      setTagOutError('');
+      setTagOutDialogOpen(true);
+    }
+  };
+
+  const handleTagOutStepToggle = (step: string) => {
+    setEditingTagOut(prev => ({
+      ...prev,
+      tagOutSteps: prev.tagOutSteps.includes(step)
+        ? prev.tagOutSteps.filter(s => s !== step)
+        : [...prev.tagOutSteps, step]
+    }));
+  };
+
+  const handleSelectAllTagOutSteps = () => {
+    setEditingTagOut(prev => ({
+      ...prev,
+      tagOutSteps: [...tagOutSteps]
+    }));
+  };
+
+  const handleSaveTagOut = () => {
+    if (!equipmentItem?.id) return;
+
+    if (!editingTagOut.tagOutDate) {
+      setTagOutError('Please select a date.');
+      return;
+    }
+    if (!editingTagOut.completedBy) {
+      setTagOutError('Please enter who completed the tag out.');
+      return;
+    }
+    if (editingTagOut.tagOutSteps.length === 0) {
+      setTagOutError('Please complete at least one tag out step.');
+      return;
+    }
+
+    const tagOutData = {
+      ...editingTagOut,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Save tag out record
+    fetch(`${API_BASE}/equipment/${equipmentItem.id}/tagout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(tagOutData)
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          setIsTaggedOut(true);
+          setCurrentTagOut(result.tagOut);
+          setTagOutDialogOpen(false);
+          showNotification('Equipment tagged out successfully!', 'success');
+          
+          // Add to notes
+          const noteContent = `Equipment Tagged Out on ${new Date(editingTagOut.tagOutDate).toLocaleDateString()} • Completed by: ${editingTagOut.completedBy} • Steps completed: ${editingTagOut.tagOutSteps.join(', ')} • Reason: ${editingTagOut.notes}`;
+          
+          const noteData = {
+            title: 'Equipment Tagged Out',
+            content: noteContent,
+            createdAt: new Date().toISOString(),
+          };
+
+          fetch(`${API_BASE}/equipment/${equipmentItem.id}/notes`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(noteData)
+          })
+            .then(res => res.json())
+            .then(noteResult => {
+              if (noteResult.success) {
+                setNotes(prev => [noteResult.note, ...prev]);
+              }
+            })
+            .catch(error => {
+              console.error('Error adding note:', error);
+            });
+        } else {
+          setTagOutError('Failed to tag out equipment.');
+          showNotification('Failed to tag out equipment.', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error tagging out equipment:', error);
+        setTagOutError('Failed to tag out equipment.');
+        showNotification('Failed to tag out equipment.', 'error');
+      });
+  };
+
+  const handleOpenUntagDialog = () => {
+    setEditingUntag({
+      untagDate: new Date().toISOString().split('T')[0],
+      completedBy: '',
+      untagSteps: [],
+      notes: '',
+    });
+    setUntagError('');
+    setUntagDialogOpen(true);
+  };
+
+  const handleUntagStepToggle = (step: string) => {
+    setEditingUntag(prev => ({
+      ...prev,
+      untagSteps: prev.untagSteps.includes(step)
+        ? prev.untagSteps.filter(s => s !== step)
+        : [...prev.untagSteps, step]
+    }));
+  };
+
+  const handleSelectAllUntagSteps = () => {
+    setEditingUntag(prev => ({
+      ...prev,
+      untagSteps: untagSteps
+    }));
+  };
+
+  const handleSaveUntag = () => {
+    setUntagError('');
+    const { untagDate, completedBy, untagSteps: selectedSteps, notes } = editingUntag;
+    
+    if (!untagDate.trim()) {
+      setUntagError('Date is required.');
+      return;
+    }
+
+    if (!completedBy.trim()) {
+      setUntagError('Completed by is required.');
+      return;
+    }
+
+    if (selectedSteps.length === 0) {
+      setUntagError('Please select at least one step.');
+      return;
+    }
+
+    if (!equipmentItem?.id) {
+      setUntagError('Equipment not found.');
+      return;
+    }
+
+    // First, untag the equipment
+    fetch(`${API_BASE}/equipment/${equipmentItem.id}/tagout`, {
+      method: 'DELETE'
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          setIsTaggedOut(false);
+          setCurrentTagOut(null);
+          setUntagDialogOpen(false);
+          showNotification('Equipment untagged successfully!', 'success');
+          
+          // Add untag note with detailed information
+          const noteContent = `Equipment Untagged on ${new Date(untagDate).toLocaleDateString()} • Completed by: ${completedBy} • Steps completed: ${selectedSteps.join(', ')} • Notes: ${notes}`;
+          
+          const noteData = {
+            title: 'Equipment Untagged',
+            content: noteContent,
+            createdAt: new Date().toISOString(),
+          };
+
+          fetch(`${API_BASE}/equipment/${equipmentItem.id}/notes`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(noteData)
+          })
+            .then(res => res.json())
+            .then(noteResult => {
+              if (noteResult.success) {
+                setNotes(prev => [noteResult.note, ...prev]);
+              }
+            })
+            .catch(error => {
+              console.error('Error adding note:', error);
+            });
+        } else {
+          setUntagError('Failed to untag equipment.');
+          showNotification('Failed to untag equipment.', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error untagging equipment:', error);
+        setUntagError('Failed to untag equipment.');
+        showNotification('Failed to untag equipment.', 'error');
+      });
   };
 
   if (!equipmentItem) {
@@ -717,12 +1576,12 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
         {/* Content */}
         <Box ref={contentRef} sx={{ flex: 1, overflowY: 'auto' }}>
           <Box sx={{ maxWidth: 1000, mx: 'auto', px: 4, py: 4 }}>
-            {/* Equipment Info Tiles Section */}
-            <Box ref={equipmentInfoRef} sx={{ display: 'flex', gap: 2, minHeight: 70, mb: 3 }}>
-              {/* Equipment Info Section with Photo */}
-              <Paper elevation={1} sx={{ flex: 1, px: 3, py: 2, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 3, minWidth: 0, minHeight: 70, position: 'relative' }}>
+            {/* Equipment Info Tiles Section - Two Columns */}
+            <Box ref={equipmentInfoRef} sx={{ display: 'flex', gap: 2, mb: 3 }}>
+              {/* First Column - Equipment Info Section with Photo */}
+              <Paper elevation={1} sx={{ flex: 1, px: 3, py: 3, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 3, minWidth: 0, position: 'relative' }}>
                 {/* Photo Section */}
-                <Box sx={{ width: 100, height: 100, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+                <Box sx={{ width: 130, height: 130, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
                   {equipmentItem.photo ? (
                     <>
                       <img 
@@ -814,35 +1673,379 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                   <Typography sx={{ color: '#374151', fontWeight: 500, fontSize: 14, fontFamily: 'Montserrat, sans-serif', mt: 0.5 }}>
                     Location: {equipmentItem.location}
                   </Typography>
+                  {/* Linked Lesson Display */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5, minHeight: '34px' }}>
+                    <Typography sx={{ color: '#374151', fontWeight: 500, fontSize: 14, fontFamily: 'Montserrat, sans-serif', mr: 1 }}>
+                      Related Lesson:
+                    </Typography>
+                    {linkedLesson ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography sx={{ fontWeight: 600, fontSize: 14, color: '#111827' }}>
+                          {linkedLesson.name}
+                        </Typography>
+                        <Tooltip title="Unlink Lesson" arrow>
+                          <IconButton size="small" sx={{ color: '#9ca3af', ml: 0.5, '&:hover': { color: '#ef4444' } }} onClick={handleUnlinkLesson}>
+                            <CloseIcon sx={{ fontSize: 16 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    ) : (
+                      <Button 
+                        startIcon={<LinkIcon sx={{ fontSize: 16 }}/>} 
+                        onClick={() => setLinkLessonDialogOpen(true)}
+                        sx={{ ...buttonStyles.primary, py: 0.2, px: 1, fontSize: 13, textTransform: 'none', fontWeight: 600 }}
+                      >
+                        Link a Lesson
+                      </Button>
+                    )}
+                  </Box>
                 </Box>
 
-                {/* Action Buttons - Bottom Right */}
-                <Box sx={{ position: 'absolute', bottom: 8, right: 12, display: 'flex', gap: 0.5 }}>
+                {/* Action Buttons - Top Right */}
+                <Box sx={{ position: 'absolute', top: 8, right: 12, display: 'flex', gap: 0.5 }}>
                   <Tooltip title="Edit equipment" arrow>
-                    <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={() => handleEditClick(equipmentItem)}>
-                      <EditIcon />
+                    <IconButton size="small" sx={{ color: '#4ecdc4', width: 28, height: 28 }} onClick={() => handleEditClick(equipmentItem)}>
+                      <EditIcon sx={{ fontSize: 16 }} />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Delete equipment" arrow>
-                    <IconButton size="small" sx={{ color: '#e57373' }} onClick={() => handleDeleteClick(equipmentItem)}>
-                      <DeleteIcon />
+                    <IconButton size="small" sx={{ color: '#e57373', width: 28, height: 28 }} onClick={() => handleDeleteClick(equipmentItem)}>
+                      <DeleteIcon sx={{ fontSize: 16 }} />
                     </IconButton>
                   </Tooltip>
+                </Box>
+              </Paper>
+
+              {/* Second Column - Action Buttons and Display Information */}
+              <Paper elevation={1} sx={{ flex: 1, px: 3, py: 3, borderRadius: 2, display: 'flex', alignItems: 'flex-start', gap: 3, minWidth: 0, position: 'relative' }}>
+                {/* Left Side - Action Buttons */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1 }}>
+                  <Typography sx={{ color: '#888', fontWeight: 700, fontSize: 13, mb: 0.5 }}>
+                    Quick Actions
+                  </Typography>
+                  
+                  {/* Tag / Lock Out Equipment Button */}
+                  <Button
+                    {...(isTaggedOut ? buttonStyles.primary : buttonStyles.danger)}
+                    startIcon={isTaggedOut ? <LockOpenIcon /> : <BlockIcon />}
+                    size="small"
+                    onClick={handleOpenTagOutDialog}
+                  >
+                    {isTaggedOut ? 'Untag / Unlock' : 'Tag / Lock Out'}
+                  </Button>
+
+                  {/* Loan Equipment Button */}
+                  <Button
+                    {...buttonStyles.secondary}
+                    startIcon={<HandshakeIcon />}
+                    size="small"
+                    onClick={() => {
+                      // TODO: Implement loan equipment functionality
+                      console.log('Loan Equipment clicked');
+                    }}
+                  >
+                    Loan Equipment
+                  </Button>
+                </Box>
+
+                {/* Right Side - Status Information */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1 }}>
+                  <Typography sx={{ color: '#888', fontWeight: 700, fontSize: 13, mb: 0.5 }}>
+                    Status
+                  </Typography>
+                  
+                  {/* Equipment Status */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ 
+                      width: 6, 
+                      height: 6, 
+                      borderRadius: '50%', 
+                      bgcolor: isTaggedOut ? '#ef4444' : '#10b981',
+                      flexShrink: 0 
+                    }} />
+                    <Typography sx={{ color: '#374151', fontWeight: 500, fontSize: 13, fontFamily: 'Montserrat, sans-serif' }}>
+                      {isTaggedOut ? 'Locked / Tagged Out' : 'Available'}
+                    </Typography>
+                  </Box>
+
+                  {/* Status Details */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ color: '#6b7280', fontWeight: 500, fontSize: 11 }}>
+                        Last Maintenance:
+                      </Typography>
+                      <Typography sx={{ color: '#374151', fontWeight: 500, fontSize: 11, fontFamily: 'Montserrat, sans-serif' }}>
+                        {maintenanceRecords.length > 0 
+                          ? new Date(maintenanceRecords[0].serviceDate).toLocaleDateString()
+                          : 'No records'
+                        }
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ color: '#6b7280', fontWeight: 500, fontSize: 11 }}>
+                        Next Inspection:
+                      </Typography>
+                      <Typography sx={{ color: '#374151', fontWeight: 500, fontSize: 11, fontFamily: 'Montserrat, sans-serif' }}>
+                        {inspectionRecords.length > 0 && inspectionRecords[0].nextInspectionDue
+                          ? new Date(inspectionRecords[0].nextInspectionDue).toLocaleDateString()
+                          : 'Not scheduled'
+                        }
+                      </Typography>
+                    </Box>
+                  </Box>
                 </Box>
               </Paper>
             </Box>
 
             <div style={{ height: 12 }} />
 
+            {/* Periodic Inspections Section */}
+            <div>
+              <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, mb: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AssignmentIcon sx={{ color: '#4ecdc4' }} />
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>Periodic Inspections</Typography>
+                  </Box>
+                  <Button {...buttonStyles.primary} size="small" startIcon={<AddIcon />} onClick={handleOpenInspectionDialog}>
+                    Add Inspection
+                  </Button>
+                </Box>
+                <Box sx={{ 
+                  maxHeight: '240px',
+                  overflowY: 'auto',
+                  bgcolor: '#f8fafc', 
+                  borderRadius: 2, 
+                  p: 2, 
+                  border: '1px solid #e0e7ff' 
+                }}>
+                  {inspectionRecords.length === 0 ? (
+                    <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
+                      No inspection records yet. Click "Add Inspection" to schedule or record inspections.
+                    </Typography>
+                  ) : (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      {inspectionRecords
+                        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                        .map((record) => (
+                        <Paper 
+                          key={record.id} 
+                          elevation={0}
+                          sx={{ 
+                            p: 2,
+                            borderRadius: 2, 
+                            bgcolor: '#fff', 
+                            border: '1px solid #e0e7ff',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                              transform: 'translateY(-1px)',
+                            }
+                          }}
+                          onClick={() => handleViewInspection(record)}
+                        >
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+                            <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden', pt: '4px' }}>
+                              <Typography sx={{ 
+                                fontWeight: 600, 
+                                fontSize: 16, 
+                                color: '#374151',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}>
+                                Inspection Date: {new Date(record.inspectionDate).toLocaleDateString()}
+                              </Typography>
+                              <Typography sx={{ 
+                                fontSize: 14, 
+                                color: '#6b7280',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap',
+                                textOverflow: 'ellipsis'
+                              }}>
+                                Completed by: {record.completedBy} • Areas: {record.inspectionAreas.length}
+                              </Typography>
+                              {record.nextInspectionDue && (
+                                <Typography sx={{ 
+                                  fontSize: 13, 
+                                  color: '#9ca3af',
+                                  fontStyle: 'italic'
+                                }}>
+                                  Next inspection due: {new Date(record.nextInspectionDue).toLocaleDateString()}
+                                </Typography>
+                              )}
+                            </Box>
+                            <Box sx={{ display: 'flex', gap: 0.5, ml: 1, flexShrink: 0, pt: '4px' }}>
+                              <Tooltip title="Edit record" arrow>
+                                <IconButton 
+                                  size="small" 
+                                  sx={{ color: '#4ecdc4', p: 0.5 }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditInspection(record);
+                                  }}
+                                >
+                                  <EditIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete record" arrow>
+                                <IconButton 
+                                  size="small" 
+                                  sx={{ color: '#e57373', p: 0.5 }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteInspection(record.id);
+                                  }}
+                                >
+                                  <DeleteIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          </Box>
+                        </Paper>
+                      ))}
+                    </Box>
+                  )}
+                </Box>
+              </Paper>
+            </div>
+
+            <div style={{ height: 12 }} />
+
+            {/* Maintenance Records Section */}
+            <div>
+              <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, mb: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <BuildIcon sx={{ color: '#4ecdc4' }} />
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>Maintenance Records</Typography>
+                  </Box>
+                  <Button {...buttonStyles.primary} size="small" startIcon={<AddIcon />} onClick={handleOpenMaintenanceDialog}>
+                    Add Record
+                  </Button>
+                </Box>
+                <Box sx={{ 
+                  maxHeight: '240px',
+                  overflowY: 'auto',
+                  bgcolor: '#f8fafc', 
+                  borderRadius: 2, 
+                  p: 2, 
+                  border: '1px solid #e0e7ff' 
+                }}>
+                  {maintenanceRecords.length === 0 ? (
+                    <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
+                      No maintenance records yet. Click "Add Record" to log maintenance activities.
+                    </Typography>
+                  ) : (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      {maintenanceRecords
+                        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                        .map((record) => (
+                        <Paper 
+                          key={record.id} 
+                          elevation={0}
+                          sx={{ 
+                            p: 2,
+                            borderRadius: 2, 
+                            bgcolor: '#fff', 
+                            border: '1px solid #e0e7ff',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                              transform: 'translateY(-1px)',
+                            }
+                          }}
+                          onClick={() => handleViewMaintenance(record)}
+                        >
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+                            <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden', pt: '4px' }}>
+                              <Typography sx={{ 
+                                fontWeight: 600, 
+                                fontSize: 16, 
+                                color: '#374151',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}>
+                                Service Date: {new Date(record.serviceDate).toLocaleDateString()}
+                              </Typography>
+                              <Typography sx={{ 
+                                fontSize: 14, 
+                                color: '#6b7280',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap',
+                                textOverflow: 'ellipsis'
+                              }}>
+                                Work: {truncateText(record.workUndertaken, 60)} • Completed by: {record.completedBy}
+                              </Typography>
+                              {record.nextServiceDue && (
+                                <Typography sx={{ 
+                                  fontSize: 13, 
+                                  color: '#9ca3af',
+                                  fontStyle: 'italic'
+                                }}>
+                                  Next service due: {new Date(record.nextServiceDue).toLocaleDateString()}
+                                </Typography>
+                              )}
+                              {record.photos && record.photos.length > 0 && (
+                                <Typography sx={{ 
+                                  fontSize: 13, 
+                                  color: '#4ecdc4',
+                                  fontStyle: 'italic'
+                                }}>
+                                  📷 {record.photos.length} photo{record.photos.length !== 1 ? 's' : ''}
+                                </Typography>
+                              )}
+                            </Box>
+                            <Box sx={{ display: 'flex', gap: 0.5, ml: 1, flexShrink: 0, pt: '4px' }}>
+                              <Tooltip title="Edit record" arrow>
+                                <IconButton 
+                                  size="small" 
+                                  sx={{ color: '#4ecdc4', p: 0.5 }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditMaintenance(record);
+                                  }}
+                                >
+                                  <EditIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete record" arrow>
+                                <IconButton 
+                                  size="small" 
+                                  sx={{ color: '#e57373', p: 0.5 }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteMaintenance(record.id);
+                                  }}
+                                >
+                                  <DeleteIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          </Box>
+                        </Paper>
+                      ))}
+                    </Box>
+                  )}
+                </Box>
+              </Paper>
+            </div>
+
+            <div style={{ height: 12 }} />
+
             {/* Notes and User Manuals Section - Side by Side */}
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'stretch' }}>
               {/* Notes Section */}
-              <Box sx={{ flex: 1, display: 'flex' }}>
-                <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, width: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ flex: 1, display: 'flex', minWidth: 0 }}>
+                <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, width: '100%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <NotesIcon sx={{ color: '#4ecdc4' }} />
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>Notes & Spare Parts</Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>Notes</Typography>
                     </Box>
                     <Button {...buttonStyles.primary} size="small" startIcon={<AddIcon />} onClick={handleOpenNoteDialog}>
                       Add Note
@@ -863,7 +2066,9 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                       </Typography>
                     ) : (
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                        {notes.map((note) => (
+                        {notes
+                          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                          .map((note) => (
                           <Paper 
                             key={note.id} 
                             elevation={0}
@@ -902,7 +2107,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                                     textOverflow: 'ellipsis'
                                   }}
                                   dangerouslySetInnerHTML={{ 
-                                    __html: formatNoteContent(note.content) 
+                                    __html: formatNoteContent(truncateText(note.content, 80)) 
                                   }}
                                 />
                               </Box>
@@ -942,12 +2147,12 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
               </Box>
 
               {/* User Manuals Section */}
-              <Box sx={{ flex: 1, display: 'flex' }}>
-                <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, width: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ flex: 1, display: 'flex', minWidth: 0 }}>
+                <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, width: '100%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <DescriptionIcon sx={{ color: '#4ecdc4' }} />
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>User Manuals</Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>User Manuals & Spares</Typography>
                     </Box>
                     <Button {...buttonStyles.primary} size="small" startIcon={<AddIcon />} onClick={handleOpenManualDialog}>
                       Add Manual
@@ -1040,114 +2245,6 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                 </Paper>
               </Box>
             </Box>
-
-            <div style={{ height: 12 }} />
-
-            {/* Maintenance Records Section */}
-            <div>
-              <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, mb: 0.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <BuildIcon sx={{ color: '#4ecdc4' }} />
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>Maintenance Records</Typography>
-                  </Box>
-                  <Button {...buttonStyles.primary} size="small" startIcon={<AddIcon />}>
-                    Add Record
-                  </Button>
-                </Box>
-                <Box sx={{ minHeight: 80, bgcolor: '#f8fafc', borderRadius: 2, p: 2, border: '1px solid #e0e7ff' }}>
-                  <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
-                    No maintenance records yet. Click "Add Record" to log maintenance activities.
-                  </Typography>
-                </Box>
-              </Paper>
-            </div>
-
-            <div style={{ height: 12 }} />
-
-            {/* Periodic Inspections Section */}
-            <div>
-              <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, mb: 0.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <AssignmentIcon sx={{ color: '#4ecdc4' }} />
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>Periodic Inspections</Typography>
-                  </Box>
-                  <Button {...buttonStyles.primary} size="small" startIcon={<AddIcon />}>
-                    Add Inspection
-                  </Button>
-                </Box>
-                <Box sx={{ minHeight: 80, bgcolor: '#f8fafc', borderRadius: 2, p: 2, border: '1px solid #e0e7ff' }}>
-                  <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
-                    No inspection records yet. Click "Add Inspection" to schedule or record inspections.
-                  </Typography>
-                </Box>
-              </Paper>
-            </div>
-
-            <div style={{ height: 12 }} />
-
-            {/* Linked Lessons Section */}
-            <div>
-              <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, mb: 0.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <SchoolIcon sx={{ color: '#4ecdc4' }} />
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>Related Lessons</Typography>
-                  </Box>
-                  <Button {...buttonStyles.primary} size="small" startIcon={<LinkIcon />} onClick={() => setLinkLessonDialogOpen(true)}>
-                    Link Lesson
-                  </Button>
-                </Box>
-                <Box sx={{ minHeight: 80, bgcolor: '#f8fafc', borderRadius: 2, p: 2, border: '1px solid #e0e7ff' }}>
-                  {linkedLesson ? (
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 2,
-                        borderRadius: 2,
-                        border: '1px solid #e0e7ff',
-                        bgcolor: '#fff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 2,
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                          boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
-                          transform: 'translateY(-1px)'
-                        }
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Box sx={{ 
-                          color: '#4ecdc4',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 24
-                        }}>
-                          {lessonIcons[linkedLesson.icon]}
-                        </Box>
-                        <Box>
-                          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 600, color: '#374151' }}>
-                            {linkedLesson.name}
-                          </Typography>
-                          <Typography sx={{ color: '#6b7280', fontSize: 14, fontFamily: 'Montserrat, sans-serif' }}>
-                            {linkedLesson.category}  b7 {linkedLesson.area}{linkedLesson.subArea ? `  b7 ${linkedLesson.subArea}` : ''}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Paper>
-                  ) : (
-                    <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
-                      No lessons linked yet. Click "Link Lesson" to connect this equipment to existing lessons.
-                    </Typography>
-                  )}
-                </Box>
-              </Paper>
-            </div>
 
             <div style={{ height: 12 }} />
 
@@ -1262,6 +2359,350 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
           <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
             <Button {...buttonStyles.primary} onClick={() => setNoteDetailDialogOpen(false)}>
               Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Add/Edit Maintenance Record Dialog */}
+        <Dialog open={maintenanceDialogOpen} onClose={() => setMaintenanceDialogOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>
+            {editingMaintenance.id ? 'Edit Maintenance Record' : 'Add Maintenance Record'}
+          </DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+              <TextField
+                label="Service Date"
+                type="date"
+                value={editingMaintenance.serviceDate}
+                onChange={e => setEditingMaintenance(prev => ({ ...prev, serviceDate: e.target.value }))}
+                size="small"
+                sx={{ flex: 1, mt: 2 }}
+                InputLabelProps={{ shrink: true }}
+              />
+              <Button 
+                {...buttonStyles.secondary}
+                size="small" 
+                onClick={handleSetToday}
+              >
+                Today
+              </Button>
+            </Box>
+            <TextField
+              label="Work / Maintenance Undertaken"
+              value={editingMaintenance.workUndertaken}
+              onChange={e => setEditingMaintenance(prev => ({ ...prev, workUndertaken: e.target.value }))}
+              multiline
+              rows={4}
+              fullWidth
+              placeholder="Describe the maintenance work performed..."
+            />
+            <Autocomplete
+              options={staff}
+              getOptionLabel={(option) => {
+                if (typeof option === 'string') {
+                  return option;
+                }
+                return option.name;
+              }}
+              value={editingMaintenance.completedBy}
+              onChange={(_, newValue) => {
+                setEditingMaintenance(prev => ({ 
+                  ...prev, 
+                  completedBy: typeof newValue === 'string' ? newValue : (newValue ? newValue.name : '') 
+                }));
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Completed By"
+                  size="small"
+                  placeholder="Select staff member or type name"
+                  value={editingMaintenance.completedBy}
+                  onChange={(e) => {
+                    setEditingMaintenance(prev => ({ 
+                      ...prev, 
+                      completedBy: e.target.value 
+                    }));
+                  }}
+                />
+              )}
+              freeSolo
+              inputValue={editingMaintenance.completedBy}
+              onInputChange={(_, newInputValue) => {
+                setEditingMaintenance(prev => ({ 
+                  ...prev, 
+                  completedBy: newInputValue 
+                }));
+              }}
+            />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+                <TextField
+                  label="Next Service Due Date (optional)"
+                  type="date"
+                  value={editingMaintenance.nextServiceDue}
+                  onChange={e => setEditingMaintenance(prev => ({ ...prev, nextServiceDue: e.target.value }))}
+                  size="small"
+                  InputLabelProps={{ shrink: true }}
+                  placeholder="When is the next service due?"
+                  sx={{ flex: 1 }}
+                />
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button 
+                    {...buttonStyles.secondary}
+                    size="small" 
+                    onClick={() => handleCalculateNextService(6)}
+                  >
+                    6 Months
+                  </Button>
+                  <Button 
+                    {...buttonStyles.secondary}
+                    size="small" 
+                    onClick={() => handleCalculateNextService(12)}
+                  >
+                    12 Months
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Photo Upload Section */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151' }}>
+                Photos (optional)
+              </Typography>
+              <Box sx={{ 
+                border: '2px dashed #e0e7ff', 
+                borderRadius: 2, 
+                p: 3, 
+                textAlign: 'center',
+                bgcolor: editingMaintenance.photos.length > 0 ? '#f0f9ff' : '#f8fafc',
+                borderColor: editingMaintenance.photos.length > 0 ? '#4ecdc4' : '#e0e7ff',
+                cursor: 'pointer',
+                '&:hover': {
+                  borderColor: '#4ecdc4',
+                  bgcolor: '#f0f9ff'
+                }
+              }}
+              onClick={() => document.getElementById('maintenance-photo-input')?.click()}
+              >
+                {editingMaintenance.photos.length > 0 ? (
+                  <Box>
+                    <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#4ecdc4', mb: 1 }}>
+                      {editingMaintenance.photos.length} Photo{editingMaintenance.photos.length !== 1 ? 's' : ''} Selected
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center', mt: 2 }}>
+                      {editingMaintenance.photos.map((photo, index) => (
+                        <Box key={index} sx={{ position: 'relative' }}>
+                          <img 
+                            src={URL.createObjectURL(photo)} 
+                            alt={`Photo ${index + 1}`}
+                            style={{ 
+                              width: 60, 
+                              height: 60, 
+                              borderRadius: '4px', 
+                              objectFit: 'cover',
+                              border: '1px solid #e0e7ff'
+                            }} 
+                          />
+                          <IconButton
+                            size="small"
+                            sx={{
+                              position: 'absolute',
+                              top: -5,
+                              right: -5,
+                              bgcolor: '#e57373',
+                              color: '#fff',
+                              width: 20,
+                              height: 20,
+                              '&:hover': { bgcolor: '#d32f2f' }
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveMaintenancePhoto(index);
+                            }}
+                          >
+                            <CloseIcon sx={{ fontSize: 12 }} />
+                          </IconButton>
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                ) : (
+                  <Box>
+                    <AddAPhotoIcon sx={{ fontSize: 48, color: '#9ca3af', mb: 2 }} />
+                    <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#374151', mb: 1 }}>
+                      No photos selected
+                    </Typography>
+                    <Typography sx={{ fontSize: 14, color: '#6b7280', mb: 2 }}>
+                      Click to select or drag and drop photos here
+                    </Typography>
+                    <Typography sx={{ fontSize: 12, color: '#9ca3af' }}>
+                      Supported formats: JPG, PNG, GIF (max 10MB each)
+                    </Typography>
+                  </Box>
+                )}
+                <input
+                  id="maintenance-photo-input"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  style={{ display: 'none' }}
+                  onChange={handleMaintenancePhotoSelect}
+                />
+              </Box>
+            </Box>
+
+            {maintenanceError && <Typography sx={{ color: 'error.main', fontSize: 13 }}>{maintenanceError}</Typography>}
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button {...buttonStyles.cancel} onClick={() => setMaintenanceDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button {...buttonStyles.primary} onClick={handleSaveMaintenance}>
+              {editingMaintenance.id ? 'Save Changes' : 'Add Record'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Maintenance Record Detail Dialog */}
+        <Dialog open={maintenanceDetailDialogOpen} onClose={() => setMaintenanceDetailDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            Maintenance Record
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Tooltip title="Edit record" arrow>
+                <IconButton 
+                  sx={{ color: '#4ecdc4' }}
+                  onClick={() => {
+                    if (selectedMaintenance) {
+                      setMaintenanceDetailDialogOpen(false);
+                      handleEditMaintenance(selectedMaintenance);
+                    }
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Delete record" arrow>
+                <IconButton 
+                  sx={{ color: '#e57373' }}
+                  onClick={() => {
+                    if (selectedMaintenance) {
+                      setMaintenanceDetailDialogOpen(false);
+                      handleDeleteMaintenance(selectedMaintenance.id);
+                    }
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            <Typography sx={{ fontSize: 12, color: '#9ca3af', mb: 2 }}>
+              Created: {selectedMaintenance && new Date(selectedMaintenance.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', mb: 1 }}>
+                  Service Date:
+                </Typography>
+                <Typography sx={{ fontSize: 16, color: '#374151' }}>
+                  {selectedMaintenance && new Date(selectedMaintenance.serviceDate).toLocaleDateString()}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', mb: 1 }}>
+                  Work / Maintenance Undertaken:
+                </Typography>
+                <Typography sx={{ fontSize: 16, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                  {selectedMaintenance?.workUndertaken}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', mb: 1 }}>
+                  Completed By:
+                </Typography>
+                <Typography sx={{ fontSize: 16, color: '#374151' }}>
+                  {selectedMaintenance?.completedBy}
+                </Typography>
+              </Box>
+              {selectedMaintenance?.nextServiceDue && (
+                <Box>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', mb: 1 }}>
+                    Next Service Due:
+                  </Typography>
+                  <Typography sx={{ fontSize: 16, color: '#374151' }}>
+                    {selectedMaintenance && new Date(selectedMaintenance.nextServiceDue).toLocaleDateString()}
+                  </Typography>
+                </Box>
+              )}
+              {selectedMaintenance?.photos && selectedMaintenance.photos.length > 0 && (
+                <Box>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', mb: 1 }}>
+                    Photos:
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {selectedMaintenance.photos.map((photo, index) => (
+                      <Box key={index} sx={{ position: 'relative' }}>
+                        <img 
+                          src={`${API_BASE}${photo}`} 
+                          alt={`Maintenance photo ${index + 1}`}
+                          style={{ 
+                            width: 80, 
+                            height: 80, 
+                            borderRadius: '4px', 
+                            objectFit: 'cover',
+                            border: '1px solid #e0e7ff',
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => {
+                            // Could add a photo viewer here
+                            window.open(`${API_BASE}${photo}`, '_blank');
+                          }}
+                        />
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button {...buttonStyles.primary} onClick={() => setMaintenanceDetailDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Delete Maintenance Record Confirmation Dialog */}
+        <Dialog open={deleteMaintenanceDialogOpen} onClose={() => setDeleteMaintenanceDialogOpen(false)} maxWidth="xs" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>Delete Maintenance Record</DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#374151' }}>
+              Are you sure you want to delete this maintenance record?
+            </Typography>
+            {maintenanceToDelete && (
+              <Typography sx={{ fontSize: 14, color: '#6b7280', fontStyle: 'italic' }}>
+                Service Date: {new Date(maintenanceToDelete.serviceDate).toLocaleDateString()}
+              </Typography>
+            )}
+            <Typography sx={{ fontSize: 14, color: '#6b7280' }}>
+              This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button {...buttonStyles.cancel} onClick={() => setDeleteMaintenanceDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button {...buttonStyles.danger} onClick={handleConfirmDeleteMaintenance}>
+              Delete
             </Button>
           </DialogActions>
         </Dialog>
@@ -1855,15 +3296,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
           <DialogActions>
             <Button onClick={() => setLinkLessonDialogOpen(false)} {...buttonStyles.cancel}>Cancel</Button>
             <Button
-              onClick={() => {
-                if (selectedLesson) {
-                  const lessonObj = lessons.find(l => l.name === selectedLesson);
-                  setLinkedLesson(lessonObj);
-                  setLinkLessonDialogOpen(false);
-                  // Optionally: POST to backend here
-                  // fetch(`${API_BASE}/equipment/${equipmentItem.id}/lessons`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lesson: lessonObj }) });
-                }
-              }}
+              onClick={handleLinkLesson}
               {...buttonStyles.primary}
               disabled={!selectedLesson}
             >
@@ -1871,6 +3304,730 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Add/Edit Inspection Dialog */}
+        <Dialog open={inspectionDialogOpen} onClose={() => setInspectionDialogOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>
+            {editingInspection.id ? 'Edit Inspection Record' : 'Add Inspection Record'}
+          </DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+              <TextField
+                label="Inspection Date"
+                type="date"
+                value={editingInspection.inspectionDate}
+                onChange={e => setEditingInspection(prev => ({ ...prev, inspectionDate: e.target.value }))}
+                size="small"
+                sx={{ flex: 1, mt: 2 }}
+                InputLabelProps={{ shrink: true }}
+              />
+              <Button 
+                {...buttonStyles.secondary}
+                size="small" 
+                onClick={handleSetInspectionToday}
+              >
+                Today
+              </Button>
+            </Box>
+            <Autocomplete
+              options={staff}
+              getOptionLabel={(option) => {
+                if (typeof option === 'string') {
+                  return option;
+                }
+                return option.name;
+              }}
+              value={editingInspection.completedBy}
+              onChange={(_, newValue) => {
+                setEditingInspection(prev => ({ 
+                  ...prev, 
+                  completedBy: typeof newValue === 'string' ? newValue : (newValue ? newValue.name : '') 
+                }));
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Completed By"
+                  size="small"
+                  placeholder="Select staff member or type name"
+                  value={editingInspection.completedBy}
+                  onChange={(e) => {
+                    setEditingInspection(prev => ({ 
+                      ...prev, 
+                      completedBy: e.target.value 
+                    }));
+                  }}
+                />
+              )}
+              freeSolo
+              inputValue={editingInspection.completedBy}
+              onInputChange={(_, newInputValue) => {
+                setEditingInspection(prev => ({ 
+                  ...prev, 
+                  completedBy: newInputValue 
+                }));
+              }}
+            />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151' }}>
+                Inspection Areas
+              </Typography>
+              {/* Select All Checkbox */}
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  mb: 0.5,
+                  cursor: 'pointer',
+                  p: 0.5,
+                  borderRadius: 1,
+                  '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' }
+                }}
+                onClick={() => {
+                  const allSelected = editingInspection.inspectionAreas.length === inspectionAreas.length;
+                  if (allSelected) {
+                    setEditingInspection(prev => ({
+                      ...prev,
+                      inspectionAreas: []
+                    }));
+                  } else {
+                    const allAreaNames = inspectionAreas.map(area => area.name);
+                    setEditingInspection(prev => ({
+                      ...prev,
+                      inspectionAreas: allAreaNames
+                    }));
+                  }
+                }}
+              >
+                <Checkbox
+                  checked={editingInspection.inspectionAreas.length === inspectionAreas.length}
+                  indeterminate={editingInspection.inspectionAreas.length > 0 && editingInspection.inspectionAreas.length < inspectionAreas.length}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    if (e.target.checked) {
+                      const allAreaNames = inspectionAreas.map(area => area.name);
+                      setEditingInspection(prev => ({
+                        ...prev,
+                        inspectionAreas: allAreaNames
+                      }));
+                    } else {
+                      setEditingInspection(prev => ({
+                        ...prev,
+                        inspectionAreas: []
+                      }));
+                    }
+                  }}
+                  sx={{ 
+                    color: '#4ecdc4', 
+                    '&.Mui-checked': { color: '#4ecdc4' },
+                    '&.MuiCheckbox-indeterminate': { color: '#4ecdc4' }
+                  }}
+                />
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', ml: 1 }}>
+                  Select All
+                </Typography>
+              </Box>
+              <Box sx={{ 
+                border: '1px solid #e0e7ff', 
+                borderRadius: 2, 
+                p: 2, 
+                maxHeight: '300px',
+                overflowY: 'auto',
+                bgcolor: '#f8fafc'
+              }}>
+                {inspectionAreas.map((area) => (
+                  <Box 
+                    key={area.name} 
+                    sx={{ 
+                      display: 'flex', 
+                      alignItems: 'flex-start', 
+                      mb: 2, 
+                      p: 1, 
+                      borderRadius: 1, 
+                      cursor: 'pointer',
+                      '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' }
+                    }}
+                    onClick={() => {
+                      const isSelected = editingInspection.inspectionAreas.includes(area.name);
+                      if (isSelected) {
+                        setEditingInspection(prev => ({
+                          ...prev,
+                          inspectionAreas: prev.inspectionAreas.filter(a => a !== area.name)
+                        }));
+                      } else {
+                        setEditingInspection(prev => ({
+                          ...prev,
+                          inspectionAreas: [...prev.inspectionAreas, area.name]
+                        }));
+                      }
+                    }}
+                  >
+                    <Checkbox
+                      checked={editingInspection.inspectionAreas.includes(area.name)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        if (e.target.checked) {
+                          setEditingInspection(prev => ({
+                            ...prev,
+                            inspectionAreas: [...prev.inspectionAreas, area.name]
+                          }));
+                        } else {
+                          setEditingInspection(prev => ({
+                            ...prev,
+                            inspectionAreas: prev.inspectionAreas.filter(a => a !== area.name)
+                          }));
+                        }
+                      }}
+                      sx={{ color: '#4ecdc4', '&.Mui-checked': { color: '#4ecdc4' }, mt: 0.5 }}
+                    />
+                    <Box sx={{ ml: 1, flex: 1 }}>
+                      <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#374151', mb: 0.5 }}>
+                        {area.name}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: '#6b7280', fontStyle: 'italic' }}>
+                        {area.description}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+                <TextField
+                  label="Next Inspection Due Date (optional)"
+                  type="date"
+                  value={editingInspection.nextInspectionDue}
+                  onChange={e => setEditingInspection(prev => ({ ...prev, nextInspectionDue: e.target.value }))}
+                  size="small"
+                  InputLabelProps={{ shrink: true }}
+                  placeholder="When is the next inspection due?"
+                  sx={{ flex: 1 }}
+                />
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button 
+                    {...buttonStyles.secondary}
+                    size="small" 
+                    onClick={() => handleCalculateNextInspection(1)}
+                  >
+                    1 Month
+                  </Button>
+                  <Button 
+                    {...buttonStyles.secondary}
+                    size="small" 
+                    onClick={() => handleCalculateNextInspection(3)}
+                  >
+                    3 Months
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+            {inspectionError && <Typography sx={{ color: 'error.main', fontSize: 13 }}>{inspectionError}</Typography>}
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button {...buttonStyles.cancel} onClick={() => setInspectionDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button {...buttonStyles.primary} onClick={handleSaveInspection}>
+              {editingInspection.id ? 'Save Changes' : 'Add Inspection'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Inspection Detail Dialog */}
+        <Dialog open={inspectionDetailDialogOpen} onClose={() => setInspectionDetailDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            Inspection Details
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Tooltip title="Edit inspection" arrow>
+                <IconButton 
+                  sx={{ color: '#4ecdc4' }}
+                  onClick={() => {
+                    if (selectedInspection) {
+                      setInspectionDetailDialogOpen(false);
+                      handleEditInspection(selectedInspection);
+                    }
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Delete inspection" arrow>
+                <IconButton 
+                  sx={{ color: '#e57373' }}
+                  onClick={() => {
+                    if (selectedInspection) {
+                      setInspectionDetailDialogOpen(false);
+                      handleDeleteInspection(selectedInspection.id);
+                    }
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            <Typography sx={{ fontSize: 12, color: '#9ca3af', mb: 2 }}>
+              Created: {selectedInspection && new Date(selectedInspection.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', mb: 1 }}>
+                  Inspection Date:
+                </Typography>
+                <Typography sx={{ fontSize: 16, color: '#374151' }}>
+                  {selectedInspection && new Date(selectedInspection.inspectionDate).toLocaleDateString()}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', mb: 1 }}>
+                  Completed By:
+                </Typography>
+                <Typography sx={{ fontSize: 16, color: '#374151' }}>
+                  {selectedInspection?.completedBy}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', mb: 1 }}>
+                  Inspection Areas:
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {selectedInspection?.inspectionAreas.map((areaName, index) => {
+                    const area = inspectionAreas.find(a => a.name === areaName);
+                    return (
+                      <Box key={index} sx={{ pl: 2, p: 1, borderRadius: 1, bgcolor: '#f8fafc' }}>
+                        <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#374151', mb: 0.5 }}>
+                          • {areaName}
+                        </Typography>
+                        {area && (
+                          <Typography sx={{ fontSize: 12, color: '#6b7280', fontStyle: 'italic', pl: 1 }}>
+                            {area.description}
+                          </Typography>
+                        )}
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Box>
+              {selectedInspection?.nextInspectionDue && (
+                <Box>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', mb: 1 }}>
+                    Next Inspection Due:
+                  </Typography>
+                  <Typography sx={{ fontSize: 16, color: '#374151' }}>
+                    {selectedInspection && new Date(selectedInspection.nextInspectionDue).toLocaleDateString()}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button {...buttonStyles.primary} onClick={() => setInspectionDetailDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Delete Inspection Confirmation Dialog */}
+        <Dialog open={deleteInspectionDialogOpen} onClose={() => setDeleteInspectionDialogOpen(false)} maxWidth="xs" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>Delete Inspection</DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#374151' }}>
+              Are you sure you want to delete this inspection?
+            </Typography>
+            {inspectionToDelete && (
+              <Typography sx={{ fontSize: 14, color: '#6b7280', fontStyle: 'italic' }}>
+                Inspection Date: {new Date(inspectionToDelete.inspectionDate).toLocaleDateString()}
+              </Typography>
+            )}
+            <Typography sx={{ fontSize: 14, color: '#6b7280' }}>
+              This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button {...buttonStyles.cancel} onClick={() => setDeleteInspectionDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button {...buttonStyles.danger} onClick={handleConfirmDeleteInspection}>
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Tag/Lock Out Dialog */}
+        <Dialog open={tagOutDialogOpen} onClose={() => setTagOutDialogOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>Tag / Lock Out Equipment</DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Typography sx={{ fontSize: 16, color: '#374151' }}>
+              Tag out or lock out {equipmentItem?.name} for safety purposes.
+            </Typography>
+            
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+              <TextField
+                label="Tag Out Date"
+                type="date"
+                value={editingTagOut.tagOutDate}
+                onChange={e => setEditingTagOut(prev => ({ ...prev, tagOutDate: e.target.value }))}
+                size="small"
+                InputLabelProps={{ shrink: true }}
+                sx={{ flex: 1 }}
+              />
+              <Button 
+                {...buttonStyles.secondary}
+                size="small" 
+                onClick={() => setEditingTagOut(prev => ({ ...prev, tagOutDate: new Date().toISOString().split('T')[0] }))}
+              >
+                Today
+              </Button>
+            </Box>
+
+            <Autocomplete
+              options={staff}
+              getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
+              value={editingTagOut.completedBy}
+              onChange={(_, newValue) => setEditingTagOut(prev => ({ 
+                ...prev, 
+                completedBy: typeof newValue === 'string' ? newValue : (newValue ? newValue.name : '')
+              }))}
+              freeSolo
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Completed By"
+                  size="small"
+                  placeholder="Who is tagging out the equipment?"
+                />
+              )}
+            />
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#374151' }}>
+                Tag Out Steps Checklist
+              </Typography>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                p: 1, 
+                borderRadius: 1, 
+                cursor: 'pointer',
+                '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' }
+              }}
+              onClick={() => {
+                if (editingTagOut.tagOutSteps.length === tagOutSteps.length) {
+                  // If all are selected, deselect all
+                  setEditingTagOut(prev => ({
+                    ...prev,
+                    tagOutSteps: []
+                  }));
+                } else {
+                  // Otherwise, select all
+                  setEditingTagOut(prev => ({
+                    ...prev,
+                    tagOutSteps: [...tagOutSteps]
+                  }));
+                }
+              }}
+              >
+                <Checkbox
+                  checked={editingTagOut.tagOutSteps.length === tagOutSteps.length}
+                  indeterminate={editingTagOut.tagOutSteps.length > 0 && editingTagOut.tagOutSteps.length < tagOutSteps.length}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    if (e.target.checked) {
+                      setEditingTagOut(prev => ({
+                        ...prev,
+                        tagOutSteps: [...tagOutSteps]
+                      }));
+                    } else {
+                      setEditingTagOut(prev => ({
+                        ...prev,
+                        tagOutSteps: []
+                      }));
+                    }
+                  }}
+                  sx={{ 
+                    color: '#4ecdc4', 
+                    '&.Mui-checked': { color: '#4ecdc4' },
+                    '&.MuiCheckbox-indeterminate': { color: '#4ecdc4' }
+                  }}
+                />
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', ml: 1 }}>
+                  Select All
+                </Typography>
+              </Box>
+              <Box sx={{ 
+                border: '1px solid #e0e7ff', 
+                borderRadius: 2, 
+                p: 2, 
+                maxHeight: '200px',
+                overflowY: 'auto',
+                bgcolor: '#f8fafc'
+              }}>
+                {tagOutSteps.map((step, index) => (
+                  <Box 
+                    key={index} 
+                    sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      mb: 1, 
+                      p: 1, 
+                      borderRadius: 1, 
+                      cursor: 'pointer',
+                      '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' }
+                    }}
+                    onClick={() => handleTagOutStepToggle(step)}
+                  >
+                    <Checkbox
+                      checked={editingTagOut.tagOutSteps.includes(step)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleTagOutStepToggle(step);
+                      }}
+                      sx={{ color: '#4ecdc4', '&.Mui-checked': { color: '#4ecdc4' } }}
+                    />
+                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#374151', ml: 1 }}>
+                      {step}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+
+            <TextField
+              label="Reason for Tag Out"
+              value={editingTagOut.notes}
+              onChange={e => setEditingTagOut(prev => ({ ...prev, notes: e.target.value }))}
+              multiline
+              rows={2}
+              placeholder="Enter the reason for tagging out this equipment..."
+              size="small"
+            />
+
+            {tagOutError && (
+              <Typography sx={{ color: 'error.main', fontSize: 13, bgcolor: '#ffebee', p: 2, borderRadius: 1 }}>
+                {tagOutError}
+              </Typography>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button
+              onClick={() => {
+                setTagOutDialogOpen(false);
+                setEditingTagOut({
+                  id: null,
+                  tagOutDate: '',
+                  completedBy: '',
+                  tagOutSteps: [],
+                  notes: '',
+                });
+                setTagOutError('');
+              }}
+              {...buttonStyles.cancel}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveTagOut}
+              {...buttonStyles.danger}
+            >
+              Tag / Lock Out Machine
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Untag Equipment Dialog */}
+        <Dialog open={untagDialogOpen} onClose={() => setUntagDialogOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>Untag / Unlock Equipment</DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Typography sx={{ fontSize: 16, color: '#374151' }}>
+              Untag and unlock {equipmentItem?.name} after completing required safety checks.
+            </Typography>
+            
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+              <TextField
+                label="Untag Date"
+                type="date"
+                value={editingUntag.untagDate}
+                onChange={e => setEditingUntag(prev => ({ ...prev, untagDate: e.target.value }))}
+                size="small"
+                InputLabelProps={{ shrink: true }}
+                sx={{ flex: 1 }}
+              />
+              <Button 
+                {...buttonStyles.secondary}
+                size="small" 
+                onClick={() => setEditingUntag(prev => ({ ...prev, untagDate: new Date().toISOString().split('T')[0] }))}
+              >
+                Today
+              </Button>
+            </Box>
+
+            <Autocomplete
+              options={staff}
+              getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
+              value={editingUntag.completedBy}
+              onChange={(_, newValue) => setEditingUntag(prev => ({ 
+                ...prev, 
+                completedBy: typeof newValue === 'string' ? newValue : (newValue ? newValue.name : '')
+              }))}
+              freeSolo
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Completed By"
+                  size="small"
+                  placeholder="Who is untagging the equipment?"
+                />
+              )}
+            />
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#374151' }}>
+                Untag Steps Checklist
+              </Typography>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                p: 1, 
+                borderRadius: 1, 
+                cursor: 'pointer',
+                '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' }
+              }}
+              onClick={() => {
+                if (editingUntag.untagSteps.length === untagSteps.length) {
+                  // If all are selected, deselect all
+                  setEditingUntag(prev => ({
+                    ...prev,
+                    untagSteps: []
+                  }));
+                } else {
+                  // Otherwise, select all
+                  setEditingUntag(prev => ({
+                    ...prev,
+                    untagSteps: [...untagSteps]
+                  }));
+                }
+              }}
+              >
+                <Checkbox
+                  checked={editingUntag.untagSteps.length === untagSteps.length}
+                  indeterminate={editingUntag.untagSteps.length > 0 && editingUntag.untagSteps.length < untagSteps.length}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    if (e.target.checked) {
+                      setEditingUntag(prev => ({
+                        ...prev,
+                        untagSteps: [...untagSteps]
+                      }));
+                    } else {
+                      setEditingUntag(prev => ({
+                        ...prev,
+                        untagSteps: []
+                      }));
+                    }
+                  }}
+                  sx={{ 
+                    color: '#4ecdc4', 
+                    '&.Mui-checked': { color: '#4ecdc4' },
+                    '&.MuiCheckbox-indeterminate': { color: '#4ecdc4' }
+                  }}
+                />
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', ml: 1 }}>
+                  Select All
+                </Typography>
+              </Box>
+              <Box sx={{ 
+                border: '1px solid #e0e7ff', 
+                borderRadius: 2, 
+                p: 2, 
+                maxHeight: '200px',
+                overflowY: 'auto',
+                bgcolor: '#f8fafc'
+              }}>
+                {untagSteps.map((step, index) => (
+                  <Box 
+                    key={index} 
+                    sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      mb: 1, 
+                      p: 1, 
+                      borderRadius: 1, 
+                      cursor: 'pointer',
+                      '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' }
+                    }}
+                    onClick={() => handleUntagStepToggle(step)}
+                  >
+                    <Checkbox
+                      checked={editingUntag.untagSteps.includes(step)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleUntagStepToggle(step);
+                      }}
+                      sx={{ color: '#4ecdc4', '&.Mui-checked': { color: '#4ecdc4' } }}
+                    />
+                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#374151', ml: 1 }}>
+                      {step}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+
+            <TextField
+              label="Notes (Optional)"
+              value={editingUntag.notes}
+              onChange={e => setEditingUntag(prev => ({ ...prev, notes: e.target.value }))}
+              multiline
+              rows={2}
+              placeholder="Enter any additional notes about the untag process..."
+              size="small"
+            />
+
+            {untagError && (
+              <Typography sx={{ color: 'error.main', fontSize: 13, bgcolor: '#ffebee', p: 2, borderRadius: 1 }}>
+                {untagError}
+              </Typography>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button
+              onClick={() => {
+                setUntagDialogOpen(false);
+                setEditingUntag({
+                  untagDate: '',
+                  completedBy: '',
+                  untagSteps: [],
+                  notes: '',
+                });
+                setUntagError('');
+              }}
+              {...buttonStyles.cancel}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveUntag}
+              {...buttonStyles.primary}
+            >
+              Untag / Unlock Equipment
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Notification Snackbar */}
+        <Snackbar open={snackbarOpen} autoHideDuration={4000} onClose={() => setSnackbarOpen(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+          <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </Box>
     </Layout>
   );

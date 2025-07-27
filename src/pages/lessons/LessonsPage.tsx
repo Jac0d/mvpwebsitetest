@@ -76,6 +76,7 @@ export default function LessonsPage() {
   const [snackbarSeverity, setSnackbarSeverity] = React.useState<'success' | 'error'>('success');
   const [editingLesson, setEditingLesson] = React.useState<Lesson | null>(null);
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Load lessons when component mounts
   React.useEffect(() => {
@@ -116,6 +117,18 @@ export default function LessonsPage() {
       lessons: areaLessons
     };
   });
+
+  // Compute which areas have lessons
+  const areasWithLessons = lessonsByArea.filter(group => group.lessons.length > 0).map(group => group.area);
+
+  // When clicking a tab, scroll to the section and filter
+  const handleTabChange = (_: any, value: number) => {
+    // First update the tab for filtering
+    setTab(value);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   // For Industrial area, filter by search and only show sub-areas with matching lessons
   const getIndustrialLessonsBySubArea = (lessons: Lesson[]) => {
@@ -462,17 +475,24 @@ export default function LessonsPage() {
         {/* Tabs */}
         <Box sx={{ position: 'sticky', top: 0, bgcolor: '#fff', zIndex: 1, borderBottom: '1px solid #e0e7ff', pt: 1, pb: 0.5 }}>
           <Box sx={{ maxWidth: 1000, minWidth: 360, mx: 'auto', px: 8, width: '100%' }}>
-            <Tabs value={tab} onChange={(_, v) => setTab(v)} textColor="primary" indicatorColor="primary" variant="scrollable" scrollButtons="auto">
-              <Tab label="All Areas" sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
-              {lessonAreas.map((area) => (
-                <Tab key={area} label={area} sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
+            <Tabs 
+              value={tab} 
+              onChange={handleTabChange} 
+              textColor="primary" 
+              indicatorColor="primary" 
+              variant="scrollable" 
+              scrollButtons="auto"
+            >
+              <Tab label="All Areas" sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
+              {areasWithLessons.map((area) => (
+                <Tab key={area} label={area} sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
               ))}
             </Tabs>
           </Box>
         </Box>
 
         {/* Lessons List */}
-        <Box sx={{ flex: 1, overflowY: 'auto' }}>
+        <Box sx={{ flex: 1, overflowY: 'auto' }} ref={scrollContainerRef}>
           <Box sx={{ px: 4, py: 4, maxWidth: 1000, minWidth: 540, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
             {isLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
@@ -483,9 +503,8 @@ export default function LessonsPage() {
                 <Typography>No lessons found</Typography>
               </Box>
             ) : tab === 0 ? (
-              // All Areas view
               <>
-                {lessonsByArea.map(group => (
+                {lessonsByArea.filter(group => group.lessons.length > 0).map(group => (
                   <Paper key={group.area} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: '#f8fafc', border: '1px solid #e0e7ff' }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#374151' }}>{group.area}</Typography>
                     {group.area === 'Industrial' ? (
@@ -566,10 +585,9 @@ export default function LessonsPage() {
                 ))}
               </>
             ) : (
-              // Single area view
               <>
                 {(() => {
-                  const area = lessonAreas[tab - 1];
+                  const area = areasWithLessons[tab - 1];
                   const group = lessonsByArea.find(g => g.area === area);
                   if (group && group.lessons.length > 0) {
                     return (
