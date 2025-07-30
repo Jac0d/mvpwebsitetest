@@ -490,9 +490,9 @@ export default function StaffPage() {
               variant="scrollable" 
               scrollButtons="auto"
             >
-              <Tab label="All Staff" sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
+              <Tab label="All Staff" sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
               {rolesWithStaff.map((role) => (
-                <Tab key={role} label={role} sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
+                <Tab key={role} label={role} sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
               ))}
             </Tabs>
           </Box>

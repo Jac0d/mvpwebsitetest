@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
-import { Box, Typography, Tabs, Tab, Link, Paper, Tooltip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Avatar, List, ListItem, ListItemText, ListItemSecondaryAction, Chip, Divider, Radio, Autocomplete, Checkbox, Snackbar, Alert } from '@mui/material';
+import { Box, Typography, Tabs, Tab, Link, Paper, Tooltip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Avatar, List, ListItem, ListItemText, ListItemSecondaryAction, Chip, Divider, Radio, Autocomplete, Checkbox, Snackbar, Alert, Menu } from '@mui/material';
 import { Layout } from '../../components/layout/Layout';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -29,6 +29,8 @@ import BlockIcon from '@mui/icons-material/Block';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import HandshakeIcon from '@mui/icons-material/Handshake';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { buttonStyles } from '../../styles/buttonStyles';
 
 export interface Equipment {
@@ -38,13 +40,14 @@ export interface Equipment {
   code: string;
   location: string;
   photo?: string;
+  purchasePrice?: number;
 }
 
 interface EquipmentDetailsProps {
   equipment: Equipment[];
 }
 
-const equipmentTypes = ['Tool', 'Machine', 'PPE', 'Material', 'Other'];
+const equipmentTypes = ['Hand Tool', 'Power Tool', 'Machine', 'Portable Appliance', 'Fixed Appliance'];
 const API_BASE = 'http://localhost:3001';
 
 const tagOutSteps = [
@@ -80,18 +83,23 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [enlargedPhotoOpen, setEnlargedPhotoOpen] = useState(false);
   const [deletePhotoDialogOpen, setDeletePhotoDialogOpen] = useState(false);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(menuAnchorEl);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [editEquipment, setEditEquipment] = useState<{
     id: string | null;
     name: string;
     type: string;
     code: string;
     location: string;
+    purchasePrice: string;
   }>({
     id: null,
     name: '',
     type: '',
     code: '',
     location: '',
+    purchasePrice: '',
   });
   const [editFieldError, setEditFieldError] = useState('');
   const [rooms, setRooms] = useState<string[]>([]);
@@ -269,6 +277,29 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
     notes: '',
   });
   const [untagError, setUntagError] = useState('');
+
+  // Lend equipment state
+  const [lendDialogOpen, setLendDialogOpen] = useState(false);
+  const [editingLend, setEditingLend] = useState<{
+    lendDate: string;
+    lentTo: string;
+    dueBackDate: string;
+    notes: string;
+  }>({
+    lendDate: '',
+    lentTo: '',
+    dueBackDate: '',
+    notes: '',
+  });
+  const [lendError, setLendError] = useState('');
+  const [isLentOut, setIsLentOut] = useState(false);
+  const [currentLend, setCurrentLend] = useState<any>(null);
+
+  // Competency check state
+  const [competencyWarningDialogOpen, setCompetencyWarningDialogOpen] = useState(false);
+  const [competencyWarningType, setCompetencyWarningType] = useState<'noLessonOrStaff' | 'notCompetent'>('noLessonOrStaff');
+  const [pendingLendData, setPendingLendData] = useState<any>(null);
+
   const [inspectionError, setInspectionError] = useState('');
   const [deleteInspectionDialogOpen, setDeleteInspectionDialogOpen] = useState(false);
   const [inspectionToDelete, setInspectionToDelete] = useState<{
@@ -282,6 +313,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
     name: string;
     role?: string;
     email?: string;
+    progress?: Record<string, { progress: number; competent: boolean }>;
   }>>([]);
   
   // Find equipment by ID
@@ -289,7 +321,10 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
   
   // Create refs for each section
   const equipmentInfoRef = React.useRef<HTMLDivElement>(null);
-  const locationRef = React.useRef<HTMLDivElement>(null);
+  const inspectionsRef = React.useRef<HTMLDivElement>(null);
+  const maintenanceRef = React.useRef<HTMLDivElement>(null);
+  const notesManualsRef = React.useRef<HTMLDivElement>(null);
+  const sopsRef = React.useRef<HTMLDivElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
 
   // Fetch rooms on mount
@@ -357,6 +392,24 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
     }
   }, [equipmentItem?.id]);
 
+  // Fetch lend status on mount
+  React.useEffect(() => {
+    if (equipmentItem?.id) {
+      fetch(`${API_BASE}/equipment/${equipmentItem.id}/loan`)
+        .then(res => res.json())
+        .then(data => {
+          if (data) {
+            setIsLentOut(true);
+            setCurrentLend(data);
+          } else {
+            setIsLentOut(false);
+            setCurrentLend(null);
+          }
+        })
+        .catch(error => console.error('Error fetching lend status:', error));
+    }
+  }, [equipmentItem?.id]);
+
   // Fetch staff data on mount
   React.useEffect(() => {
     fetch(`${API_BASE}/staff`)
@@ -377,7 +430,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
     if (!contentRef.current) return;
     const container = contentRef.current;
     const headerOffset = 150; // height of sticky header in px
-    const sections = [equipmentInfoRef, locationRef];
+    const sections = [equipmentInfoRef, inspectionsRef, maintenanceRef, notesManualsRef, sopsRef];
     const scrollTop = container ? container.scrollTop : 0;
     let activeIdx = 0;
     for (let i = 0; i < sections.length; i++) {
@@ -405,7 +458,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
   const handleTabChange = (_: any, newValue: number) => {
     setTab(newValue);
     
-    const refs = [equipmentInfoRef, locationRef];
+    const refs = [equipmentInfoRef, inspectionsRef, maintenanceRef, notesManualsRef, sopsRef];
     const targetRef = refs[newValue];
     if (targetRef.current && contentRef.current) {
       const headerOffset = 137; // Height of main header (64) + tab header (73)
@@ -444,6 +497,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
       type: equipment.type,
       code: equipment.code,
       location: equipment.location,
+      purchasePrice: equipment.purchasePrice ? `$${equipment.purchasePrice}` : '',
     });
     setEditFieldError('');
     setEditDialogOpen(true);
@@ -451,7 +505,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
 
   const handleEditEquipment = () => {
     setEditFieldError('');
-    const { id, name, type, code, location } = editEquipment;
+    const { id, name, type, code, location, purchasePrice } = editEquipment;
     if (!name.trim() || !type || !location.trim()) {
       setEditFieldError('Name, Type, and Location are required.');
       return;
@@ -461,7 +515,15 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
     fetch(`${API_BASE}/equipment/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim(), type, code: code.trim(), location: location.trim() }),
+      body: JSON.stringify({ 
+        name: name.trim(), 
+        type, 
+        code: code.trim(), 
+        location: location.trim(),
+        ...(purchasePrice && purchasePrice.trim() && purchasePrice !== '$' ? { 
+          purchasePrice: parseFloat(purchasePrice.replace('$', '')) 
+        } : {})
+      }),
     })
       .then(res => res.json())
       .then(result => {
@@ -480,6 +542,64 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
       });
   };
 
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+  };
+
+  const handleViewDetails = () => {
+    handleMenuClose();
+    setDetailsDialogOpen(true);
+  };
+
+  const handleEditFromMenu = () => {
+    handleMenuClose();
+    if (equipmentItem) {
+      handleEditClick(equipmentItem);
+    }
+  };
+
+  const handleDeleteFromMenu = () => {
+    handleMenuClose();
+    if (equipmentItem) {
+      handleDeleteClick(equipmentItem);
+    }
+  };
+
+  // Helper function to get upcoming inspection date
+  const getUpcomingInspection = () => {
+    if (!inspectionRecords || inspectionRecords.length === 0) return null;
+    
+    const upcoming = inspectionRecords
+      .filter(record => new Date(record.nextInspectionDue) > new Date())
+      .sort((a, b) => new Date(a.nextInspectionDue).getTime() - new Date(b.nextInspectionDue).getTime());
+    
+    return upcoming.length > 0 ? upcoming[0] : null;
+  };
+
+  // Helper function to get upcoming maintenance date
+  const getUpcomingMaintenance = () => {
+    if (!maintenanceRecords || maintenanceRecords.length === 0) return null;
+    
+    const upcoming = maintenanceRecords
+      .filter(record => new Date(record.nextServiceDue) > new Date())
+      .sort((a, b) => new Date(a.nextServiceDue).getTime() - new Date(b.nextServiceDue).getTime());
+    
+    return upcoming.length > 0 ? upcoming[0] : null;
+  };
+
+  // Helper function to calculate days until due
+  const getDaysUntilDue = (dateString: string) => {
+    const dueDate = new Date(dateString);
+    const today = new Date();
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
   const handleDeleteClick = (equipment: Equipment) => {
     setEditEquipment({
       id: equipment.id,
@@ -487,6 +607,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
       type: equipment.type,
       code: equipment.code,
       location: equipment.location,
+      purchasePrice: equipment.purchasePrice ? `$${equipment.purchasePrice}` : '',
     });
     setDeleteDialogOpen(true);
   };
@@ -1540,6 +1661,245 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
       });
   };
 
+  // Lend equipment handlers
+  const handleOpenLendDialog = () => {
+    if (isLentOut) {
+      // If already lent out, handle return
+      handleReturnEquipment();
+    } else {
+      // Open lend dialog
+      setEditingLend({
+        lendDate: new Date().toISOString().split('T')[0],
+        lentTo: '',
+        dueBackDate: '',
+        notes: ''
+      });
+      setLendError('');
+      setLendDialogOpen(true);
+    }
+  };
+
+  const handleReturnEquipment = () => {
+    if (!equipmentItem?.id || !currentLend) return;
+
+    const returnNoteContent = `Equipment returned on ${new Date().toISOString().split('T')[0]} • Previously lent to: ${currentLend.lentTo} • Due back: ${currentLend.dueBackDate}`;
+    
+    const noteData = {
+      title: 'Equipment Returned',
+      content: returnNoteContent,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Remove lend status
+    fetch(`${API_BASE}/equipment/${equipmentItem.id}/loan`, {
+      method: 'DELETE'
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          setIsLentOut(false);
+          setCurrentLend(null);
+          showNotification('Equipment returned successfully!', 'success');
+          
+          // Add return note
+          fetch(`${API_BASE}/equipment/${equipmentItem.id}/notes`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(noteData)
+          })
+            .then(res => res.json())
+            .then(noteResult => {
+              if (noteResult.success) {
+                setNotes(prev => [noteResult.note, ...prev]);
+              }
+            })
+            .catch(error => {
+              console.error('Error adding note:', error);
+            });
+        } else {
+          showNotification('Failed to return equipment.', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error returning equipment:', error);
+        showNotification('Failed to return equipment.', 'error');
+      });
+  };
+
+  const handleSaveLend = async () => {
+    setLendError('');
+    const { lendDate, lentTo, dueBackDate, notes } = editingLend;
+    
+    if (!lendDate.trim()) {
+      setLendError('Lend date is required.');
+      return;
+    }
+
+    if (!lentTo.trim()) {
+      setLendError('Lent to is required.');
+      return;
+    }
+
+    if (!dueBackDate.trim()) {
+      setLendError('Due back date is required.');
+      return;
+    }
+
+    if (!equipmentItem?.id) {
+      setLendError('Equipment not found.');
+      return;
+    }
+
+    // Create lend record
+    const lendData = {
+      lendDate,
+      lentTo,
+      dueBackDate,
+      notes,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Check competency before proceeding
+    const competencyCheckPassed = await handleCompetencyCheck(lendData);
+    if (!competencyCheckPassed) {
+      return; // Warning dialog will be shown
+    }
+
+    // Proceed with lending if competency check passed
+    proceedWithLending(lendData);
+  };
+
+  // Competency check functions
+  const checkCompetency = async (personName: string) => {
+    if (!equipmentItem?.id) {
+      return { hasLinkedLesson: false, isStaffMember: false, isCompetent: false };
+    }
+    
+    // Check if equipment has linked lesson
+    const linkedLessonResponse = await fetch(`${API_BASE}/equipment/${equipmentItem.id}/lessons`);
+    const linkedLessonData = await linkedLessonResponse.json();
+    const hasLinkedLesson = linkedLessonData.success && linkedLessonData.linkedLesson;
+    
+    // Check if person is a staff member
+    const staffMember = staff.find(s => s.name.toLowerCase() === personName.toLowerCase());
+    const isStaffMember = !!staffMember;
+
+    // If no linked lesson, we can't check competency
+    if (!hasLinkedLesson) {
+      return { hasLinkedLesson: false, isStaffMember, isCompetent: false };
+    }
+
+    // If person is not a staff member, we can't check competency
+    if (!isStaffMember) {
+      return { hasLinkedLesson: true, isStaffMember: false, isCompetent: false };
+    }
+
+    // Check if staff member is competent in the linked lesson
+    const lessonName = linkedLessonData.linkedLesson.name;
+    const staffProgress = staffMember.progress?.[lessonName];
+    const isCompetent = staffProgress?.competent === true;
+
+    return { 
+      hasLinkedLesson: true, 
+      isStaffMember: true, 
+      isCompetent 
+    };
+  };
+
+  const handleCompetencyCheck = async (lendData: any) => {
+    const competencyResult = await checkCompetency(lendData.lentTo);
+    
+    if (!competencyResult.hasLinkedLesson || !competencyResult.isStaffMember) {
+      // No linked lesson or person not in system
+      setCompetencyWarningType('noLessonOrStaff');
+      setPendingLendData({ ...lendData, competencyResult });
+      setCompetencyWarningDialogOpen(true);
+      return false;
+    } else if (!competencyResult.isCompetent) {
+      // Staff member not competent
+      setCompetencyWarningType('notCompetent');
+      setPendingLendData(lendData);
+      setCompetencyWarningDialogOpen(true);
+      return false;
+    }
+    
+    return true; // Competency check passed
+  };
+
+  const handleConfirmLendWithWarning = () => {
+    if (pendingLendData) {
+      setCompetencyWarningDialogOpen(false);
+      setPendingLendData(null);
+      // Proceed with lending despite warning
+      proceedWithLending(pendingLendData);
+    }
+  };
+
+  const handleCancelLendWithWarning = () => {
+    setCompetencyWarningDialogOpen(false);
+    setPendingLendData(null);
+  };
+
+  const proceedWithLending = (lendData: any) => {
+    if (!equipmentItem?.id) {
+      setLendError('Equipment not found.');
+      return;
+    }
+    
+    fetch(`${API_BASE}/equipment/${equipmentItem.id}/loan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(lendData)
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          setIsLentOut(true);
+          setCurrentLend(result.loan);
+          setLendDialogOpen(false);
+          showNotification('Equipment lent successfully!', 'success');
+          
+          // Add lend note
+          const noteContent = `Equipment lent on ${new Date(lendData.lendDate).toLocaleDateString()} • Lent to: ${lendData.lentTo} • Due back: ${new Date(lendData.dueBackDate).toLocaleDateString()} • Notes: ${lendData.notes}`;
+          
+          const noteData = {
+            title: 'Equipment Lent',
+            content: noteContent,
+            createdAt: new Date().toISOString(),
+          };
+
+          fetch(`${API_BASE}/equipment/${equipmentItem.id}/notes`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(noteData)
+          })
+            .then(res => res.json())
+            .then(noteResult => {
+              if (noteResult.success) {
+                setNotes(prev => [noteResult.note, ...prev]);
+              }
+            })
+            .catch(error => {
+              console.error('Error adding note:', error);
+            });
+        } else {
+          setLendError('Failed to lend equipment.');
+          showNotification('Failed to lend equipment.', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error lending equipment:', error);
+        setLendError('Failed to lend equipment.');
+        showNotification('Failed to lend equipment.', 'error');
+      });
+  };
+
   if (!equipmentItem) {
     return (
       <Layout title="Equipment Not Found">
@@ -1558,17 +1918,25 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
     <Layout
       title={equipmentItem.name}
       breadcrumbs={[
-        <Link component={RouterLink} underline="hover" color="inherit" to="/equipment" key="equipment" sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 600, fontSize: 18 }}>Equipment</Link>,
+        <Link component={RouterLink} underline="hover" color="inherit" to="/equipment" key="equipment" sx={{ fontWeight: 600, fontSize: 18 }}>Equipment</Link>,
         <Typography key="details" color="text.primary" sx={{ fontWeight: 600, fontSize: 18 }}>{equipmentItem.name}</Typography>
       ]}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', position: 'fixed', top: 64, left: 240, right: 0, zIndex: 1099 }}>
         {/* Tabs */}
-        <Box sx={{ bgcolor: '#fff', borderBottom: '1px solid #e0e7ff' }}>
-          <Box sx={{ maxWidth: 1000, mx: 'auto', px: 4 }}>
-            <Tabs value={tab} onChange={handleTabChange} textColor="primary" indicatorColor="primary">
-              <Tab label="Equipment Information" sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
-              <Tab label="Location" sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
+        <Box sx={{ bgcolor: '#fff', borderBottom: '1px solid #e0e7ff', pt: 1, pb: 0.5 }}>
+          <Box sx={{ 
+            maxWidth: 1000, 
+            mx: 'auto', 
+            px: 8,
+            width: '100%'
+          }}>
+            <Tabs value={tab} onChange={handleTabChange} sx={{ mb: 0 }} textColor="primary" indicatorColor="primary">
+              <Tab label="Equipment Info" sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
+              <Tab label="Inspections" sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
+              <Tab label="Maintenance" sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
+              <Tab label="Notes & Manuals" sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
+              <Tab label="SOPs" sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
             </Tabs>
           </Box>
         </Box>
@@ -1702,17 +2070,36 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                 </Box>
 
                 {/* Action Buttons - Top Right */}
-                <Box sx={{ position: 'absolute', top: 8, right: 12, display: 'flex', gap: 0.5 }}>
-                  <Tooltip title="Edit equipment" arrow>
-                    <IconButton size="small" sx={{ color: '#4ecdc4', width: 28, height: 28 }} onClick={() => handleEditClick(equipmentItem)}>
-                      <EditIcon sx={{ fontSize: 16 }} />
+                <Box sx={{ position: 'absolute', top: 8, right: 12 }}>
+                  <Tooltip title="More actions" arrow>
+                    <IconButton 
+                      size="small" 
+                      sx={{ color: '#9ca3af', width: 28, height: 28 }} 
+                      onClick={handleMenuClick}
+                    >
+                      <MoreVertIcon sx={{ fontSize: 16 }} />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Delete equipment" arrow>
-                    <IconButton size="small" sx={{ color: '#e57373', width: 28, height: 28 }} onClick={() => handleDeleteClick(equipmentItem)}>
-                      <DeleteIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  </Tooltip>
+                  <Menu
+                    anchorEl={menuAnchorEl}
+                    open={menuOpen}
+                    onClose={handleMenuClose}
+                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                  >
+                    <MenuItem onClick={handleViewDetails}>
+                      <VisibilityIcon sx={{ fontSize: 16, mr: 1, color: '#4ecdc4' }} />
+                      View Details
+                    </MenuItem>
+                    <MenuItem onClick={handleEditFromMenu}>
+                      <EditIcon sx={{ fontSize: 16, mr: 1, color: '#4ecdc4' }} />
+                      Edit
+                    </MenuItem>
+                    <MenuItem onClick={handleDeleteFromMenu}>
+                      <DeleteIcon sx={{ fontSize: 16, mr: 1, color: '#e57373' }} />
+                      Delete
+                    </MenuItem>
+                  </Menu>
                 </Box>
               </Paper>
 
@@ -1725,27 +2112,42 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                   </Typography>
                   
                   {/* Tag / Lock Out Equipment Button */}
-                  <Button
-                    {...(isTaggedOut ? buttonStyles.primary : buttonStyles.danger)}
-                    startIcon={isTaggedOut ? <LockOpenIcon /> : <BlockIcon />}
-                    size="small"
-                    onClick={handleOpenTagOutDialog}
+                  <Tooltip 
+                    title={isLentOut ? "Equipment must be returned before tagging out" : ""} 
+                    arrow
+                    disableHoverListener={!isLentOut}
                   >
-                    {isTaggedOut ? 'Untag / Unlock' : 'Tag / Lock Out'}
-                  </Button>
+                    <span style={{ width: '100%' }}>
+                      <Button
+                        {...(isLentOut ? buttonStyles.disabled : (isTaggedOut ? buttonStyles.successFull : buttonStyles.dangerFull))}
+                        startIcon={isTaggedOut ? <LockOpenIcon /> : <BlockIcon />}
+                        size="small"
+                        disabled={isLentOut}
+                        onClick={handleOpenTagOutDialog}
+                      >
+                        {isTaggedOut ? 'Untag / Unlock' : 'Tag / Lock Out'}
+                      </Button>
+                    </span>
+                  </Tooltip>
 
-                  {/* Loan Equipment Button */}
-                  <Button
-                    {...buttonStyles.secondary}
-                    startIcon={<HandshakeIcon />}
-                    size="small"
-                    onClick={() => {
-                      // TODO: Implement loan equipment functionality
-                      console.log('Loan Equipment clicked');
-                    }}
+                  {/* Lend Equipment Button */}
+                  <Tooltip 
+                    title={isTaggedOut ? "Equipment must be untagged before lending" : ""} 
+                    arrow
+                    disableHoverListener={!isTaggedOut}
                   >
-                    Loan Equipment
-                  </Button>
+                    <span style={{ width: '100%' }}>
+                      <Button
+                        {...(isTaggedOut ? buttonStyles.disabled : buttonStyles.secondaryFull)}
+                        startIcon={<HandshakeIcon />}
+                        size="small"
+                        disabled={isTaggedOut}
+                        onClick={handleOpenLendDialog}
+                      >
+                        {isLentOut ? 'Return Equipment' : 'Lend Equipment'}
+                      </Button>
+                    </span>
+                  </Tooltip>
                 </Box>
 
                 {/* Right Side - Status Information */}
@@ -1760,16 +2162,27 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                       width: 6, 
                       height: 6, 
                       borderRadius: '50%', 
-                      bgcolor: isTaggedOut ? '#ef4444' : '#10b981',
+                      bgcolor: isTaggedOut ? '#ef4444' : isLentOut ? '#f59e0b' : '#10b981',
                       flexShrink: 0 
                     }} />
                     <Typography sx={{ color: '#374151', fontWeight: 500, fontSize: 13, fontFamily: 'Montserrat, sans-serif' }}>
-                      {isTaggedOut ? 'Locked / Tagged Out' : 'Available'}
+                      {isTaggedOut ? 'Locked / Tagged Out' : isLentOut ? `Lent to ${currentLend?.lentTo}` : 'Available'}
                     </Typography>
                   </Box>
 
                   {/* Status Details */}
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    {isLentOut && currentLend?.dueBackDate && (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography sx={{ color: '#6b7280', fontWeight: 500, fontSize: 11 }}>
+                          Due Back:
+                        </Typography>
+                        <Typography sx={{ color: '#374151', fontWeight: 500, fontSize: 11, fontFamily: 'Montserrat, sans-serif' }}>
+                          {new Date(currentLend.dueBackDate).toLocaleDateString()}
+                        </Typography>
+                      </Box>
+                    )}
+                    
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography sx={{ color: '#6b7280', fontWeight: 500, fontSize: 11 }}>
                         Last Maintenance:
@@ -1801,7 +2214,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             <div style={{ height: 12 }} />
 
             {/* Periodic Inspections Section */}
-            <div>
+            <div ref={inspectionsRef}>
               <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, mb: 0.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1915,7 +2328,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             <div style={{ height: 12 }} />
 
             {/* Maintenance Records Section */}
-            <div>
+            <div ref={maintenanceRef}>
               <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, mb: 0.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -2038,7 +2451,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             <div style={{ height: 12 }} />
 
             {/* Notes and User Manuals Section - Side by Side */}
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'stretch' }}>
+            <Box ref={notesManualsRef} sx={{ display: 'flex', gap: 2, alignItems: 'stretch' }}>
               {/* Notes Section */}
               <Box sx={{ flex: 1, display: 'flex', minWidth: 0 }}>
                 <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, width: '100%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -2249,7 +2662,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             <div style={{ height: 12 }} />
 
             {/* SOPs Section */}
-            <div>
+            <div ref={sopsRef}>
               <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, mb: 0.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -2269,6 +2682,170 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             </div>
           </Box>
         </Box>
+
+        {/* Equipment Details Dialog */}
+        <Dialog open={detailsDialogOpen} onClose={() => setDetailsDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24, pb: 1 }}>
+            Equipment Details - {equipmentItem?.name}
+          </DialogTitle>
+          <DialogContent sx={{ pb: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              
+              {/* Basic Information */}
+              <Paper elevation={1} sx={{ p: 3, borderRadius: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#374151' }}>
+                  Basic Information
+                </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, color: '#6b7280', fontSize: 14 }}>Equipment ID</Typography>
+                    <Typography sx={{ fontSize: 16 }}>{equipmentItem?.id}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, color: '#6b7280', fontSize: 14 }}>Type</Typography>
+                    <Typography sx={{ fontSize: 16 }}>{equipmentItem?.type}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, color: '#6b7280', fontSize: 14 }}>Serial Number</Typography>
+                    <Typography sx={{ fontSize: 16 }}>{equipmentItem?.code || '—'}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, color: '#6b7280', fontSize: 14 }}>Location</Typography>
+                    <Typography sx={{ fontSize: 16 }}>{equipmentItem?.location}</Typography>
+                  </Box>
+                  {equipmentItem?.purchasePrice && (
+                    <Box>
+                      <Typography sx={{ fontWeight: 600, color: '#6b7280', fontSize: 14 }}>Purchase Price</Typography>
+                      <Typography sx={{ fontSize: 16, color: '#2e7d32', fontWeight: 600 }}>
+                        ${equipmentItem.purchasePrice.toFixed(2)}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              </Paper>
+
+              {/* Upcoming Maintenance & Inspections */}
+              <Paper elevation={1} sx={{ p: 3, borderRadius: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#374151' }}>
+                  Upcoming Schedule
+                </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 3 }}>
+                  
+                  {/* Next Inspection */}
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, color: '#6b7280', fontSize: 14, mb: 1 }}>
+                      Next Inspection
+                    </Typography>
+                    {(() => {
+                      const upcomingInspection = getUpcomingInspection();
+                      if (upcomingInspection) {
+                        const daysUntil = getDaysUntilDue(upcomingInspection.nextInspectionDue);
+                        return (
+                          <Box>
+                            <Typography sx={{ fontSize: 16 }}>
+                              {new Date(upcomingInspection.nextInspectionDue).toLocaleDateString()}
+                            </Typography>
+                            <Typography 
+                              sx={{ 
+                                fontSize: 13, 
+                                color: daysUntil <= 7 ? '#d32f2f' : daysUntil <= 30 ? '#f57c00' : '#2e7d32',
+                                fontWeight: 600
+                              }}
+                            >
+                              {daysUntil <= 0 ? 'Overdue' : `${daysUntil} days remaining`}
+                            </Typography>
+                          </Box>
+                        );
+                      } else {
+                        return <Typography sx={{ fontSize: 16, color: '#9ca3af' }}>No upcoming inspections</Typography>;
+                      }
+                    })()}
+                  </Box>
+
+                  {/* Next Maintenance */}
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, color: '#6b7280', fontSize: 14, mb: 1 }}>
+                      Next Maintenance
+                    </Typography>
+                    {(() => {
+                      const upcomingMaintenance = getUpcomingMaintenance();
+                      if (upcomingMaintenance) {
+                        const daysUntil = getDaysUntilDue(upcomingMaintenance.nextServiceDue);
+                        return (
+                          <Box>
+                            <Typography sx={{ fontSize: 16 }}>
+                              {new Date(upcomingMaintenance.nextServiceDue).toLocaleDateString()}
+                            </Typography>
+                            <Typography 
+                              sx={{ 
+                                fontSize: 13, 
+                                color: daysUntil <= 7 ? '#d32f2f' : daysUntil <= 30 ? '#f57c00' : '#2e7d32',
+                                fontWeight: 600
+                              }}
+                            >
+                              {daysUntil <= 0 ? 'Overdue' : `${daysUntil} days remaining`}
+                            </Typography>
+                          </Box>
+                        );
+                      } else {
+                        return <Typography sx={{ fontSize: 16, color: '#9ca3af' }}>No upcoming maintenance</Typography>;
+                      }
+                    })()}
+                  </Box>
+                </Box>
+              </Paper>
+
+              {/* Current Status */}
+              <Paper elevation={1} sx={{ p: 3, borderRadius: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#374151' }}>
+                  Current Status
+                </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, color: '#6b7280', fontSize: 14 }}>Availability</Typography>
+                    <Typography sx={{ fontSize: 16, color: '#2e7d32', fontWeight: 600 }}>Available</Typography>
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, color: '#6b7280', fontSize: 14 }}>Total Inspections</Typography>
+                    <Typography sx={{ fontSize: 16 }}>{inspectionRecords?.length || 0}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, color: '#6b7280', fontSize: 14 }}>Total Maintenance</Typography>
+                    <Typography sx={{ fontSize: 16 }}>{maintenanceRecords?.length || 0}</Typography>
+                  </Box>
+                </Box>
+              </Paper>
+
+              {/* Related Information */}
+              {linkedLesson && (
+                <Paper elevation={1} sx={{ p: 3, borderRadius: 2 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#374151' }}>
+                    Related Lesson
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    <Chip 
+                      label={linkedLesson.name} 
+                      sx={{ 
+                        bgcolor: '#e0f7fa', 
+                        color: '#00695c',
+                        '& .MuiChip-label': { fontWeight: 600 }
+                      }} 
+                    />
+                  </Box>
+                </Paper>
+              )}
+
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button onClick={() => setDetailsDialogOpen(false)} {...buttonStyles.cancel}>
+              Close
+            </Button>
+            <Button onClick={handleEditFromMenu} {...buttonStyles.primary}>
+              Edit Equipment
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         {/* Add/Edit Note Dialog */}
         <Dialog open={noteDialogOpen} onClose={() => setNoteDialogOpen(false)} maxWidth="sm" fullWidth>
@@ -2753,6 +3330,44 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                 <MenuItem key={room} value={room}>{room}</MenuItem>
               ))}
             </TextField>
+            <TextField
+              label="Purchase Price (optional)"
+              value={editEquipment.purchasePrice}
+              onChange={e => {
+                const value = e.target.value;
+                // Allow only numbers, decimal point, and $ symbol
+                let cleanValue = value.replace(/[^0-9.$]/g, '');
+                
+                // Handle $ symbol - only allow at the beginning
+                const hasAtStart = cleanValue.startsWith('$');
+                cleanValue = cleanValue.replace(/\$/g, '');
+                if (hasAtStart) cleanValue = '$' + cleanValue;
+                
+                // Ensure only one decimal point
+                const parts = cleanValue.replace('$', '').split('.');
+                if (parts.length > 2) {
+                  cleanValue = (hasAtStart ? '$' : '') + parts[0] + '.' + parts.slice(1).join('');
+                }
+                
+                setEditEquipment(s => ({ ...s, purchasePrice: cleanValue }));
+              }}
+              onFocus={e => {
+                if (!e.target.value) {
+                  setEditEquipment(s => ({ ...s, purchasePrice: '$' }));
+                }
+              }}
+              onBlur={e => {
+                if (e.target.value === '$') {
+                  setEditEquipment(s => ({ ...s, purchasePrice: '' }));
+                }
+              }}
+              fullWidth
+              size="small"
+              inputProps={{ 
+                inputMode: 'decimal',
+                pattern: '[0-9]*'
+              }}
+            />
             {editFieldError && <Typography sx={{ color: 'error.main', fontSize: 13 }}>{editFieldError}</Typography>}
           </DialogContent>
           <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
@@ -3201,7 +3816,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
         <Dialog open={linkLessonDialogOpen} onClose={() => setLinkLessonDialogOpen(false)} maxWidth="sm" fullWidth
           PaperProps={{ sx: { maxWidth: 600, width: 600, height: 800 } }}
         >
-          <DialogTitle sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', pb: 1 }}>Select Lesson</DialogTitle>
+                      <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>Select Lesson</DialogTitle>
           <DialogContent sx={{ p: 0, height: '100%' }}>
             <Box sx={{ position: 'sticky', top: 0, zIndex: 2, bgcolor: '#fff', px: 3, pt: 1, pb: 2 }}>
               <TextField
@@ -3692,10 +4307,19 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
               options={staff}
               getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
               value={editingTagOut.completedBy}
-              onChange={(_, newValue) => setEditingTagOut(prev => ({ 
-                ...prev, 
-                completedBy: typeof newValue === 'string' ? newValue : (newValue ? newValue.name : '')
-              }))}
+              onChange={(_, newValue) => {
+                const value = typeof newValue === 'string' ? newValue : (newValue ? newValue.name : '');
+                setEditingTagOut(prev => ({ 
+                  ...prev, 
+                  completedBy: value
+                }));
+              }}
+              onInputChange={(_, newInputValue) => {
+                setEditingTagOut(prev => ({ 
+                  ...prev, 
+                  completedBy: newInputValue
+                }));
+              }}
               freeSolo
               renderInput={(params) => (
                 <TextField
@@ -3873,10 +4497,19 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
               options={staff}
               getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
               value={editingUntag.completedBy}
-              onChange={(_, newValue) => setEditingUntag(prev => ({ 
-                ...prev, 
-                completedBy: typeof newValue === 'string' ? newValue : (newValue ? newValue.name : '')
-              }))}
+              onChange={(_, newValue) => {
+                const value = typeof newValue === 'string' ? newValue : (newValue ? newValue.name : '');
+                setEditingUntag(prev => ({ 
+                  ...prev, 
+                  completedBy: value
+                }));
+              }}
+              onInputChange={(_, newInputValue) => {
+                setEditingUntag(prev => ({ 
+                  ...prev, 
+                  completedBy: newInputValue
+                }));
+              }}
               freeSolo
               renderInput={(params) => (
                 <TextField
@@ -4019,6 +4652,182 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             >
               Untag / Unlock Equipment
             </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Lend Equipment Dialog */}
+        <Dialog open={lendDialogOpen} onClose={() => setLendDialogOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>Lend Equipment</DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Typography sx={{ fontSize: 16, color: '#374151' }}>
+              Lend {equipmentItem?.name} to a person or department.
+            </Typography>
+            
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+              <TextField
+                label="Lend Date"
+                type="date"
+                value={editingLend.lendDate}
+                onChange={e => setEditingLend(prev => ({ ...prev, lendDate: e.target.value }))}
+                size="small"
+                InputLabelProps={{ shrink: true }}
+                sx={{ flex: 1 }}
+              />
+              <Button 
+                {...buttonStyles.secondary}
+                size="small" 
+                onClick={() => setEditingLend(prev => ({ ...prev, lendDate: new Date().toISOString().split('T')[0] }))}
+              >
+                Today
+              </Button>
+            </Box>
+
+            <Autocomplete
+              options={staff}
+              getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
+              value={editingLend.lentTo}
+              onChange={(_, newValue) => {
+                const value = typeof newValue === 'string' ? newValue : (newValue ? newValue.name : '');
+                setEditingLend(prev => ({ 
+                  ...prev, 
+                  lentTo: value
+                }));
+              }}
+              onInputChange={(_, newInputValue) => {
+                setEditingLend(prev => ({ 
+                  ...prev, 
+                  lentTo: newInputValue
+                }));
+              }}
+              freeSolo
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Lent To"
+                  size="small"
+                  placeholder="Who is borrowing the equipment?"
+                />
+              )}
+            />
+
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+              <TextField
+                label="Due Back Date"
+                type="date"
+                value={editingLend.dueBackDate}
+                onChange={e => setEditingLend(prev => ({ ...prev, dueBackDate: e.target.value }))}
+                size="small"
+                InputLabelProps={{ shrink: true }}
+                sx={{ flex: 1 }}
+              />
+              <Button 
+                {...buttonStyles.secondary}
+                size="small" 
+                onClick={() => {
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+                  setEditingLend(prev => ({ ...prev, dueBackDate: tomorrow.toISOString().split('T')[0] }));
+                }}
+              >
+                1 Day
+              </Button>
+              <Button 
+                {...buttonStyles.secondary}
+                size="small" 
+                onClick={() => {
+                  const nextWeek = new Date();
+                  nextWeek.setDate(nextWeek.getDate() + 7);
+                  setEditingLend(prev => ({ ...prev, dueBackDate: nextWeek.toISOString().split('T')[0] }));
+                }}
+              >
+                1 Week
+              </Button>
+            </Box>
+
+            <TextField
+              label="Notes (Optional)"
+              value={editingLend.notes}
+              onChange={e => setEditingLend(prev => ({ ...prev, notes: e.target.value }))}
+              multiline
+              rows={2}
+              placeholder="Enter any additional notes about lending the equipment..."
+              size="small"
+            />
+
+            {lendError && (
+              <Typography sx={{ color: 'error.main', fontSize: 13, bgcolor: '#ffebee', p: 2, borderRadius: 1 }}>
+                {lendError}
+              </Typography>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button
+              onClick={() => {
+                setLendDialogOpen(false);
+                setEditingLend({
+                  lendDate: '',
+                  lentTo: '',
+                  dueBackDate: '',
+                  notes: '',
+                });
+                setLendError('');
+              }}
+              {...buttonStyles.cancel}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveLend}
+              {...buttonStyles.primary}
+            >
+              Lend Equipment
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Competency Warning Dialog */}
+        <Dialog open={competencyWarningDialogOpen} onClose={handleCancelLendWithWarning} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24, color: '#d32f2f' }}>
+            ⚠️ Competency Warning
+          </DialogTitle>
+          <DialogContent sx={{ pb: 2 }}>
+            <Typography sx={{ mb: 2, fontSize: 16, lineHeight: 1.5 }}>
+              {competencyWarningType === 'noLessonOrStaff' 
+                ? (() => {
+                    const hasLinkedLesson = pendingLendData?.competencyResult?.hasLinkedLesson;
+                    const isStaffMember = pendingLendData?.competencyResult?.isStaffMember;
+                    
+                    let message = "Therefore, staff competency cannot be confirmed. Please ensure the user is adequately experienced in the safe and correct use of this equipment before lending.";
+                    
+                    if (!hasLinkedLesson && !isStaffMember) {
+                      message = "There is no lesson linked for this equipment and this person is not registered on the system. " + message;
+                    } else if (!hasLinkedLesson) {
+                      message = "There is no lesson linked for this equipment. " + message;
+                    } else if (!isStaffMember) {
+                      message = "This person is not registered on the system. " + message;
+                    }
+                    
+                    return message;
+                  })()
+                : "The staff member listed for the loan has not been marked as competent in the use of this equipment. Before continuing with the loan, the staff member must first be assessed and marked as competent in the safe and correct use of the equipment."
+              }
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button
+              onClick={handleCancelLendWithWarning}
+              {...buttonStyles.cancel}
+            >
+              Cancel
+            </Button>
+            {competencyWarningType === 'noLessonOrStaff' && (
+              <Button
+                onClick={handleConfirmLendWithWarning}
+                {...buttonStyles.primary}
+              >
+                Confirm Loan
+              </Button>
+            )}
           </DialogActions>
         </Dialog>
 

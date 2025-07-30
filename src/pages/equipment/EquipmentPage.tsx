@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Paper, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, InputAdornment, Snackbar, Alert, Tabs, Tab, IconButton, Tooltip } from '@mui/material';
+import { Box, Typography, Paper, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, InputAdornment, Snackbar, Alert, Tabs, Tab, IconButton, Tooltip, Checkbox } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
 import AddIcon from '@mui/icons-material/Add';
@@ -17,9 +17,10 @@ export interface Equipment {
   code: string;
   location: string;
   photo?: string;
+  purchasePrice?: number;
 }
 
-const equipmentTypes = ['Tool', 'Machine', 'PPE', 'Material', 'Other'];
+const equipmentTypes = ['Hand Tool', 'Power Tool', 'Machine', 'Portable Appliance', 'Fixed Appliance'];
 
 const API_BASE = 'http://localhost:3001';
 
@@ -34,6 +35,7 @@ export default function EquipmentPage() {
     type: '',
     code: '',
     location: '',
+    purchasePrice: '',
   });
   const [fieldError, setFieldError] = React.useState('');
   const [snackbarOpen, setSnackbarOpen] = React.useState(false);
@@ -44,6 +46,8 @@ export default function EquipmentPage() {
   const [selectedRoomTab, setSelectedRoomTab] = React.useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [equipmentToDelete, setEquipmentToDelete] = React.useState<Equipment | null>(null);
+  const [downloadDialogOpen, setDownloadDialogOpen] = React.useState(false);
+  const [selectedRoomsForDownload, setSelectedRoomsForDownload] = React.useState<string[]>([]);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Fetch equipment and rooms on mount
@@ -70,14 +74,18 @@ export default function EquipmentPage() {
 
   const handleAddEditEquipment = () => {
     setFieldError('');
-    const { name, type, code, location } = newEquipment;
+    const { name, type, code, location, purchasePrice } = newEquipment;
     if (!name.trim() || !type || !location.trim()) {
-      setFieldError('All fields except Serial Number are required.');
+      setFieldError('All fields except Serial Number and Purchase Price are required.');
       return;
     }
     if (editIndex !== null) {
       // Edit
-      const updated = equipment.map((eq, idx) => idx === editIndex ? { ...eq, ...newEquipment } : eq);
+      const updated = equipment.map((eq, idx) => idx === editIndex ? { 
+        ...eq, 
+        ...newEquipment,
+        purchasePrice: newEquipment.purchasePrice ? parseFloat(newEquipment.purchasePrice.replace('$', '')) : undefined
+      } : eq);
       setEquipment(updated);
       fetch(`${API_BASE}/equipment`, {
         method: 'POST',
@@ -94,7 +102,11 @@ export default function EquipmentPage() {
         const randomDigits = Math.floor(10000 + Math.random() * 90000).toString();
         return `${nameInitials}${locationInitial}${randomDigits}`;
       }
-      const newEq = { ...newEquipment, id: generateEquipmentId(newEquipment.name, newEquipment.location) };
+      const newEq = { 
+        ...newEquipment, 
+        id: generateEquipmentId(newEquipment.name, newEquipment.location),
+        purchasePrice: newEquipment.purchasePrice ? parseFloat(newEquipment.purchasePrice.replace('$', '')) : undefined
+      };
       const updated = [...equipment, newEq];
       setEquipment(updated);
       fetch(`${API_BASE}/equipment`, {
@@ -106,14 +118,17 @@ export default function EquipmentPage() {
       });
     }
     setDialogOpen(false);
-    setNewEquipment({ name: '', type: '', code: '', location: '' });
+    setNewEquipment({ name: '', type: '', code: '', location: '', purchasePrice: '' });
     setEditIndex(null);
     setSnackbarOpen(true);
   };
 
   const handleEditClick = (idx: number) => {
     setEditIndex(idx);
-    setNewEquipment({ ...equipment[idx] });
+    setNewEquipment({ 
+      ...equipment[idx], 
+      purchasePrice: equipment[idx].purchasePrice ? `$${equipment[idx].purchasePrice}` : ''
+    });
     setDialogOpen(true);
     setFieldError('');
   };
@@ -126,7 +141,7 @@ export default function EquipmentPage() {
 
   const handleDialogClose = () => {
     setDialogOpen(false);
-    setNewEquipment({ name: '', type: '', code: '', location: '' });
+    setNewEquipment({ name: '', type: '', code: '', location: '', purchasePrice: '' });
     setEditIndex(null);
     setFieldError('');
   };
@@ -166,17 +181,45 @@ export default function EquipmentPage() {
     setEquipmentToDelete(null);
   };
 
+  const handleDownloadClick = () => {
+    setSelectedRoomsForDownload([]);
+    setDownloadDialogOpen(true);
+  };
+
+  const handleSelectAllRooms = () => {
+    const allSelected = selectedRoomsForDownload.length === rooms.length;
+    if (allSelected) {
+      setSelectedRoomsForDownload([]);
+    } else {
+      setSelectedRoomsForDownload([...rooms]);
+    }
+  };
+
+  const handleRoomToggle = (room: string) => {
+    setSelectedRoomsForDownload(prev => 
+      prev.includes(room) 
+        ? prev.filter(r => r !== room)
+        : [...prev, room]
+    );
+  };
+
   const exportEquipmentToExcel = () => {
+    // Filter equipment by selected rooms
+    const filteredEquipment = selectedRoomsForDownload.length === 0 
+      ? equipment 
+      : equipment.filter(eq => selectedRoomsForDownload.includes(eq.location));
+
     // Create workbook
     const wb = XLSX.utils.book_new();
     
     // Prepare data for export
-    const equipmentData = equipment.map(eq => ({
+    const equipmentData = filteredEquipment.map(eq => ({
       'Equipment ID': eq.id,
       'Name': eq.name,
       'Type': eq.type,
       'Serial Number': eq.code || '',
       'Location': eq.location,
+      'Purchase Price': eq.purchasePrice ? `$${eq.purchasePrice.toFixed(2)}` : '',
       'Photo URL': eq.photo || ''
     }));
 
@@ -190,14 +233,25 @@ export default function EquipmentPage() {
       { wch: 15 }, // Type
       { wch: 20 }, // Serial Number
       { wch: 20 }, // Location
+      { wch: 15 }, // Purchase Price
       { wch: 40 }  // Photo URL
     ];
 
     // Add worksheet to workbook
     XLSX.utils.book_append_sheet(wb, ws, 'Equipment Inventory');
 
+    // Generate filename with room info
+    const roomText = selectedRoomsForDownload.length === 0 
+      ? 'All_Rooms' 
+      : selectedRoomsForDownload.length === 1 
+        ? selectedRoomsForDownload[0].replace(/\s+/g, '_')
+        : 'Selected_Rooms';
+
     // Save file
-    XLSX.writeFile(wb, 'Equipment_Inventory.xlsx');
+    XLSX.writeFile(wb, `Equipment_Inventory_${roomText}.xlsx`);
+    
+    // Close dialog
+    setDownloadDialogOpen(false);
   };
 
   return (
@@ -226,9 +280,16 @@ export default function EquipmentPage() {
               }}
             />
             <Button
+              {...buttonStyles.secondary}
+              startIcon={<DownloadIcon />}
+              onClick={handleDownloadClick}
+            >
+              Download Excel
+            </Button>
+            <Button
               {...buttonStyles.primary}
               startIcon={<AddIcon />}
-              onClick={() => { setDialogOpen(true); setEditIndex(null); setNewEquipment({ name: '', type: '', code: '', location: '' }); setFieldError(''); }}
+              onClick={() => { setDialogOpen(true); setEditIndex(null); setNewEquipment({ name: '', type: '', code: '', location: '', purchasePrice: '' }); setFieldError(''); }}
             >
               Add Equipment
             </Button>
@@ -238,13 +299,6 @@ export default function EquipmentPage() {
               onClick={() => { setRoomDialogOpen(true); setNewRoom(''); setRoomError(''); }}
             >
               Add Room
-            </Button>
-            <Button
-              {...buttonStyles.primary}
-              startIcon={<DownloadIcon />}
-              onClick={exportEquipmentToExcel}
-            >
-              Download Excel
             </Button>
           </Box>
         </Box>
@@ -259,9 +313,9 @@ export default function EquipmentPage() {
               variant="scrollable" 
               scrollButtons="auto"
             >
-              <Tab label="All Rooms" sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
+              <Tab label="All Rooms" sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
               {rooms.map((room, i) => (
-                <Tab key={room} label={room} sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
+                <Tab key={room} label={room} sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
               ))}
             </Tabs>
           </Box>
@@ -480,6 +534,44 @@ export default function EquipmentPage() {
                 <MenuItem key={room} value={room}>{room}</MenuItem>
               ))}
             </TextField>
+            <TextField
+              label="Purchase Price (optional)"
+              value={newEquipment.purchasePrice}
+              onChange={e => {
+                const value = e.target.value;
+                // Allow only numbers, decimal point, and $ symbol
+                let cleanValue = value.replace(/[^0-9.$]/g, '');
+                
+                // Handle $ symbol - only allow at the beginning
+                const hasAtStart = cleanValue.startsWith('$');
+                cleanValue = cleanValue.replace(/\$/g, '');
+                if (hasAtStart) cleanValue = '$' + cleanValue;
+                
+                // Ensure only one decimal point
+                const parts = cleanValue.replace('$', '').split('.');
+                if (parts.length > 2) {
+                  cleanValue = (hasAtStart ? '$' : '') + parts[0] + '.' + parts.slice(1).join('');
+                }
+                
+                setNewEquipment(s => ({ ...s, purchasePrice: cleanValue }));
+              }}
+              onFocus={e => {
+                if (!e.target.value) {
+                  setNewEquipment(s => ({ ...s, purchasePrice: '$' }));
+                }
+              }}
+              onBlur={e => {
+                if (e.target.value === '$') {
+                  setNewEquipment(s => ({ ...s, purchasePrice: '' }));
+                }
+              }}
+              fullWidth
+              size="small"
+              inputProps={{ 
+                inputMode: 'decimal',
+                pattern: '[0-9]*'
+              }}
+            />
             {fieldError && <Typography sx={{ color: 'error.main', fontSize: 13 }}>{fieldError}</Typography>}
           </DialogContent>
           <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
@@ -514,6 +606,92 @@ export default function EquipmentPage() {
             </Button>
           </DialogActions>
         </Dialog>
+        {/* Download Equipment Dialog */}
+        <Dialog open={downloadDialogOpen} onClose={() => setDownloadDialogOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>
+            Select Rooms to Download
+          </DialogTitle>
+          <DialogContent sx={{ pb: 2 }}>
+            <Typography sx={{ mb: 3, fontSize: 16, color: '#6b7280' }}>
+              Choose which rooms to include in the equipment inventory export:
+            </Typography>
+            
+            {/* Select All Option */}
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                mb: 2,
+                cursor: 'pointer',
+                p: 1,
+                borderRadius: 1,
+                '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' }
+              }}
+              onClick={handleSelectAllRooms}
+            >
+              <Checkbox
+                checked={selectedRoomsForDownload.length === rooms.length && rooms.length > 0}
+                indeterminate={selectedRoomsForDownload.length > 0 && selectedRoomsForDownload.length < rooms.length}
+                onChange={handleSelectAllRooms}
+                sx={{ mr: 1 }}
+              />
+              <Typography sx={{ fontWeight: 600, fontSize: 16, color: '#374151' }}>
+                Select All Rooms
+              </Typography>
+            </Box>
+
+            {/* Individual Room Options */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {rooms.map((room) => (
+                <Box 
+                  key={room}
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    p: 1,
+                    borderRadius: 1,
+                    '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' }
+                  }}
+                  onClick={() => handleRoomToggle(room)}
+                >
+                  <Checkbox
+                    checked={selectedRoomsForDownload.includes(room)}
+                    onChange={() => handleRoomToggle(room)}
+                    sx={{ mr: 1 }}
+                  />
+                  <Typography sx={{ fontSize: 16, color: '#374151' }}>
+                    {room}
+                  </Typography>
+                  <Typography sx={{ ml: 'auto', fontSize: 14, color: '#6b7280' }}>
+                    ({equipment.filter(eq => eq.location === room).length} items)
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+
+            {rooms.length === 0 && (
+              <Typography sx={{ textAlign: 'center', color: '#6b7280', fontSize: 16, py: 4 }}>
+                No rooms available. Please add some rooms first.
+              </Typography>
+            )}
+
+
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button {...buttonStyles.cancel} onClick={() => setDownloadDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              {...buttonStyles.primary} 
+              onClick={exportEquipmentToExcel}
+              disabled={selectedRoomsForDownload.length === 0}
+            >
+              Download Excel
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} maxWidth="xs" fullWidth>
           <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>Delete Equipment</DialogTitle>

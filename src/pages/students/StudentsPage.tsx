@@ -438,9 +438,9 @@ export default function StudentsPage() {
               variant="scrollable" 
               scrollButtons="auto"
             >
-              <Tab label="All Students" sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
+              <Tab label="All Students" sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
               {yearLevelsWithStudents.map((y, i) => (
-                <Tab key={y} label={`Year ${y}`} sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
+                <Tab key={y} label={`Year ${y}`} sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
               ))}
             </Tabs>
           </Box>

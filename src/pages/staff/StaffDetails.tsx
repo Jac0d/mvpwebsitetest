@@ -430,11 +430,11 @@ export default function StaffDetails() {
                   {staff.role}
                 </Typography>
                 <Typography sx={{ fontWeight: 700, fontSize: 22, color: '#374151', lineHeight: 1.1 }}>{staff.name}</Typography>
-                <Typography sx={{ color: '#374151', fontWeight: 500, fontSize: 14, fontFamily: 'Montserrat, sans-serif', mt: 0.5 }}>
+                <Typography sx={{ color: '#374151', fontWeight: 500, fontSize: 14, mt: 0.5 }}>
                   User ID: {staff.userID}
                 </Typography>
                 {staff.email && (
-                  <Typography sx={{ color: '#374151', fontWeight: 500, fontSize: 14, fontFamily: 'Montserrat, sans-serif', mt: 0.5 }}>
+                  <Typography sx={{ color: '#374151', fontWeight: 500, fontSize: 14, mt: 0.5 }}>
                     Email: {staff.email}
                   </Typography>
                 )}
@@ -532,7 +532,7 @@ export default function StaffDetails() {
                         ))}
                       </Box>
                     ) : (
-                      <Typography sx={{ color: '#bbb', fontFamily: 'Montserrat, sans-serif', fontSize: 14, textAlign: 'center', py: 2 }}>
+                      <Typography sx={{ color: '#bbb', fontSize: 14, textAlign: 'center', py: 2 }}>
                         No classes assigned
                       </Typography>
                     )}
@@ -613,7 +613,7 @@ export default function StaffDetails() {
                       ))}
                     </Box>
                   ) : (
-                    <Typography sx={{ color: '#bbb', fontFamily: 'Montserrat, sans-serif', fontSize: 14, textAlign: 'center', py: 2 }}>
+                    <Typography sx={{ color: '#bbb', fontSize: 14, textAlign: 'center', py: 2 }}>
                       No classes enrolled
                     </Typography>
                   )}
@@ -750,7 +750,7 @@ export default function StaffDetails() {
                                 })}
                               </Box>
                             ) : (
-                              <Typography sx={{ color: '#bbb', fontFamily: 'Montserrat, sans-serif', fontSize: 14, textAlign: 'center', py: 2 }}>
+                              <Typography sx={{ color: '#bbb', fontSize: 14, textAlign: 'center', py: 2 }}>
                                 No lessons assigned to this class
                               </Typography>
                             )}
@@ -853,7 +853,7 @@ export default function StaffDetails() {
                                   })}
                                 </Box>
                               ) : (
-                                <Typography sx={{ color: '#bbb', fontFamily: 'Montserrat, sans-serif', fontSize: 14, textAlign: 'center', py: 2 }}>
+                                <Typography sx={{ color: '#bbb', fontSize: 14, textAlign: 'center', py: 2 }}>
                                   No lessons assigned to this class
                                 </Typography>
                               )}
@@ -988,7 +988,7 @@ export default function StaffDetails() {
                 color="primary"
                 onClick={e => e.stopPropagation()}
               />
-              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 600, color: '#374151' }}>
+              <Typography sx={{ fontWeight: 600, color: '#374151' }}>
                 Select All Classes
               </Typography>
             </Box>
@@ -1009,7 +1009,7 @@ export default function StaffDetails() {
                     <SchoolIcon />
                   </Box>
                   <Box>
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 500, color: '#374151' }}>
+                    <Typography sx={{ fontWeight: 500, color: '#374151' }}>
                       {classItem.className}
                     </Typography>
                     <Typography sx={{ color: '#888', fontSize: 12 }}>

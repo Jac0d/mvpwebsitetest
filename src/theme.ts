@@ -102,5 +102,19 @@ export const theme = createTheme({
         },
       },
     },
+    MuiLink: {
+      styleOverrides: {
+        root: {
+          fontFamily: 'Montserrat, sans-serif',
+        },
+      },
+    },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          fontFamily: 'Montserrat, sans-serif',
+        },
+      },
+    },
   },
 }); 

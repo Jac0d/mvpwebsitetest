@@ -27,6 +27,7 @@ export interface Equipment {
   type: string;
   code: string;
   location: string;
+  purchasePrice?: number;
 }
 
 export default function App() {

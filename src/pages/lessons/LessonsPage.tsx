@@ -278,7 +278,7 @@ export default function LessonsPage() {
 
   const EditDialog = () => (
     <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif' }}>
+                  <DialogTitle sx={{ fontWeight: 600 }}>
         Edit Lesson
       </DialogTitle>
       <DialogContent>
@@ -483,9 +483,9 @@ export default function LessonsPage() {
               variant="scrollable" 
               scrollButtons="auto"
             >
-              <Tab label="All Areas" sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
+              <Tab label="All Areas" sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
               {areasWithLessons.map((area) => (
-                <Tab key={area} label={area} sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', fontSize: 16, textTransform: 'none' }} />
+                <Tab key={area} label={area} sx={{ fontWeight: 600, fontSize: 16, textTransform: 'none' }} />
               ))}
             </Tabs>
           </Box>
@@ -684,7 +684,7 @@ export default function LessonsPage() {
 
       {/* Add/Edit Lesson Dialog */}
       <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700, fontSize: 24, fontFamily: 'Montserrat, sans-serif' }}>
+                  <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>
           {editIndex !== null ? 'Edit Tool' : 'Add New Tool'}
         </DialogTitle>
         <DialogContent>

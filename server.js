@@ -845,7 +845,7 @@ app.post('/equipment', (req, res) => {
 app.put('/equipment/:id', (req, res) => {
   const data = loadData();
   const { id } = req.params;
-  const { name, type, code, location } = req.body;
+  const { name, type, code, location, purchasePrice } = req.body;
 
   if (!data.equipment) data.equipment = [];
 
@@ -856,13 +856,20 @@ app.put('/equipment/:id', (req, res) => {
   }
 
   // Update the equipment item
-  data.equipment[equipmentIndex] = {
+  const updatedEquipment = {
     ...data.equipment[equipmentIndex],
     name,
     type,
     code,
     location,
   };
+
+  // Only update purchasePrice if it's provided in the request
+  if (purchasePrice !== undefined) {
+    updatedEquipment.purchasePrice = purchasePrice;
+  }
+
+  data.equipment[equipmentIndex] = updatedEquipment;
 
   saveData(data);
   res.json({ success: true, equipment: data.equipment[equipmentIndex] });
@@ -1076,6 +1083,61 @@ app.delete('/equipment/:id/tagout', (req, res) => {
   }
   
   delete data.equipmentTagOut[id];
+  saveData(data);
+  
+  res.json({ success: true });
+});
+
+// Equipment loan endpoints
+app.get('/equipment/:id/loan', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  
+  if (!data.equipmentLoans) data.equipmentLoans = {};
+  
+  const loan = data.equipmentLoans[id] || null;
+  res.json(loan);
+});
+
+app.post('/equipment/:id/loan', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  const { lendDate, lentTo, dueBackDate, notes } = req.body;
+  
+  if (!lendDate || !lentTo || !dueBackDate) {
+    return res.status(400).json({ success: false, message: 'Lend date, lent to, and due back date are required' });
+  }
+  
+  if (!data.equipmentLoans) data.equipmentLoans = {};
+  
+  const newLoan = {
+    id: Date.now().toString(),
+    lendDate,
+    lentTo: lentTo.trim(),
+    dueBackDate,
+    notes: notes ? notes.trim() : '',
+    createdAt: new Date().toISOString(),
+  };
+  
+  data.equipmentLoans[id] = newLoan;
+  saveData(data);
+  
+  res.json({ success: true, loan: newLoan });
+});
+
+app.delete('/equipment/:id/loan', (req, res) => {
+  const data = loadData();
+  const { id } = req.params;
+  
+  if (!data.equipmentLoans) {
+    return res.status(404).json({ success: false, message: 'Loan data not found' });
+  }
+  
+  if (!data.equipmentLoans[id]) {
+    return res.status(404).json({ success: false, message: 'Equipment not loaned out' });
+  }
+  
+  delete data.equipmentLoans[id];
   saveData(data);
   
   res.json({ success: true });

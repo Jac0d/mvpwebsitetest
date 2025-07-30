@@ -3583,236 +3583,41 @@
       ],
       "studentIds": [],
       "tenant_id": 1
+    },
+    {
+      "id": "7h2025jd",
+      "yearLevels": [
+        7
+      ],
+      "className": "Hospitality",
+      "classCode": "7h2025jd",
+      "room": "Kitchen",
+      "teachers": [
+        "jacob.drummond"
+      ],
+      "selectedLessons": [
+        "Bain Marie Food Warmer",
+        "Coffee Grinder",
+        "Combination Oven",
+        "Kitchen Knives",
+        "Deep Fryers",
+        "Electric and Induction Stoves",
+        "Coffee Machine",
+        "Food Processor",
+        "Gas Stoves",
+        "Microwave Oven",
+        "Salamander Grill",
+        "Food Intolerances and Allergies",
+        "Essential Kitchen Safety",
+        "Essential Kitchen Appliance Safety"
+      ],
+      "studentIds": [],
+      "tenant_id": 1
     }
   ],
   "equipment": [
     {
-      "name": "Bandsaw",
-      "type": "Machine",
-      "code": "9u098",
-      "location": "Workshop",
-      "id": "BW32593",
-      "photo": "/uploads/equipment-photos/equipment-BW32593-1752490385726-479435949.png",
-      "maintenanceRecords": [
-        {
-          "id": "1752839707196wrycndvd0",
-          "serviceDate": "2025-07-18",
-          "workUndertaken": "Test maintenance",
-          "completedBy": "Jacob Drummond",
-          "nextServiceDue": "2026-07-18",
-          "photos": [],
-          "createdAt": "2025-07-18T11:55:07.196Z"
-        },
-        {
-          "id": "175284221620292dkxbc2l",
-          "serviceDate": "2025-07-18",
-          "workUndertaken": "hjoiho",
-          "completedBy": "Suzie Barry",
-          "nextServiceDue": "2026-01-18",
-          "photos": [],
-          "createdAt": "2025-07-18T12:36:56.202Z"
-        },
-        {
-          "id": "1752898849431h0r0ijbl8",
-          "serviceDate": "2025-07-19",
-          "workUndertaken": "dijojo",
-          "completedBy": "Lyall",
-          "nextServiceDue": "2026-01-19",
-          "photos": [],
-          "createdAt": "2025-07-19T04:20:49.431Z"
-        },
-        {
-          "id": "1753270227291tu4i8s2q7",
-          "serviceDate": "2025-07-23",
-          "workUndertaken": "Test",
-          "completedBy": "Jacob Drummond",
-          "nextServiceDue": "2025-08-23",
-          "photos": [],
-          "createdAt": "2025-07-23T11:30:27.291Z"
-        },
-        {
-          "id": "1753270260989xx62loorb",
-          "serviceDate": "2025-07-23",
-          "workUndertaken": "1234",
-          "completedBy": "Jacob Drummond",
-          "nextServiceDue": "2025-10-23",
-          "photos": [],
-          "createdAt": "2025-07-23T11:31:00.989Z"
-        },
-        {
-          "id": "1753270632725fhxmkfkkz",
-          "serviceDate": "2025-07-23",
-          "workUndertaken": "Test",
-          "completedBy": "Suzie Barry",
-          "nextServiceDue": "2026-01-23",
-          "photos": [],
-          "createdAt": "2025-07-23T11:37:12.725Z"
-        },
-        {
-          "id": "17532714558968hhwkwoef",
-          "serviceDate": "2025-07-23",
-          "workUndertaken": "Yesj",
-          "completedBy": "Jacob Drummond",
-          "nextServiceDue": "2026-01-23",
-          "photos": [],
-          "createdAt": "2025-07-23T11:50:55.896Z"
-        },
-        {
-          "id": "1753271812303xiif0zhml",
-          "serviceDate": "2025-07-23",
-          "workUndertaken": "kjnk",
-          "completedBy": "Jacob Drummond",
-          "nextServiceDue": "2026-01-23",
-          "photos": [
-            "/uploads/maintenance-photos/maintenance-BW32593-1753271812339-235046539-savage_logo_final_clean.png"
-          ],
-          "createdAt": "2025-07-23T11:56:52.303Z"
-        }
-      ],
-      "linkedLessonId": "35",
-      "inspectionRecords": [
-        {
-          "id": "1752842080143nrw2mkc5g",
-          "inspectionDate": "2025-07-18",
-          "completedBy": "Jacob Drummond",
-          "nextInspectionDue": "2025-08-18",
-          "inspectionAreas": [
-            "General Condition",
-            "Guards & Safety Covers",
-            "Emergency Stop",
-            "Power Supply / Cables",
-            "Controls & Switches",
-            "Moving Parts / Belts",
-            "Fasteners / Fittings",
-            "Noise & Vibration",
-            "Signage & Labels",
-            "Filters / Vents",
-            "Function Test",
-            "Lockout / Tagout Items",
-            "Cleanliness",
-            "SOP Accessibility",
-            "Maintenance Log Updated"
-          ],
-          "createdAt": "2025-07-18T12:34:40.143Z"
-        },
-        {
-          "id": "1752842168852nvmx98xca",
-          "inspectionDate": "2025-07-18",
-          "completedBy": "Jacob Drummond",
-          "nextInspectionDue": "2025-08-18",
-          "inspectionAreas": [
-            "General Condition",
-            "Guards & Safety Covers",
-            "Emergency Stop",
-            "Power Supply / Cables",
-            "Controls & Switches",
-            "Moving Parts / Belts",
-            "Fasteners / Fittings",
-            "Noise & Vibration",
-            "Signage & Labels",
-            "Filters / Vents",
-            "Function Test",
-            "Lockout / Tagout Items",
-            "Cleanliness",
-            "SOP Accessibility"
-          ],
-          "createdAt": "2025-07-18T12:36:08.852Z"
-        },
-        {
-          "id": "17528422414221jizjkg9y",
-          "inspectionDate": "2025-07-18",
-          "completedBy": "Jacob Drummond",
-          "nextInspectionDue": "2025-08-18",
-          "inspectionAreas": [
-            "General Condition",
-            "Guards & Safety Covers",
-            "Emergency Stop",
-            "Power Supply / Cables",
-            "Controls & Switches",
-            "Moving Parts / Belts",
-            "Fasteners / Fittings",
-            "Noise & Vibration",
-            "Signage & Labels",
-            "Filters / Vents",
-            "Function Test",
-            "Lockout / Tagout Items",
-            "Cleanliness",
-            "SOP Accessibility",
-            "Maintenance Log Updated"
-          ],
-          "createdAt": "2025-07-18T12:37:21.422Z"
-        },
-        {
-          "id": "17532674296928jykm6nay",
-          "inspectionDate": "2025-07-23",
-          "completedBy": "Jacob Drummond",
-          "nextInspectionDue": "2025-08-23",
-          "inspectionAreas": [
-            "General Condition"
-          ],
-          "createdAt": "2025-07-23T10:43:49.692Z"
-        },
-        {
-          "id": "1753267511693yuwcxsy9t",
-          "inspectionDate": "2025-07-23",
-          "completedBy": "Jacob Drummond",
-          "nextInspectionDue": "2025-08-23",
-          "inspectionAreas": [
-            "General Condition",
-            "Guards & Safety Covers",
-            "Emergency Stop",
-            "Power Supply / Cables"
-          ],
-          "createdAt": "2025-07-23T10:45:11.693Z"
-        },
-        {
-          "id": "17532681344015cq8t7btw",
-          "inspectionDate": "2025-07-23",
-          "completedBy": "Jacob Drummond",
-          "nextInspectionDue": "2025-08-23",
-          "inspectionAreas": [
-            "General Condition",
-            "Guards & Safety Covers",
-            "Emergency Stop",
-            "Power Supply / Cables",
-            "Controls & Switches",
-            "Moving Parts / Belts",
-            "Fasteners / Fittings",
-            "Noise & Vibration",
-            "Signage & Labels",
-            "Filters / Vents",
-            "Function Test",
-            "Lockout / Tagout Items",
-            "Cleanliness",
-            "SOP Accessibility",
-            "Maintenance Log Updated"
-          ],
-          "createdAt": "2025-07-23T10:55:34.401Z"
-        },
-        {
-          "id": "1753271432026kdqtselkn",
-          "inspectionDate": "2025-07-23",
-          "completedBy": "Suzie Barry",
-          "nextInspectionDue": "",
-          "inspectionAreas": [
-            "General Condition"
-          ],
-          "createdAt": "2025-07-23T11:50:32.026Z"
-        },
-        {
-          "id": "1753271795978kygi35f3f",
-          "inspectionDate": "2025-07-23",
-          "completedBy": "Jacob Drummond",
-          "nextInspectionDue": "2025-08-23",
-          "inspectionAreas": [
-            "General Condition"
-          ],
-          "createdAt": "2025-07-23T11:56:35.978Z"
-        }
-      ]
-    },
-    {
-      "name": "klmlkm",
+      "name": "Air Compressor",
       "type": "Tool",
       "code": "lkmlk",
       "location": "Workshop",
@@ -3874,6 +3679,30 @@
             "General Condition"
           ],
           "createdAt": "2025-07-23T11:50:32.036Z"
+        },
+        {
+          "id": "1753702631963hf3d2ntk6",
+          "inspectionDate": "2025-07-28",
+          "completedBy": "Fred",
+          "nextInspectionDue": "2025-08-28",
+          "inspectionAreas": [
+            "General Condition",
+            "Guards & Safety Covers",
+            "Emergency Stop",
+            "Power Supply / Cables",
+            "Controls & Switches",
+            "Moving Parts / Belts",
+            "Fasteners / Fittings",
+            "Noise & Vibration",
+            "Signage & Labels",
+            "Filters / Vents",
+            "Function Test",
+            "Lockout / Tagout Items",
+            "Cleanliness",
+            "SOP Accessibility",
+            "Maintenance Log Updated"
+          ],
+          "createdAt": "2025-07-28T11:37:11.963Z"
         }
       ],
       "maintenanceRecords": [
@@ -3912,16 +3741,25 @@
           "nextServiceDue": "2026-01-23",
           "photos": [],
           "createdAt": "2025-07-23T11:50:55.903Z"
+        },
+        {
+          "id": "1753702598045hdxbyd0gr",
+          "serviceDate": "2025-07-28",
+          "workUndertaken": "Test",
+          "completedBy": "Fred`",
+          "nextServiceDue": "2026-01-28",
+          "photos": [],
+          "createdAt": "2025-07-28T11:36:38.045Z"
         }
-      ]
+      ],
+      "linkedLessonId": "1"
     },
     {
-      "name": "Test",
+      "name": "Drill",
       "type": "Machine",
       "code": "12345",
       "location": "Workshop",
       "id": "TW78863",
-      "linkedLessonId": "66",
       "inspectionRecords": [
         {
           "id": "1753267429720eaxovathp",
@@ -4041,6 +3879,22 @@
       "code": "jknjkj",
       "location": "Kitchen",
       "id": "JK34983"
+    },
+    {
+      "name": "Saw",
+      "type": "Tool",
+      "code": "123456",
+      "location": "Workshop",
+      "purchasePrice": 10,
+      "id": "SW96002"
+    },
+    {
+      "name": "Blender",
+      "type": "Tool",
+      "code": "123",
+      "location": "Kitchen",
+      "id": "BK42684",
+      "purchasePrice": 10
     }
   ],
   "rooms": [
@@ -4783,6 +4637,36 @@
         "title": "Equipment Tagged Out",
         "content": "Equipment Tagged Out on 27/07/2025 • Completed by: Jacob Drummond • Steps completed: Ensure the machine is switched off, Switch off the power source/s at the isolating control/s or unplug electrical lead from the GPO, Apply lock to the isolation control or to electrical plug & attach suitable tag/s, Test equipment control buttons to ensure power has been disconnected • Reason: Broken Blade",
         "createdAt": "2025-07-27T11:48:31.372Z"
+      },
+      {
+        "id": "1753616935707",
+        "title": "Equipment Untagged",
+        "content": "Equipment Untagged on 27/07/2025 • Completed by: Jacob Drummond • Steps completed: Perform the required maintenance checks and/or cleaning process, Ensure all guards and protective devices are reinstated, Check that all tools and/or cleaning products are removed from around the machine, Remove lock/s, lockout devices and tag/s, Reconnect power source/s, Ensure everyone is clear of the machine and start machine • Notes: All good blade changed.",
+        "createdAt": "2025-07-27T11:48:55.707Z"
+      },
+      {
+        "id": "1753781680484",
+        "title": "Equipment Lent",
+        "content": "Equipment lent on 29/07/2025 • Lent to: Jacob Drummond • Due back: 30/07/2025 • Notes:",
+        "createdAt": "2025-07-29T09:34:40.484Z"
+      },
+      {
+        "id": "1753781692227",
+        "title": "Equipment Returned",
+        "content": "Equipment returned on 2025-07-29 • Previously lent to: Jacob Drummond • Due back: 2025-07-30",
+        "createdAt": "2025-07-29T09:34:52.227Z"
+      },
+      {
+        "id": "1753781746568",
+        "title": "Equipment Lent",
+        "content": "Equipment lent on 29/07/2025 • Lent to: John • Due back: 30/07/2025 • Notes:",
+        "createdAt": "2025-07-29T09:35:46.568Z"
+      },
+      {
+        "id": "1753781773570",
+        "title": "Equipment Tagged Out",
+        "content": "Equipment Tagged Out on 29/07/2025 • Completed by: Jacob Drummond • Steps completed: Ensure the machine is switched off, Switch off the power source/s at the isolating control/s or unplug electrical lead from the GPO, Apply lock to the isolation control or to electrical plug & attach suitable tag/s, Test equipment control buttons to ensure power has been disconnected • Reason: Test",
+        "createdAt": "2025-07-29T09:36:13.570Z"
       }
     ],
     "LW16684": [
@@ -4791,6 +4675,82 @@
         "title": "jio",
         "content": "ijo",
         "createdAt": "2025-07-18T11:55:44.619Z"
+      }
+    ],
+    "KW19925": [
+      {
+        "id": "1753702491111",
+        "title": "Equipment Tagged Out",
+        "content": "Equipment Tagged Out on 28/07/2025 • Completed by: test two • Steps completed: Ensure the machine is switched off • Reason: Test",
+        "createdAt": "2025-07-28T11:34:51.111Z"
+      },
+      {
+        "id": "1753702513182",
+        "title": "Equipment Untagged",
+        "content": "Equipment Untagged on 28/07/2025 • Completed by: Jacob Drummond • Steps completed: Perform the required maintenance checks and/or cleaning process, Ensure all guards and protective devices are reinstated, Check that all tools and/or cleaning products are removed from around the machine, Remove lock/s, lockout devices and tag/s, Reconnect power source/s, Ensure everyone is clear of the machine and start machine • Notes:",
+        "createdAt": "2025-07-28T11:35:13.182Z"
+      },
+      {
+        "id": "1753702642624",
+        "title": "Equipment Tagged Out",
+        "content": "Equipment Tagged Out on 28/07/2025 • Completed by: Fed • Steps completed: Ensure the machine is switched off, Switch off the power source/s at the isolating control/s or unplug electrical lead from the GPO, Apply lock to the isolation control or to electrical plug & attach suitable tag/s, Test equipment control buttons to ensure power has been disconnected • Reason:",
+        "createdAt": "2025-07-28T11:37:22.624Z"
+      },
+      {
+        "id": "1753703038762",
+        "title": "Equipment Untagged",
+        "content": "Equipment Untagged on 28/07/2025 • Completed by: Jacob Drummond • Steps completed: Perform the required maintenance checks and/or cleaning process, Ensure all guards and protective devices are reinstated, Check that all tools and/or cleaning products are removed from around the machine, Remove lock/s, lockout devices and tag/s, Reconnect power source/s, Ensure everyone is clear of the machine and start machine • Notes:",
+        "createdAt": "2025-07-28T11:43:58.762Z"
+      },
+      {
+        "id": "1753784045646",
+        "title": "Equipment Lent",
+        "content": "Equipment lent on 29/07/2025 • Lent to: Suzie Barry • Due back: 30/07/2025 • Notes:",
+        "createdAt": "2025-07-29T10:14:05.646Z"
+      },
+      {
+        "id": "1753784062788",
+        "title": "Equipment Returned",
+        "content": "Equipment returned on 2025-07-29 • Previously lent to: Suzie Barry • Due back: 2025-07-30",
+        "createdAt": "2025-07-29T10:14:22.788Z"
+      }
+    ],
+    "TW78863": [
+      {
+        "id": "1753782879460",
+        "title": "Equipment Lent",
+        "content": "Equipment lent on 29/07/2025 • Lent to: Jacob Drummond • Due back: 30/07/2025 • Notes: Test",
+        "createdAt": "2025-07-29T09:54:39.460Z"
+      },
+      {
+        "id": "1753782884514",
+        "title": "Equipment Returned",
+        "content": "Equipment returned on 2025-07-29 • Previously lent to: Jacob Drummond • Due back: 2025-07-30",
+        "createdAt": "2025-07-29T09:54:44.514Z"
+      },
+      {
+        "id": "1753782891061",
+        "title": "Equipment Tagged Out",
+        "content": "Equipment Tagged Out on 29/07/2025 • Completed by: Jacob Drummond • Steps completed: Ensure the machine is switched off, Switch off the power source/s at the isolating control/s or unplug electrical lead from the GPO, Apply lock to the isolation control or to electrical plug & attach suitable tag/s, Test equipment control buttons to ensure power has been disconnected • Reason:",
+        "createdAt": "2025-07-29T09:54:51.061Z"
+      },
+      {
+        "id": "1753784088245",
+        "title": "Equipment Untagged",
+        "content": "Equipment Untagged on 29/07/2025 • Completed by: Jacob Drummond • Steps completed: Perform the required maintenance checks and/or cleaning process, Ensure all guards and protective devices are reinstated, Check that all tools and/or cleaning products are removed from around the machine, Remove lock/s, lockout devices and tag/s, Reconnect power source/s, Ensure everyone is clear of the machine and start machine • Notes:",
+        "createdAt": "2025-07-29T10:14:48.245Z"
+      },
+      {
+        "id": "1753784754289",
+        "title": "Equipment Lent",
+        "content": "Equipment lent on 29/07/2025 • Lent to: Jon • Due back: 30/07/2025 • Notes:",
+        "createdAt": "2025-07-29T10:25:54.289Z"
+      },
+      {
+        "id": "1753786955069",
+        "title": "Equipment Returned",
+        "content": "Equipment returned on 2025-07-29 • Previously lent to: Jon • Due back: 2025-07-30",
+        "createdAt": "2025-07-29T11:02:35.069Z"
       }
     ]
   },
@@ -4805,5 +4765,29 @@
       }
     ]
   },
-  "equipmentTagOut": {}
+  "equipmentTagOut": {
+    "BW32593": {
+      "id": "1753781773556",
+      "tagOutDate": "2025-07-29",
+      "completedBy": "Jacob Drummond",
+      "tagOutSteps": [
+        "Ensure the machine is switched off",
+        "Switch off the power source/s at the isolating control/s or unplug electrical lead from the GPO",
+        "Apply lock to the isolation control or to electrical plug & attach suitable tag/s",
+        "Test equipment control buttons to ensure power has been disconnected"
+      ],
+      "notes": "Test",
+      "createdAt": "2025-07-29T09:36:13.556Z"
+    }
+  },
+  "equipmentLoans": {
+    "BW32593": {
+      "id": "1753781746514",
+      "lendDate": "2025-07-29",
+      "lentTo": "John",
+      "dueBackDate": "2025-07-30",
+      "notes": "",
+      "createdAt": "2025-07-29T09:35:46.514Z"
+    }
+  }
 }

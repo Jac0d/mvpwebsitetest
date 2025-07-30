@@ -1372,7 +1372,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                     sx: { maxWidth: 600, width: 600, height: 800 }
                   }}
                 >
-                  <DialogTitle sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', pb: 1 }}>Select Lessons</DialogTitle>
+                  <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>Select Lessons</DialogTitle>
                   <DialogContent sx={{ p: 0, height: '100%' }}>
                     <Box sx={{ position: 'sticky', top: 0, zIndex: 2, bgcolor: '#fff', px: 3, pt: 1, pb: 2 }}>
                       <TextField
@@ -2019,7 +2019,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
           sx: { maxWidth: 400, width: 400, height: 500 }
         }}
       >
-        <DialogTitle sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', pb: 1 }}>{isStaffParticipantClass ? 'Select Participants' : 'Select Students'}</DialogTitle>
+                    <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>{isStaffParticipantClass ? 'Select Participants' : 'Select Students'}</DialogTitle>
         <DialogContent sx={{ p: 0, height: '100%' }}>
           <Box sx={{ position: 'sticky', top: 0, zIndex: 2, bgcolor: '#fff', px: 3, pt: 1, pb: 2, borderBottom: '1px solid #e0e7ff' }}>
             <TextField
@@ -2220,7 +2220,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif' }}>
+        <DialogTitle sx={{ fontWeight: 600 }}>
           Confirm Reset
         </DialogTitle>
         <DialogContent>
@@ -2946,7 +2946,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
       {/* Competency Confirmation Dialog */}
       {competencyConfirmationDetails && (
         <Dialog open={competencyConfirmationOpen} onClose={() => setCompetencyConfirmationOpen(false)} maxWidth="md">
-          <DialogTitle sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif' }}>
+          <DialogTitle sx={{ fontWeight: 600 }}>
             Competency Declaration
           </DialogTitle>
           <DialogContent
