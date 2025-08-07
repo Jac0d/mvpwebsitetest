@@ -31,7 +31,7 @@ import HandshakeIcon from '@mui/icons-material/Handshake';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { buttonStyles } from '../../styles/buttonStyles';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export interface Equipment {
   id: string;
@@ -67,6 +67,7 @@ const untagSteps = [
 ];
 
 export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
+  const { colors, buttonStyles } = useThemedStyles();
   const { id } = useParams();
   const navigate = useNavigate();
   const [tab, setTab] = useState(0);
@@ -1924,7 +1925,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', position: 'fixed', top: 64, left: 240, right: 0, zIndex: 1099 }}>
         {/* Tabs */}
-        <Box sx={{ bgcolor: '#fff', borderBottom: '1px solid #e0e7ff', pt: 1, pb: 0.5 }}>
+        <Box sx={{ bgcolor: '#fff', borderBottom: `1px solid ${colors.border}`, pt: 1, pb: 0.5 }}>
           <Box sx={{ 
             maxWidth: 1000, 
             mx: 'auto', 
@@ -2088,11 +2089,11 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                     anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                   >
                     <MenuItem onClick={handleViewDetails}>
-                      <VisibilityIcon sx={{ fontSize: 16, mr: 1, color: '#4ecdc4' }} />
+                      <VisibilityIcon sx={{ fontSize: 16, mr: 1, color: colors.iconPrimary }} />
                       View Details
                     </MenuItem>
                     <MenuItem onClick={handleEditFromMenu}>
-                      <EditIcon sx={{ fontSize: 16, mr: 1, color: '#4ecdc4' }} />
+                      <EditIcon sx={{ fontSize: 16, mr: 1, color: colors.iconPrimary }} />
                       Edit
                     </MenuItem>
                     <MenuItem onClick={handleDeleteFromMenu}>
@@ -2218,7 +2219,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
               <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, mb: 0.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <AssignmentIcon sx={{ color: '#4ecdc4' }} />
+                    <AssignmentIcon sx={{ color: colors.iconPrimary }} />
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>Periodic Inspections</Typography>
                   </Box>
                   <Button {...buttonStyles.primary} size="small" startIcon={<AddIcon />} onClick={handleOpenInspectionDialog}>
@@ -2228,10 +2229,10 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                 <Box sx={{ 
                   maxHeight: '240px',
                   overflowY: 'auto',
-                  bgcolor: '#f8fafc', 
+                  bgcolor: colors.containerPaper, 
                   borderRadius: 2, 
                   p: 2, 
-                  border: '1px solid #e0e7ff' 
+                  border: `1px solid ${colors.border}` 
                 }}>
                   {inspectionRecords.length === 0 ? (
                     <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
@@ -2249,7 +2250,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                             p: 2,
                             borderRadius: 2, 
                             bgcolor: '#fff', 
-                            border: '1px solid #e0e7ff',
+                            border: `1px solid ${colors.border}`,
                             cursor: 'pointer',
                             transition: 'all 0.2s ease-in-out',
                             '&:hover': {
@@ -2294,7 +2295,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                               <Tooltip title="Edit record" arrow>
                                 <IconButton 
                                   size="small" 
-                                  sx={{ color: '#4ecdc4', p: 0.5 }}
+                                  sx={{ color: colors.iconPrimary, p: 0.5 }}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleEditInspection(record);
@@ -2332,7 +2333,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
               <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, mb: 0.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <BuildIcon sx={{ color: '#4ecdc4' }} />
+                    <BuildIcon sx={{ color: colors.iconPrimary }} />
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>Maintenance Records</Typography>
                   </Box>
                   <Button {...buttonStyles.primary} size="small" startIcon={<AddIcon />} onClick={handleOpenMaintenanceDialog}>
@@ -2342,10 +2343,10 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                 <Box sx={{ 
                   maxHeight: '240px',
                   overflowY: 'auto',
-                  bgcolor: '#f8fafc', 
+                  bgcolor: colors.containerPaper, 
                   borderRadius: 2, 
                   p: 2, 
-                  border: '1px solid #e0e7ff' 
+                  border: `1px solid ${colors.border}` 
                 }}>
                   {maintenanceRecords.length === 0 ? (
                     <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
@@ -2363,7 +2364,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                             p: 2,
                             borderRadius: 2, 
                             bgcolor: '#fff', 
-                            border: '1px solid #e0e7ff',
+                            border: `1px solid ${colors.border}`,
                             cursor: 'pointer',
                             transition: 'all 0.2s ease-in-out',
                             '&:hover': {
@@ -2406,7 +2407,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                               {record.photos && record.photos.length > 0 && (
                                 <Typography sx={{ 
                                   fontSize: 13, 
-                                  color: '#4ecdc4',
+                                  color: colors.iconPrimary,
                                   fontStyle: 'italic'
                                 }}>
                                   📷 {record.photos.length} photo{record.photos.length !== 1 ? 's' : ''}
@@ -2417,7 +2418,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                               <Tooltip title="Edit record" arrow>
                                 <IconButton 
                                   size="small" 
-                                  sx={{ color: '#4ecdc4', p: 0.5 }}
+                                  sx={{ color: colors.iconPrimary, p: 0.5 }}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleEditMaintenance(record);
@@ -2457,7 +2458,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                 <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, width: '100%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <NotesIcon sx={{ color: '#4ecdc4' }} />
+                      <NotesIcon sx={{ color: colors.iconPrimary }} />
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>Notes</Typography>
                     </Box>
                     <Button {...buttonStyles.primary} size="small" startIcon={<AddIcon />} onClick={handleOpenNoteDialog}>
@@ -2468,10 +2469,10 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                     flexGrow: 1,
                     maxHeight: '240px',
                     overflowY: 'auto',
-                    bgcolor: '#f8fafc', 
+                    bgcolor: colors.containerPaper, 
                     borderRadius: 2, 
                     p: 2, 
-                    border: '1px solid #e0e7ff' 
+                    border: `1px solid ${colors.border}` 
                   }}>
                     {notes.length === 0 ? (
                       <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
@@ -2489,7 +2490,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                               p: 2,
                               borderRadius: 2, 
                               bgcolor: '#fff', 
-                              border: '1px solid #e0e7ff',
+                              border: `1px solid ${colors.border}`,
                               cursor: 'pointer',
                               transition: 'all 0.2s ease-in-out',
                               '&:hover': {
@@ -2528,7 +2529,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                                 <Tooltip title="Edit note" arrow>
                                   <IconButton 
                                     size="small" 
-                                    sx={{ color: '#4ecdc4', p: 0.5 }}
+                                    sx={{ color: colors.iconPrimary, p: 0.5 }}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleEditNote(note);
@@ -2564,7 +2565,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                 <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, width: '100%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <DescriptionIcon sx={{ color: '#4ecdc4' }} />
+                      <DescriptionIcon sx={{ color: colors.iconPrimary }} />
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>User Manuals & Spares</Typography>
                     </Box>
                     <Button {...buttonStyles.primary} size="small" startIcon={<AddIcon />} onClick={handleOpenManualDialog}>
@@ -2575,10 +2576,10 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                     flexGrow: 1,
                     maxHeight: '240px',
                     overflowY: 'auto',
-                    bgcolor: '#f8fafc', 
+                    bgcolor: colors.containerPaper, 
                     borderRadius: 2, 
                     p: 2, 
-                    border: '1px solid #e0e7ff' 
+                    border: `1px solid ${colors.border}` 
                   }}>
                     {manuals.length === 0 ? (
                       <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
@@ -2594,7 +2595,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                               p: 2,
                               borderRadius: 2, 
                               bgcolor: '#fff', 
-                              border: '1px solid #e0e7ff',
+                              border: `1px solid ${colors.border}`,
                               cursor: 'pointer',
                               transition: 'all 0.2s ease-in-out',
                               '&:hover': {
@@ -2666,14 +2667,14 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
               <Paper elevation={1} sx={{ p: 1.5, borderRadius: 3, mb: 0.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <SecurityIcon sx={{ color: '#4ecdc4' }} />
+                    <SecurityIcon sx={{ color: colors.iconPrimary }} />
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>Safe Operating Procedures (SOPs)</Typography>
                   </Box>
                   <Button {...buttonStyles.primary} size="small" startIcon={<AddIcon />}>
                     Add SOP
                   </Button>
                 </Box>
-                <Box sx={{ minHeight: 80, bgcolor: '#f8fafc', borderRadius: 2, p: 2, border: '1px solid #e0e7ff' }}>
+                <Box sx={{ minHeight: 80, bgcolor: colors.containerPaper, borderRadius: 2, p: 2, border: `1px solid ${colors.border}` }}>
                   <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
                     No SOPs uploaded yet. Click "Add SOP" to upload safety procedures and operating instructions.
                   </Typography>
@@ -3149,7 +3150,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Tooltip title="Edit record" arrow>
                 <IconButton 
-                  sx={{ color: '#4ecdc4' }}
+                  sx={{ color: colors.iconPrimary }}
                   onClick={() => {
                     if (selectedMaintenance) {
                       setMaintenanceDetailDialogOpen(false);
@@ -3683,13 +3684,13 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                   py: 1,
                   whiteSpace: 'nowrap',
                   boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-                  bgcolor: editingManual.type === 'link' ? '#4ecdc4' : '#fff',
-                  color: editingManual.type === 'link' ? '#fff' : '#269b96',
-                  border: '1px solid #269b96',
+                  bgcolor: editingManual.type === 'link' ? colors.primary : '#fff',
+                  color: editingManual.type === 'link' ? '#fff' : colors.primary,
+                  border: `1px solid ${colors.primary}`,
                   '&:hover': { 
-                    bgcolor: editingManual.type === 'link' ? '#38b2ac' : '#f8fffe',
-                    color: editingManual.type === 'link' ? '#fff' : '#1e7e7e',
-                    border: editingManual.type === 'link' ? '1px solid #38b2ac' : '1px solid #1e7e7e',
+                    bgcolor: editingManual.type === 'link' ? colors.primaryHover : '#f8fffe',
+                    color: editingManual.type === 'link' ? '#fff' : colors.primaryHover,
+                    border: `1px solid ${editingManual.type === 'link' ? colors.primaryHover : colors.primaryHover}`,
                     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15)'
                   }
                 }}
@@ -3709,13 +3710,13 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                   py: 1,
                   whiteSpace: 'nowrap',
                   boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-                  bgcolor: editingManual.type === 'file' ? '#4ecdc4' : '#fff',
-                  color: editingManual.type === 'file' ? '#fff' : '#269b96',
-                  border: '1px solid #269b96',
+                  bgcolor: editingManual.type === 'file' ? colors.primary : '#fff',
+                  color: editingManual.type === 'file' ? '#fff' : colors.primary,
+                  border: `1px solid ${colors.primary}`,
                   '&:hover': { 
-                    bgcolor: editingManual.type === 'file' ? '#38b2ac' : '#f8fffe',
-                    color: editingManual.type === 'file' ? '#fff' : '#1e7e7e',
-                    border: editingManual.type === 'file' ? '1px solid #38b2ac' : '1px solid #1e7e7e',
+                    bgcolor: editingManual.type === 'file' ? colors.primaryHover : '#f8fffe',
+                    color: editingManual.type === 'file' ? '#fff' : colors.primaryHover,
+                    border: `1px solid ${editingManual.type === 'file' ? colors.primaryHover : colors.primaryHover}`,
                     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15)'
                   }
                 }}
@@ -3735,15 +3736,15 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
               />
             ) : (
               <Box sx={{ 
-                border: '2px dashed #e0e7ff', 
+                border: `2px dashed ${colors.border}`, 
                 borderRadius: 2, 
                 p: 3, 
                 textAlign: 'center',
-                bgcolor: editingManual.file ? '#f0f9ff' : '#f8fafc',
-                borderColor: editingManual.file ? '#4ecdc4' : '#e0e7ff',
+                bgcolor: editingManual.file ? '#f0f9ff' : colors.containerPaper,
+                borderColor: editingManual.file ? colors.primary : colors.border,
                 cursor: 'pointer',
                 '&:hover': {
-                  borderColor: '#4ecdc4',
+                  borderColor: colors.primary,
                   bgcolor: '#f0f9ff'
                 }
               }}
@@ -3751,7 +3752,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
               >
                 {editingManual.file ? (
                   <Box>
-                    <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#4ecdc4', mb: 1 }}>
+                    <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primary, mb: 1 }}>
                       File Selected
                     </Typography>
                     <Typography sx={{ fontSize: 14, color: '#374151', mb: 2 }}>
@@ -3891,7 +3892,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                                 color="primary"
                               />
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                <Box sx={{ color: '#4ecdc4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                                <Box sx={{ color: colors.iconPrimary, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
                                   {lessonIcons[lesson.icon]}
                                 </Box>
                                 <Box>
@@ -4033,9 +4034,9 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                     }
                   }}
                   sx={{ 
-                    color: '#4ecdc4', 
-                    '&.Mui-checked': { color: '#4ecdc4' },
-                    '&.MuiCheckbox-indeterminate': { color: '#4ecdc4' }
+                    color: colors.primary, 
+                    '&.Mui-checked': { color: colors.primary },
+                    '&.MuiCheckbox-indeterminate': { color: colors.primary }
                   }}
                 />
                 <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', ml: 1 }}>
@@ -4043,12 +4044,12 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                 </Typography>
               </Box>
               <Box sx={{ 
-                border: '1px solid #e0e7ff', 
+                border: `1px solid ${colors.border}`, 
                 borderRadius: 2, 
                 p: 2, 
                 maxHeight: '300px',
                 overflowY: 'auto',
-                bgcolor: '#f8fafc'
+                bgcolor: colors.containerPaper
               }}>
                 {inspectionAreas.map((area) => (
                   <Box 
@@ -4093,7 +4094,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                           }));
                         }
                       }}
-                      sx={{ color: '#4ecdc4', '&.Mui-checked': { color: '#4ecdc4' }, mt: 0.5 }}
+                      sx={{ color: colors.primary, '&.Mui-checked': { color: colors.primary }, mt: 0.5 }}
                     />
                     <Box sx={{ ml: 1, flex: 1 }}>
                       <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#374151', mb: 0.5 }}>
@@ -4156,7 +4157,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Tooltip title="Edit inspection" arrow>
                 <IconButton 
-                  sx={{ color: '#4ecdc4' }}
+                  sx={{ color: colors.iconPrimary }}
                   onClick={() => {
                     if (selectedInspection) {
                       setInspectionDetailDialogOpen(false);
@@ -4217,7 +4218,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                   {selectedInspection?.inspectionAreas.map((areaName, index) => {
                     const area = inspectionAreas.find(a => a.name === areaName);
                     return (
-                      <Box key={index} sx={{ pl: 2, p: 1, borderRadius: 1, bgcolor: '#f8fafc' }}>
+                      <Box key={index} sx={{ pl: 2, p: 1, borderRadius: 1, bgcolor: colors.containerPaper }}>
                         <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#374151', mb: 0.5 }}>
                           • {areaName}
                         </Typography>
@@ -4377,9 +4378,9 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                     }
                   }}
                   sx={{ 
-                    color: '#4ecdc4', 
-                    '&.Mui-checked': { color: '#4ecdc4' },
-                    '&.MuiCheckbox-indeterminate': { color: '#4ecdc4' }
+                    color: colors.primary, 
+                    '&.Mui-checked': { color: colors.primary },
+                    '&.MuiCheckbox-indeterminate': { color: colors.primary }
                   }}
                 />
                 <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', ml: 1 }}>
@@ -4387,12 +4388,12 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                 </Typography>
               </Box>
               <Box sx={{ 
-                border: '1px solid #e0e7ff', 
+                border: `1px solid ${colors.border}`, 
                 borderRadius: 2, 
                 p: 2, 
                 maxHeight: '200px',
                 overflowY: 'auto',
-                bgcolor: '#f8fafc'
+                bgcolor: colors.containerPaper
               }}>
                 {tagOutSteps.map((step, index) => (
                   <Box 
@@ -4414,7 +4415,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                         e.stopPropagation();
                         handleTagOutStepToggle(step);
                       }}
-                      sx={{ color: '#4ecdc4', '&.Mui-checked': { color: '#4ecdc4' } }}
+                      sx={{ color: colors.primary, '&.Mui-checked': { color: colors.primary } }}
                     />
                     <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#374151', ml: 1 }}>
                       {step}
@@ -4567,9 +4568,9 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                     }
                   }}
                   sx={{ 
-                    color: '#4ecdc4', 
-                    '&.Mui-checked': { color: '#4ecdc4' },
-                    '&.MuiCheckbox-indeterminate': { color: '#4ecdc4' }
+                    color: colors.primary, 
+                    '&.Mui-checked': { color: colors.primary },
+                    '&.MuiCheckbox-indeterminate': { color: colors.primary }
                   }}
                 />
                 <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#374151', ml: 1 }}>
@@ -4577,12 +4578,12 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                 </Typography>
               </Box>
               <Box sx={{ 
-                border: '1px solid #e0e7ff', 
+                border: `1px solid ${colors.border}`, 
                 borderRadius: 2, 
                 p: 2, 
                 maxHeight: '200px',
                 overflowY: 'auto',
-                bgcolor: '#f8fafc'
+                bgcolor: colors.containerPaper
               }}>
                 {untagSteps.map((step, index) => (
                   <Box 
@@ -4604,7 +4605,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                         e.stopPropagation();
                         handleUntagStepToggle(step);
                       }}
-                      sx={{ color: '#4ecdc4', '&.Mui-checked': { color: '#4ecdc4' } }}
+                      sx={{ color: colors.primary, '&.Mui-checked': { color: colors.primary } }}
                     />
                     <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#374151', ml: 1 }}>
                       {step}

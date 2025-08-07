@@ -1,8 +1,11 @@
-export const buttonStyles = {
+import { CustomColors, themePresets } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+
+export const createButtonStyles = (colors: CustomColors) => ({
   primary: {
     variant: "contained" as const,
     sx: {
-      bgcolor: '#4ecdc4 !important',
+      bgcolor: `${colors.primary} !important`,
       color: '#fff !important',
       textTransform: 'none !important',
       fontWeight: 500,
@@ -13,7 +16,7 @@ export const buttonStyles = {
       whiteSpace: 'nowrap',
       boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1) !important',
       '&:hover': { 
-        bgcolor: '#38b2ac !important',
+        bgcolor: `${colors.primaryHover} !important`,
         boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15) !important'
       }
     }
@@ -22,20 +25,20 @@ export const buttonStyles = {
     variant: "contained" as const,
     sx: {
       bgcolor: '#fff !important',
-      color: '#269b96 !important',
+      color: `${colors.secondary} !important`,
       textTransform: 'none !important',
       fontWeight: 500,
       fontFamily: 'Montserrat, sans-serif',
-      border: '1px solid #269b96',
+      border: `1px solid ${colors.secondary}`,
       borderRadius: '4px',
       px: 2,
       py: 1,
       whiteSpace: 'nowrap',
       boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1) !important',
       '&:hover': { 
-        bgcolor: '#f8fffe !important',
-        color: '#1e7e7e !important',
-        border: '1px solid #1e7e7e',
+        bgcolor: `${colors.containerPaper} !important`,
+        color: `${colors.secondaryHover} !important`,
+        border: `1px solid ${colors.secondaryHover}`,
         boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15) !important'
       }
     }
@@ -54,7 +57,7 @@ export const buttonStyles = {
       whiteSpace: 'nowrap',
       boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1) !important',
       '&:hover': { 
-        bgcolor: '#bfc3cb !important',
+        bgcolor: '#b8c0cc !important',
         boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15) !important'
       }
     }
@@ -128,11 +131,11 @@ export const buttonStyles = {
     variant: "contained" as const,
     sx: {
       bgcolor: '#fff !important',
-      color: '#269b96 !important',
+      color: `${colors.secondary} !important`,
       textTransform: 'none !important',
       fontWeight: 500,
       fontFamily: 'Montserrat, sans-serif',
-      border: '1px solid #269b96',
+      border: `1px solid ${colors.secondary}`,
       borderRadius: '4px',
       px: 2,
       py: 1,
@@ -140,9 +143,9 @@ export const buttonStyles = {
       boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1) !important',
       width: '100%',
       '&:hover': { 
-        bgcolor: '#f8fffe !important',
-        color: '#1e7e7e !important',
-        border: '1px solid #1e7e7e',
+        bgcolor: `${colors.containerPaper} !important`,
+        color: `${colors.secondaryHover} !important`,
+        border: `1px solid ${colors.secondaryHover}`,
         boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15) !important'
       }
     }
@@ -187,4 +190,13 @@ export const buttonStyles = {
       }
     }
   }
-}; 
+});
+
+// Create a hook that returns themed button styles
+export const useButtonStyles = () => {
+  const { colors } = useTheme();
+  return createButtonStyles(colors);
+};
+
+// Export default button styles using the default theme
+export const buttonStyles = createButtonStyles(themePresets.default); 

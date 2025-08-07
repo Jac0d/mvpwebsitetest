@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
-import { theme } from './theme';
+import { CustomThemeProvider } from './context/ThemeContext';
 import { ClassesPage } from './pages/courses/ClassesPage';
 import { ClassDetails } from './pages/courses/ClassDetails';
 import StudentsPage from './pages/students/StudentsPage';
@@ -12,6 +11,7 @@ import EquipmentPage from './pages/equipment/EquipmentPage';
 import { EquipmentDetails } from './pages/equipment/EquipmentDetails';
 import LessonsPage from './pages/lessons/LessonsPage';
 import ButtonPreview from './pages/ButtonStylesPreview';
+import ThemeSelector from './pages/ThemeSelector';
 import { Student } from './types/Student';
 
 interface Staff {
@@ -76,7 +76,7 @@ export default function App() {
   }, []);
 
   return (
-    <ThemeProvider theme={theme}>
+    <CustomThemeProvider>
       <Router>
         <Routes>
           <Route path="/" element={<ClassesPage classes={classes} setClasses={setClasses} staff={staff} />} />
@@ -90,8 +90,9 @@ export default function App() {
           <Route path="/equipment/:id" element={<EquipmentDetails equipment={equipment} />} />
           <Route path="/classes/:id" element={<ClassDetails classes={classes} setClasses={setClasses} students={students} setStudents={setStudents} />} />
           <Route path="/button-styles" element={<ButtonPreview />} />
+          <Route path="/theme-settings" element={<ThemeSelector />} />
         </Routes>
       </Router>
-    </ThemeProvider>
+    </CustomThemeProvider>
   );
 }

@@ -16,7 +16,7 @@ import KitchenIcon from '@mui/icons-material/Kitchen';
 import IronIcon from '@mui/icons-material/Iron';
 import HomeRepairServiceIcon from '@mui/icons-material/HomeRepairService';
 import FactoryIcon from '@mui/icons-material/Factory';
-import { buttonStyles } from '../../styles/buttonStyles';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export interface Lesson {
   id: number;
@@ -56,6 +56,7 @@ const lessonIcons = {
 const API_BASE = 'http://localhost:3001';
 
 export default function LessonsPage() {
+  const { colors, buttonStyles } = useThemedStyles();
   const [tab, setTab] = React.useState(0);
   const [search, setSearch] = React.useState('');
   const [lessons, setLessons] = React.useState<Lesson[]>([]);
@@ -374,7 +375,7 @@ export default function LessonsPage() {
       sx={{
         p: 2,
         borderRadius: 2,
-        border: '1px solid #e0e7ff',
+        border: `1px solid ${colors.border}`,
         bgcolor: '#fff',
         display: 'flex',
         alignItems: 'center',
@@ -390,7 +391,7 @@ export default function LessonsPage() {
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box sx={{ 
-          color: '#4ecdc4',
+          color: colors.iconPrimary,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -411,9 +412,9 @@ export default function LessonsPage() {
         size="small"
         onClick={() => handleEditLesson(lesson)}
         sx={{
-          color: '#4ecdc4',
+          color: colors.iconPrimary,
           '&:hover': {
-            color: '#38b2ac',
+            color: colors.primaryHover,
             bgcolor: 'rgba(78, 205, 196, 0.08)'
           }
         }}
@@ -445,7 +446,7 @@ export default function LessonsPage() {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <SearchIcon sx={{ color: '#b0b0b0' }} />
+                      <SearchIcon sx={{ color: colors.iconPrimary }} />
                     </InputAdornment>
                   ),
                 }}
@@ -496,7 +497,7 @@ export default function LessonsPage() {
           <Box sx={{ px: 4, py: 4, maxWidth: 1000, minWidth: 540, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
             {isLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
-                <CircularProgress sx={{ color: '#4ecdc4' }} />
+                <CircularProgress sx={{ color: colors.iconPrimary }} />
               </Box>
             ) : lessons.length === 0 ? (
               <Box sx={{ textAlign: 'center', color: '#666', py: 4 }}>
@@ -505,7 +506,7 @@ export default function LessonsPage() {
             ) : tab === 0 ? (
               <>
                 {lessonsByArea.filter(group => group.lessons.length > 0).map(group => (
-                  <Paper key={group.area} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: '#f8fafc', border: '1px solid #e0e7ff' }}>
+                  <Paper key={group.area} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: colors.containerPaper, border: `1px solid ${colors.border}` }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#374151' }}>{group.area}</Typography>
                     {group.area === 'Industrial' ? (
                       // Industrial area with sub-areas
@@ -518,7 +519,7 @@ export default function LessonsPage() {
                               p: 2,
                               borderRadius: 2,
                               bgcolor: '#fff',
-                              border: '1px solid #e0e7ff'
+                              border: `1px solid ${colors.border}`
                             }}
                           >
                             <Typography 
@@ -527,7 +528,7 @@ export default function LessonsPage() {
                                 color: '#4b5563', 
                                 mb: 2,
                                 fontSize: '1.1rem',
-                                borderBottom: '2px solid #4ecdc4',
+                                borderBottom: `2px solid ${colors.primary}`,
                                 pb: 1
                               }}
                             >
@@ -544,8 +545,8 @@ export default function LessonsPage() {
                                 sx={{ 
                                   p: 2, 
                                   borderRadius: 2, 
-                                  bgcolor: '#f8fafc',
-                                  border: '1px solid #e0e7ff',
+                                  bgcolor: colors.containerPaper,
+                                  border: `1px solid ${colors.border}`,
                                   color: '#6b7280',
                                   fontStyle: 'italic',
                                   fontSize: 14
@@ -570,7 +571,7 @@ export default function LessonsPage() {
                               p: 2, 
                               borderRadius: 2, 
                               bgcolor: '#fff',
-                              border: '1px solid #e0e7ff',
+                              border: `1px solid ${colors.border}`,
                               color: '#6b7280',
                               fontStyle: 'italic',
                               fontSize: 14
@@ -591,7 +592,7 @@ export default function LessonsPage() {
                   const group = lessonsByArea.find(g => g.area === area);
                   if (group && group.lessons.length > 0) {
                     return (
-                      <Paper elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: '#f8fafc', border: '1px solid #e0e7ff' }}>
+                      <Paper elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: colors.containerPaper, border: `1px solid ${colors.border}` }}>
                         <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#374151' }}>{group.area}</Typography>
                         {area === 'Industrial' ? (
                           // Industrial area with sub-areas
@@ -630,8 +631,8 @@ export default function LessonsPage() {
                                     sx={{ 
                                       p: 2, 
                                       borderRadius: 2, 
-                                      bgcolor: '#f8fafc',
-                                      border: '1px solid #e0e7ff',
+                                      bgcolor: colors.containerPaper,
+                                      border: `1px solid ${colors.border}`,
                                       color: '#6b7280',
                                       fontStyle: 'italic',
                                       fontSize: 14
@@ -656,7 +657,7 @@ export default function LessonsPage() {
                                   p: 2, 
                                   borderRadius: 2, 
                                   bgcolor: '#fff',
-                                  border: '1px solid #e0e7ff',
+                                  border: `1px solid ${colors.border}`,
                                   color: '#6b7280',
                                   fontStyle: 'italic',
                                   fontSize: 14
@@ -750,7 +751,7 @@ export default function LessonsPage() {
               {Object.entries(lessonIcons).map(([name, icon]) => (
                 <MenuItem key={name} value={name}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ color: '#4ecdc4' }}>{icon}</Box>
+                    <Box sx={{ color: colors.iconPrimary }}>{icon}</Box>
                     <Typography>{name}</Typography>
                   </Box>
                 </MenuItem>

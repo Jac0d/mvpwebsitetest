@@ -8,7 +8,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import * as XLSX from 'xlsx';
-import { buttonStyles } from '../../styles/buttonStyles';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export interface Equipment {
   id: string;
@@ -25,6 +25,7 @@ const equipmentTypes = ['Hand Tool', 'Power Tool', 'Machine', 'Portable Applianc
 const API_BASE = 'http://localhost:3001';
 
 export default function EquipmentPage() {
+  const { colors, buttonStyles } = useThemedStyles();
   const navigate = useNavigate();
   const [search, setSearch] = React.useState('');
   const [equipment, setEquipment] = React.useState<Equipment[]>([]);
@@ -274,7 +275,7 @@ export default function EquipmentPage() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon sx={{ color: '#b0b0b0' }} />
+                                          <SearchIcon sx={{ color: colors.iconPrimary }} />
                   </InputAdornment>
                 ),
               }}
@@ -303,7 +304,7 @@ export default function EquipmentPage() {
           </Box>
         </Box>
         {/* Room Tabs */}
-        <Box sx={{ position: 'sticky', top: 0, bgcolor: '#fff', zIndex: 1, borderBottom: '1px solid #e0e7ff', pt: 1, pb: 0.5 }}>
+        <Box sx={{ position: 'sticky', top: 0, bgcolor: '#fff', zIndex: 1, borderBottom: `1px solid ${colors.border}`, pt: 1, pb: 0.5 }}>
           <Box sx={{ maxWidth: 1000, minWidth: 360, mx: 'auto', px: 8, width: '100%' }}>
             <Tabs 
               value={selectedRoomTab} 
@@ -333,7 +334,7 @@ export default function EquipmentPage() {
                     const roomEquipment = searchedEquipment.filter(eq => eq.location === room);
                     if (roomEquipment.length === 0) return null;
                     return (
-                      <Paper key={room} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: '#f8fafc', border: '1px solid #e0e7ff' }}>
+                      <Paper key={room} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: colors.containerPaper, border: `1px solid ${colors.border}` }}>
                         <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#374151' }}>{room}</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                           {roomEquipment.length === 0 ? (
@@ -347,7 +348,7 @@ export default function EquipmentPage() {
                                 p: 2, 
                                 borderRadius: 2, 
                                 bgcolor: '#fff', 
-                                border: '1px solid #e0e7ff',
+                                border: `1px solid ${colors.border}`,
                                 boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
                                 transition: 'all 0.2s ease-in-out',
                                 cursor: 'pointer',
@@ -362,7 +363,7 @@ export default function EquipmentPage() {
                                   {eq.photo ? (
                                     <img src={`${API_BASE}${eq.photo}`} alt={eq.name} style={{ width: 56, height: 56, borderRadius: '8px', objectFit: 'cover' }} />
                                   ) : (
-                                    <Box sx={{ width: 56, height: 56, borderRadius: '8px', bgcolor: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <Box sx={{ width: 56, height: 56, borderRadius: '8px', bgcolor: colors.border, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                       {/* You can put an icon here if you want */}
                                     </Box>
                                   )}
@@ -377,7 +378,7 @@ export default function EquipmentPage() {
                                   <Tooltip title="Edit" arrow>
                                     <IconButton 
                                       size="small" 
-                                      sx={{ color: '#9ca3af' }} 
+                                      sx={{ color: colors.iconPrimary }} 
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handleEditClick(equipment.findIndex(e => e.id === eq.id));
@@ -413,7 +414,7 @@ export default function EquipmentPage() {
                   if (!room) return null;
 
                   return (
-                    <Paper elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: '#f8fafc', border: '1px solid #e0e7ff' }}>
+                    <Paper elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: colors.containerPaper, border: `1px solid ${colors.border}` }}>
                       <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#374151' }}>{room}</Typography>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                         {roomEquipment.length === 0 ? (
@@ -427,7 +428,7 @@ export default function EquipmentPage() {
                               p: 2, 
                               borderRadius: 2, 
                               bgcolor: '#fff', 
-                              border: '1px solid #e0e7ff',
+                              border: `1px solid ${colors.border}`,
                               boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
                               transition: 'all 0.2s ease-in-out',
                               cursor: 'pointer',
@@ -442,7 +443,7 @@ export default function EquipmentPage() {
                                 {eq.photo ? (
                                   <img src={`${API_BASE}${eq.photo}`} alt={eq.name} style={{ width: 56, height: 56, borderRadius: '8px', objectFit: 'cover' }} />
                                 ) : (
-                                  <Box sx={{ width: 56, height: 56, borderRadius: '8px', bgcolor: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                                      <Box sx={{ width: 56, height: 56, borderRadius: '8px', bgcolor: colors.border, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                     {/* You can put an icon here if you want */}
                                   </Box>
                                 )}
@@ -457,7 +458,7 @@ export default function EquipmentPage() {
                                 <Tooltip title="Edit" arrow>
                                   <IconButton 
                                     size="small" 
-                                    sx={{ color: '#9ca3af' }} 
+                                                                          sx={{ color: colors.iconPrimary }} 
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleEditClick(equipment.findIndex(e => e.id === eq.id));

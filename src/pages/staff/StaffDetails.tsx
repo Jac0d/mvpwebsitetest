@@ -13,7 +13,7 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import * as XLSX from 'xlsx';
-import { buttonStyles } from '../../styles/buttonStyles';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 const staffRoles = ['Teaching Staff', 'Support Staff', 'Maintenance Staff'];
 const API_BASE = 'http://localhost:3001';
@@ -33,6 +33,7 @@ const lessonIcons: { [key: string]: JSX.Element } = {
 };
 
 export default function StaffDetails() {
+  const { colors, buttonStyles } = useThemedStyles();
   const { userID } = useParams<{ userID: string }>();
   const navigate = useNavigate();
   const [tab, setTab] = useState(0);
@@ -378,7 +379,7 @@ export default function StaffDetails() {
           right: 0,
           bgcolor: '#fff', 
           zIndex: 1000,
-          borderBottom: '1px solid #e0e7ff',
+          borderBottom: `1px solid ${colors.border}`,
           pt: 1,
           pb: 0.5,
           transition: 'left 0.2s ease-in-out'
@@ -440,12 +441,12 @@ export default function StaffDetails() {
                 )}
                 <Box sx={{ position: 'absolute', bottom: 8, right: 12, display: 'flex', gap: 0.5 }}>
                   <Tooltip title="Edit staff details" arrow>
-                    <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={() => handleEditClick(staff)}>
+                    <IconButton size="small" sx={{ color: colors.iconPrimary }} onClick={() => handleEditClick(staff)}>
                       <EditIcon />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Reset staff's password" arrow>
-                    <IconButton size="small" sx={{ color: '#4ecdc4' }}>
+                    <IconButton size="small" sx={{ color: colors.iconPrimary }}>
                       <LockResetIcon />
                     </IconButton>
                   </Tooltip>
@@ -466,7 +467,7 @@ export default function StaffDetails() {
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, textAlign: 'left' }}>Assigned Classes</Typography>
                   </Box>
-                  <Box sx={{ minHeight: 80, bgcolor: '#f8fafc', borderRadius: 2, p: 2, border: '1px solid #e0e7ff' }}>
+                  <Box sx={{ minHeight: 80, bgcolor: colors.containerPaper, borderRadius: 2, p: 2, border: `1px solid ${colors.border}` }}>
                     {assignedClasses.length > 0 ? (
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                         {assignedClasses.map((classItem) => (
@@ -477,7 +478,7 @@ export default function StaffDetails() {
                             sx={{
                               p: 1.5,
                               borderRadius: 2,
-                              border: '1px solid #e0e7ff',
+                              border: `1px solid ${colors.border}`,
                               bgcolor: '#fff',
                               display: 'flex',
                               alignItems: 'center',
@@ -489,13 +490,13 @@ export default function StaffDetails() {
                               '&:hover': {
                                 boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
                                 transform: 'translateY(-1px)',
-                                borderColor: '#4ecdc4'
+                                borderColor: colors.primary
                               }
                             }}
                           >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                               <Box sx={{ 
-                                color: '#4ecdc4',
+                                color: colors.iconPrimary,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -547,7 +548,7 @@ export default function StaffDetails() {
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, textAlign: 'left' }}>Enrolled Classes</Typography>
                 </Box>
-                <Box sx={{ minHeight: 80, bgcolor: '#f8fafc', borderRadius: 2, p: 2, border: '1px solid #e0e7ff' }}>
+                <Box sx={{ minHeight: 80, bgcolor: colors.containerPaper, borderRadius: 2, p: 2, border: `1px solid ${colors.border}` }}>
                   {enrolledClasses.length > 0 ? (
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                       {enrolledClasses.map((classItem) => (
@@ -558,7 +559,7 @@ export default function StaffDetails() {
                           sx={{
                             p: 1.5,
                             borderRadius: 2,
-                            border: '1px solid #e0e7ff',
+                            border: `1px solid ${colors.border}`,
                             bgcolor: '#fff',
                             display: 'flex',
                             alignItems: 'center',
@@ -570,13 +571,13 @@ export default function StaffDetails() {
                             '&:hover': {
                               boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
                               transform: 'translateY(-1px)',
-                              borderColor: '#4ecdc4'
+                              borderColor: colors.primary
                             }
                           }}
                         >
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                             <Box sx={{ 
-                              color: '#4ecdc4',
+                              color: colors.iconPrimary,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -655,7 +656,7 @@ export default function StaffDetails() {
                     </Tabs>
                   </Box>
 
-                  <Box sx={{ mt: 2, minHeight: 80, bgcolor: '#f8fafc', borderRadius: 2, p: 2, border: '1px solid #e0e7ff' }}>
+                  <Box sx={{ mt: 2, minHeight: 80, bgcolor: colors.containerPaper, borderRadius: 2, p: 2, border: `1px solid ${colors.border}` }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       {/* Progress Content */}
                       {progressTab === 0 && enrolledClasses.length > 1 ? (
@@ -698,7 +699,7 @@ export default function StaffDetails() {
                                       sx={{
                                         p: 1.5,
                                         borderRadius: 2,
-                                        border: '1px solid #e0e7ff',
+                                        border: `1px solid ${colors.border}`,
                                         bgcolor: '#fff',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -708,7 +709,7 @@ export default function StaffDetails() {
                                     >
                                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1 }}>
                                         <Box sx={{ 
-                                          color: '#4ecdc4',
+                                          color: colors.iconPrimary,
                                           display: 'flex',
                                           alignItems: 'center',
                                           justifyContent: 'center',
@@ -767,7 +768,7 @@ export default function StaffDetails() {
                             <Box>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
                                 <Box sx={{ 
-                                  color: '#4ecdc4',
+                                  color: colors.iconPrimary,
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -801,7 +802,7 @@ export default function StaffDetails() {
                                         sx={{
                                           p: 1.5,
                                           borderRadius: 2,
-                                          border: '1px solid #e0e7ff',
+                                          border: `1px solid ${colors.border}`,
                                           bgcolor: '#fff',
                                           display: 'flex',
                                           alignItems: 'center',
@@ -811,7 +812,7 @@ export default function StaffDetails() {
                                       >
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1 }}>
                                           <Box sx={{ 
-                                            color: '#4ecdc4',
+                                            color: colors.iconPrimary,
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
@@ -932,9 +933,9 @@ export default function StaffDetails() {
           <Button 
             onClick={handleEditStaff}
             sx={{ 
-              bgcolor: '#4ecdc4', 
+              bgcolor: colors.primary, 
               color: 'white', 
-              '&:hover': { bgcolor: '#45b7aa' },
+              '&:hover': { bgcolor: colors.primaryHover },
               px: 3
             }}
           >
@@ -1005,7 +1006,7 @@ export default function StaffDetails() {
                   onClick={e => e.stopPropagation()}
                 />
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Box sx={{ color: '#4ecdc4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                  <Box sx={{ color: colors.iconPrimary, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
                     <SchoolIcon />
                   </Box>
                   <Box>

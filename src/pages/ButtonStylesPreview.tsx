@@ -10,9 +10,10 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { buttonStyles } from '../styles/buttonStyles';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 const ButtonPreview = () => {
+  const { buttonStyles } = useThemedStyles();
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" gutterBottom>

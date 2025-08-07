@@ -4,7 +4,7 @@ import { Box, Typography, Button, Paper, IconButton, Menu, MenuItem, Dialog, Dia
 import { Layout } from '../../components/layout/Layout';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { buttonStyles } from '../../styles/buttonStyles';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 const yearLevels = [7, 8, 9, 10, 11, 12];
 
@@ -40,6 +40,7 @@ interface ClassesPageProps {
 }
 
 export function ClassesPage({ classes, setClasses, staff }: ClassesPageProps) {
+  const { colors, buttonStyles } = useThemedStyles();
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
   const [menuClassId, setMenuClassId] = React.useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -365,9 +366,9 @@ export function ClassesPage({ classes, setClasses, staff }: ClassesPageProps) {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              border: '1px dashed #26b6b6',
-              background: '#f8fffd',
-              color: '#26b6b6',
+                              border: `1px dashed ${colors.primary}`,
+                background: `${colors.primary}08`,
+                color: colors.primary,
               borderRadius: 4,
               cursor: 'pointer',
               transition: 'box-shadow 0.2s',
@@ -450,7 +451,7 @@ export function ClassesPage({ classes, setClasses, staff }: ClassesPageProps) {
                     position: 'sticky',
                     bottom: 0,
                     background: '#fff',
-                    borderTop: '1px solid #eee',
+                    borderTop: `1px solid ${colors.border}`,
                     p: 1,
                     textAlign: 'right'
                   }}
@@ -532,7 +533,7 @@ export function ClassesPage({ classes, setClasses, staff }: ClassesPageProps) {
                     position: 'sticky',
                     bottom: 0,
                     background: '#fff',
-                    borderTop: '1px solid #eee',
+                    borderTop: `1px solid ${colors.border}`,
                     p: 1,
                     textAlign: 'right'
                   }}

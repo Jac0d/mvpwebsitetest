@@ -45,7 +45,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import RestorePageIcon from '@mui/icons-material/RestorePage';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import GroupIcon from '@mui/icons-material/Group';
-import { buttonStyles } from '../../styles/buttonStyles';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import EventIcon from '@mui/icons-material/Event';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
@@ -123,6 +123,7 @@ const sortLessonsByPageOrder = (lessonNames: string[], allLessons: any[]) => {
 };
 
 export function ClassDetails({ classes, setClasses, students, setStudents }: ClassDetailsProps) {
+  const { colors, buttonStyles } = useThemedStyles();
   const { id } = useParams();
   const navigate = useNavigate();
   const [tab, setTab] = useState(0);
@@ -1034,7 +1035,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
           right: 0,
           bgcolor: '#fff', 
           zIndex: 1000,
-          borderBottom: '1px solid #e0e7ff',
+          borderBottom: `1px solid ${colors.border}`,
           pt: 1,
           pb: 0.5,
           transition: 'left 0.2s ease-in-out' // Smooth transition when menu collapses
@@ -1097,12 +1098,12 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                             component={RouterLink}
                             to={`/staff/${userID}`}
                             sx={{
-                              color: '#4ecdc4',
+                              color: colors.primary,
                               textDecoration: 'none',
                               fontWeight: 600,
                               '&:hover': {
                                 textDecoration: 'underline',
-                                color: '#38b2ac'
+                                color: colors.primaryHover
                               }
                             }}
                           >
@@ -1120,11 +1121,11 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                 )}
               </Paper>
               <Paper elevation={1} sx={{ flex: 1, px: 3, py: 2, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0, minHeight: 70, position: 'relative' }}>
-                <IconButton
-                  size="small"
-                  sx={{ position: 'absolute', top: 6, right: 6, color: '#b0b0b0' }}
-                  onClick={e => setCodeMenuAnchorEl(e.currentTarget)}
-                >
+                                              <IconButton
+                                size="small"
+                                sx={{ position: 'absolute', top: 6, right: 6, color: colors.iconPrimary }}
+                                onClick={e => setCodeMenuAnchorEl(e.currentTarget)}
+                              >
                   <MoreVertIcon />
                 </IconButton>
                 <Menu
@@ -1183,7 +1184,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                     </Button>
                   </Box>
                 </Box>
-                <Box sx={{ minHeight: 80, bgcolor: '#f8fafc', borderRadius: 2, p: 2, border: '1px solid #e0e7ff' }}>
+                <Box sx={{ minHeight: 80, bgcolor: colors.containerPaper, borderRadius: 2, p: 2, border: `1px solid ${colors.border}` }}>
                   {selectedLessons.length > 0 ? (
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                       {sortLessonsByPageOrder([...selectedLessons], lessons).map((lessonName) => {
@@ -1240,7 +1241,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                           >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                               <Box sx={{ 
-                                color: '#4ecdc4',
+                                color: colors.iconPrimary,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -1287,8 +1288,8 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                                   <Box sx={{
                                     width: `${(complete / total) * 100}%`,
                                     transition: 'width 0.3s',
-                                    bgcolor: '#4ecdc4',
-                                    '&:hover': { bgcolor: '#26b86b' },
+                                    bgcolor: colors.primary,
+                                    '&:hover': { bgcolor: colors.primaryHover },
                                     height: '100%',
                                     cursor: complete > 0 ? 'pointer' : 'default',
                                   }} />
@@ -1303,8 +1304,8 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                                   <Box sx={{
                                     width: `${(inProgress / total) * 100}%`,
                                     transition: 'width 0.3s',
-                                    bgcolor: '#38b2ac',
-                                    '&:hover': { bgcolor: '#1e7e7e' },
+                                    bgcolor: colors.secondary,
+                                    '&:hover': { bgcolor: colors.secondaryHover },
                                     height: '100%',
                                     cursor: inProgress > 0 ? 'pointer' : 'default',
                                   }} />
@@ -1319,7 +1320,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                                   <Box sx={{
                                     width: `${(incomplete / total) * 100}%`,
                                     transition: 'width 0.3s',
-                                    bgcolor: '#e0e7ff',
+                                    bgcolor: colors.border,
                                     '&:hover': { bgcolor: '#b0b0b0' },
                                     height: '100%',
                                     cursor: incomplete > 0 ? 'pointer' : 'default',
@@ -1488,7 +1489,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                                         color="primary"
                                       />
                                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                        <Box sx={{ color: '#4ecdc4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                                        <Box sx={{ color: colors.iconPrimary, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
                                           {lessonIcons[lesson.icon]}
                                         </Box>
                                         <Box>
@@ -1553,7 +1554,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                     </Button>
                   </Box>
                 </Box>
-                <Box sx={{ minHeight: 80, bgcolor: '#f8fafc', borderRadius: 2, p: 2, border: '1px solid #e0e7ff' }}>
+                <Box sx={{ minHeight: 80, bgcolor: colors.containerPaper, borderRadius: 2, p: 2, border: `1px solid ${colors.border}` }}>
                   {(() => {
                     let filtered = isStaffParticipantClass
                       ? staff.filter((person: any) => Array.isArray(classItem.studentIds) && classItem.studentIds.includes(person.userID))
@@ -1655,7 +1656,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                                 <Tooltip title={lesson} arrow enterDelay={500}>
                                   <Box sx={{
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    width: 44, height: 44, color: '#4ecdc4', fontSize: 28
+                                    width: 44, height: 44, color: colors.iconPrimary, fontSize: 28
                                   }}>
                                     {lessonIcons[lessonInfo?.icon || 'Build']}
                                   </Box>
@@ -1742,7 +1743,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                                     cursor: 'pointer',
                                     '&:hover': {
                                       boxShadow: '3px 3px 6px rgba(0,0,0,0.12)',
-                                      borderColor: '#4ecdc4',
+                                      borderColor: colors.primary,
                                       bgcolor: '#f0f9ff'
                                     }
                                   }}
@@ -1758,7 +1759,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                                       textOverflow: 'ellipsis',
                                       whiteSpace: 'nowrap',
                                       '&:hover': {
-                                        color: '#4ecdc4'
+                                        color: colors.primary
                                       }
                                     }}
                                   >
@@ -1808,13 +1809,13 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                                 } else if (val === 100) {
                                   icon = (
                                     <Tooltip title={tooltipContent} arrow enterDelay={500}>
-                                      <CheckCircleIcon sx={{ color: '#4ecdc4', fontSize: 28, display: 'block', margin: 'auto', transition: 'color 0.2s', '&:hover': { color: '#26b86b' } }} />
+                                      <CheckCircleIcon sx={{ color: colors.iconPrimary, fontSize: 28, display: 'block', margin: 'auto', transition: 'color 0.2s', '&:hover': { color: colors.primaryHover } }} />
                                     </Tooltip>
                                   );
                                 } else if (val > 0) {
                                   icon = (
                                     <Tooltip title={tooltipContent} arrow enterDelay={500}>
-                                      <RadioButtonCheckedIcon sx={{ color: '#4ecdc4', fontSize: 28, display: 'block', margin: 'auto', transition: 'color 0.2s', '&:hover': { color: '#38b2ac' } }} />
+                                      <RadioButtonCheckedIcon sx={{ color: colors.iconPrimary, fontSize: 28, display: 'block', margin: 'auto', transition: 'color 0.2s', '&:hover': { color: colors.primaryHover } }} />
                                     </Tooltip>
                                   );
                                 } else {
@@ -1830,7 +1831,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                                     sx={{
                                       width: 44, minWidth: 44, maxWidth: 44,
                                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                      border: '1px solid #e0e7ff',
+                                      border: `1px solid ${colors.border}`,
                                       position: 'relative',
                                       zIndex: 1,
                                       background: '#fff',
@@ -1866,7 +1867,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                                   <Tooltip title={`Record competency for ${person.name}`} arrow enterDelay={1000}>
                                     <IconButton
                                       size="small"
-                                      sx={{ color: '#4ecdc4' }}
+                                      sx={{ color: colors.iconPrimary }}
                                       onClick={() => handleOpenIndividualCompetencyDialog(person)}
                                       aria-label="Record competency"
                                     >
@@ -1876,7 +1877,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                                   <Tooltip title={`Reset ${person.name}'s lesson achievement`} arrow enterDelay={1000}>
                                     <IconButton
                                       size="small"
-                                      sx={{ color: '#4ecdc4' }}
+                                      sx={{ color: colors.iconPrimary }}
                                       onClick={() => {
                                         setStudentToResetAchievement(person);
                                         setSelectedLessonsToReset([]);
@@ -1896,7 +1897,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                                           setStudentToReset(person);
                                           setResetDialogOpen(true);
                                         }}
-                                        sx={{ color: '#4ecdc4' }}
+                                        sx={{ color: colors.iconPrimary }}
                                       >
                                         <LockResetIcon />
                                       </IconButton>

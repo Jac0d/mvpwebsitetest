@@ -6,6 +6,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
 import BuildIcon from '@mui/icons-material/Build';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import { useTheme } from '../../context/ThemeContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -25,6 +26,7 @@ const menuItems = [
 
 export function Layout({ children, title, breadcrumbs }: LayoutProps) {
   const location = useLocation();
+  const { colors } = useTheme();
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -62,15 +64,15 @@ export function Layout({ children, title, breadcrumbs }: LayoutProps) {
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
-            bgcolor: '#1a1a1a',
-            color: '#fff',
+            bgcolor: colors.sideMenu,
+            color: colors.sideMenuText,
           },
         }}
         variant="permanent"
         anchor="left"
       >
         <Toolbar>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: colors.sideMenuText }}>
             MVP
           </Typography>
         </Toolbar>
@@ -87,19 +89,23 @@ export function Layout({ children, title, breadcrumbs }: LayoutProps) {
             >
               <ListItem
                 sx={{
-                  bgcolor: (location.pathname === item.path || (location.pathname === '/' && item.path === '/classes')) ? '#2d2d2d' : 'transparent',
+                  bgcolor: (location.pathname === item.path || (location.pathname === '/' && item.path === '/classes')) ? colors.sideMenuHover : 'transparent',
                   '&:hover': {
-                    bgcolor: '#2d2d2d',
+                    bgcolor: colors.sideMenuHover,
                   },
                 }}
               >
-                <ListItemIcon sx={{ color: '#fff' }}>
+                <ListItemIcon sx={{ color: colors.sideMenuIcon }}>
                   {item.icon}
                 </ListItemIcon>
                 <ListItemText 
                   primary={item.text} 
-                  primaryTypographyProps={{
-                    sx: { fontWeight: 500 }
+                  sx={{ 
+                    '& .MuiListItemText-primary': { 
+                      color: colors.sideMenuText,
+                      fontWeight: 400,
+                      fontSize: 14
+                    } 
                   }}
                 />
               </ListItem>
@@ -113,10 +119,13 @@ export function Layout({ children, title, breadcrumbs }: LayoutProps) {
           flexGrow: 1,
           bgcolor: '#f5f5f5',
           minHeight: '100vh',
-          mt: '64px',
+          width: `calc(100% - ${drawerWidth}px)`,
         }}
       >
-        {children}
+        <Toolbar />
+        <Container maxWidth="xl" sx={{ py: 3 }}>
+          {children}
+        </Container>
       </Box>
     </Box>
   );

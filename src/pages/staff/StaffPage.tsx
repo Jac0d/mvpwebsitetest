@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Box, Typography, Paper, Tabs, Tab, Tooltip, IconButton, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, InputAdornment, Link } from '@mui/material';
 import { Layout } from '../../components/layout/Layout';
+import { useTheme } from '../../context/ThemeContext';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import AddIcon from '@mui/icons-material/Add';
@@ -8,7 +9,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
 import * as XLSX from 'xlsx';
 import DownloadIcon from '@mui/icons-material/Download';
-import { buttonStyles } from '../../styles/buttonStyles';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 // Staff type
@@ -28,6 +29,7 @@ const staffRoles = ['Teaching Staff', 'Support Staff', 'Maintenance Staff'];
 const API_BASE = 'http://localhost:3001';
 
 export default function StaffPage() {
+  const { colors, buttonStyles } = useThemedStyles();
   const [tab, setTab] = React.useState(0);
   const [search, setSearch] = React.useState('');
   const [staff, setStaff] = React.useState<Staff[]>([]);
@@ -458,7 +460,7 @@ export default function StaffPage() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon sx={{ color: '#b0b0b0' }} />
+                    <SearchIcon sx={{ color: colors.iconPrimary }} />
                   </InputAdornment>
                 ),
               }}
@@ -480,7 +482,7 @@ export default function StaffPage() {
           </Box>
         </Box>
         {/* Tabs */}
-        <Box sx={{ position: 'sticky', top: 0, bgcolor: '#fff', zIndex: 1, borderBottom: '1px solid #e0e7ff', pt: 1, pb: 0.5 }}>
+                        <Box sx={{ position: 'sticky', top: 0, bgcolor: '#fff', zIndex: 1, borderBottom: `1px solid ${colors.border}`, pt: 1, pb: 0.5 }}>
           <Box sx={{ maxWidth: 1000, minWidth: 360, mx: 'auto', px: 8, width: '100%' }}>
             <Tabs 
               value={tab} 
@@ -503,8 +505,8 @@ export default function StaffPage() {
             {tab === 0 ? (
               <>
                 {staffByRole.filter(group => group.staff.length > 0).map(group => (
-                  <Paper key={group.role} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: '#f8fafc', border: '1px solid #e0e7ff' }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#374151' }}>{group.role}</Typography>
+                  <Paper key={group.role} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: colors.containerPaper, border: `1px solid ${colors.border}` }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: colors.textPrimary }}>{group.role}</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       {group.staff.map(staffMember => (
                         <Box
@@ -517,14 +519,14 @@ export default function StaffPage() {
                             p: 2,
                             borderRadius: 2,
                             bgcolor: '#fff',
-                            border: '1px solid #e0e7ff',
+                            border: `1px solid ${colors.border}`,
                             boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
                             cursor: 'pointer',
                             transition: 'all 0.2s ease-in-out',
                             '&:hover': {
                               boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
                               transform: 'translateY(-1px)',
-                              borderColor: '#4ecdc4'
+                              borderColor: colors.primary
                             }
                           }}
                         >
@@ -541,12 +543,12 @@ export default function StaffPage() {
                           </Box>
                           <Box sx={{ display: 'flex', gap: 1 }}>
                             <Tooltip title="Reset staff password" arrow>
-                              <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={(e) => e.stopPropagation()}>
+                              <IconButton size="small" sx={{ color: colors.iconPrimary }} onClick={(e) => e.stopPropagation()}>
                                 <LockResetIcon />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Edit staff details" arrow>
-                              <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={(e) => { e.stopPropagation(); handleEditClick(staffMember); }}>
+                              <IconButton size="small" sx={{ color: colors.iconPrimary }} onClick={(e) => { e.stopPropagation(); handleEditClick(staffMember); }}>
                                 <EditIcon color="inherit" />
                               </IconButton>
                             </Tooltip>
@@ -569,7 +571,7 @@ export default function StaffPage() {
                   const group = staffByRole.find(g => g.role === role);
                   if (group && group.staff.length > 0) {
                     return (
-                      <Paper elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: '#f8fafc', border: '1px solid #e0e7ff' }}>
+                      <Paper elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: colors.containerPaper, border: `1px solid ${colors.border}` }}>
                         <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#374151' }}>{group.role}</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                           {group.staff.map(staffMember => (
@@ -809,11 +811,11 @@ export default function StaffPage() {
               onClick={handleDownloadTemplate}
               variant="outlined"
               sx={{
-                borderColor: '#4ecdc4',
-                color: '#4ecdc4',
+                borderColor: colors.primary,
+                color: colors.primary,
                 '&:hover': {
-                  borderColor: '#45b7aa',
-                  backgroundColor: 'rgba(78, 205, 196, 0.04)'
+                  borderColor: colors.primaryHover,
+                  backgroundColor: `${colors.primary}08`
                 }
               }}
             >
@@ -821,17 +823,17 @@ export default function StaffPage() {
             </Button>
             
             <Box sx={{ 
-              border: '2px dashed #e0e7ff', 
+              border: `2px dashed ${colors.border}`, 
               borderRadius: 2, 
               p: 3, 
               textAlign: 'center',
-              bgcolor: selectedFile ? '#f0f9ff' : isDragOver ? '#e8f5e8' : '#f8fafc',
-              borderColor: selectedFile ? '#4ecdc4' : isDragOver ? '#4caf50' : '#e0e7ff',
+              bgcolor: selectedFile ? `${colors.primary}08` : isDragOver ? '#e8f5e8' : colors.containerPaper,
+              borderColor: selectedFile ? colors.primary : isDragOver ? '#4caf50' : colors.border,
               transition: 'all 0.2s ease-in-out',
               cursor: 'pointer',
               '&:hover': {
-                borderColor: selectedFile ? '#45b7aa' : '#4ecdc4',
-                bgcolor: selectedFile ? '#f0f9ff' : '#f0f9ff'
+                borderColor: selectedFile ? colors.primaryHover : colors.primary,
+                bgcolor: selectedFile ? `${colors.primary}08` : `${colors.primary}08`
               }
             }}
             onDragOver={handleDragOver}
@@ -841,7 +843,7 @@ export default function StaffPage() {
           >
             {selectedFile ? (
               <Box>
-                <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#4ecdc4', mb: 1 }}>
+                <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primary, mb: 1 }}>
                   File Selected
                 </Typography>
                 <Typography sx={{ fontSize: 14, color: '#374151', mb: 2 }}>
@@ -937,7 +939,7 @@ export default function StaffPage() {
           </DialogTitle>
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Summary */}
-            <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: 2, border: '1px solid #e0e7ff' }}>
+            <Box sx={{ bgcolor: colors.containerPaper, p: 2, borderRadius: 2, border: `1px solid ${colors.border}` }}>
               <Typography sx={{ fontSize: 18, fontWeight: 600, fontFamily: 'Montserrat, sans-serif', color: '#374151', mb: 1 }}>
                 Summary
               </Typography>

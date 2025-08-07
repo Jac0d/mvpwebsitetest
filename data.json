@@ -3390,7 +3390,29 @@
       "name": "Jacob Drummond",
       "role": "Teaching Staff",
       "userID": "jacob.drummond",
-      "tenant_id": 1
+      "tenant_id": 1,
+      "progress": {
+        "Buffing Machine": {
+          "progress": 0,
+          "competent": true,
+          "competencyDate": "2025-08-02"
+        },
+        "Drill Press": {
+          "progress": 0,
+          "competent": true,
+          "competencyDate": "2025-08-02"
+        },
+        "Air Compressor": {
+          "progress": 0,
+          "competent": true,
+          "competencyDate": "2025-08-07"
+        },
+        "Soldering Iron": {
+          "progress": 0,
+          "competent": true,
+          "competencyDate": "2025-08-07"
+        }
+      }
     },
     {
       "id": 1749809560828,
@@ -3402,23 +3424,23 @@
       "progress": {
         "Air Compressor": {
           "progress": 0,
-          "competent": true,
+          "competent": false,
           "competencyDate": "2025-07-19"
         },
         "Buffing Machine": {
           "progress": 0,
           "competent": false,
-          "competencyDate": "2025-07-14"
+          "competencyDate": "2025-08-02"
         },
         "Drill Press": {
           "progress": 0,
-          "competent": false,
-          "competencyDate": "2025-07-14"
+          "competent": true,
+          "competencyDate": "2025-08-02"
         },
         "Soldering Iron": {
           "progress": 0,
-          "competent": false,
-          "competencyDate": "2025-07-14"
+          "competent": true,
+          "competencyDate": "2025-08-07"
         }
       }
     },
@@ -3483,7 +3505,10 @@
         "Sheet Metal Guillotine",
         "Hydraulic Press",
         "Milling Machine",
-        "Metal Lathe"
+        "Metal Lathe",
+        "Essential Workshop Safety",
+        "Essential Machine Safety",
+        "Dust Hazards"
       ],
       "studentIds": [
         "ckkjz0qv",
@@ -3614,6 +3639,36 @@
       "studentIds": [
         "cbe8y4px",
         "l8rouz5z"
+      ],
+      "tenant_id": 1
+    },
+    {
+      "id": "7d2025jd",
+      "yearLevels": [
+        7,
+        8
+      ],
+      "className": "Design",
+      "classCode": "7d2025jd",
+      "room": "Workshop",
+      "teachers": [
+        "jacob.drummond"
+      ],
+      "selectedLessons": [
+        "Multitool",
+        "Drills and Impact Drivers",
+        "Sheet Metal Bending Equipment",
+        "Plasma Cutter"
+      ],
+      "studentIds": [
+        "h861bcr5",
+        "anthony.lewis",
+        "c75vzzbl",
+        "lauren.martin",
+        "x8bs9wrm",
+        "vkwptyav",
+        "ktmkbmxi",
+        "mmftv1yw"
       ],
       "tenant_id": 1
     }
@@ -3754,8 +3809,7 @@
           "photos": [],
           "createdAt": "2025-07-28T11:36:38.045Z"
         }
-      ],
-      "linkedLessonId": "1"
+      ]
     },
     {
       "name": "Drill",
@@ -3898,6 +3952,53 @@
       "location": "Kitchen",
       "id": "BK42684",
       "purchasePrice": 10
+    },
+    {
+      "name": "Skill Saw",
+      "type": "Power Tool",
+      "code": "123456",
+      "location": "Workshop",
+      "purchasePrice": 100,
+      "id": "SSW68436",
+      "linkedLessonId": "44",
+      "maintenanceRecords": [
+        {
+          "id": "17541245070234hy9dky3w",
+          "serviceDate": "2025-08-02",
+          "workUndertaken": "Cleaned it",
+          "completedBy": "Jacob Drummond",
+          "nextServiceDue": "2026-02-02",
+          "photos": [],
+          "createdAt": "2025-08-02T08:48:27.023Z"
+        }
+      ],
+      "inspectionRecords": [
+        {
+          "id": "1754124524702hf1ocuc8o",
+          "inspectionDate": "2025-08-02",
+          "completedBy": "Suzie Barry",
+          "nextInspectionDue": "2025-09-02",
+          "inspectionAreas": [
+            "General Condition",
+            "Guards & Safety Covers",
+            "Emergency Stop",
+            "Power Supply / Cables",
+            "Controls & Switches",
+            "Moving Parts / Belts",
+            "Fasteners / Fittings",
+            "Noise & Vibration",
+            "Signage & Labels",
+            "Filters / Vents",
+            "Function Test",
+            "Lockout / Tagout Items",
+            "Cleanliness",
+            "SOP Accessibility",
+            "Maintenance Log Updated"
+          ],
+          "createdAt": "2025-08-02T08:48:44.703Z"
+        }
+      ],
+      "photo": "/uploads/equipment-photos/equipment-SSW68436-1754124550127-823067989.jpg"
     }
   ],
   "rooms": [
@@ -4571,6 +4672,15 @@
       "category": "Equipment",
       "area": "Kitchen",
       "subArea": "Food Preparation"
+    },
+    {
+      "name": "3D Printer",
+      "icon": "Factory",
+      "description": "",
+      "category": "Safety",
+      "area": "Industrial",
+      "subArea": "Multiuse Workshop Equipment",
+      "id": 1754565813606
     }
   ],
   "equipmentNotes": {
@@ -4716,6 +4826,30 @@
         "title": "Equipment Returned",
         "content": "Equipment returned on 2025-07-29 • Previously lent to: Suzie Barry • Due back: 2025-07-30",
         "createdAt": "2025-07-29T10:14:22.788Z"
+      },
+      {
+        "id": "1754566280900",
+        "title": "Equipment Tagged Out",
+        "content": "Equipment Tagged Out on 07/08/2025 • Completed by: Jacob Drummond • Steps completed: Ensure the machine is switched off, Switch off the power source/s at the isolating control/s or unplug electrical lead from the GPO, Apply lock to the isolation control or to electrical plug & attach suitable tag/s, Test equipment control buttons to ensure power has been disconnected • Reason:",
+        "createdAt": "2025-08-07T11:31:20.900Z"
+      },
+      {
+        "id": "1754566320239",
+        "title": "Equipment Untagged",
+        "content": "Equipment Untagged on 07/08/2025 • Completed by: Jacob Drummond • Steps completed: Perform the required maintenance checks and/or cleaning process, Ensure all guards and protective devices are reinstated, Check that all tools and/or cleaning products are removed from around the machine, Remove lock/s, lockout devices and tag/s, Reconnect power source/s, Ensure everyone is clear of the machine and start machine • Notes:",
+        "createdAt": "2025-08-07T11:32:00.239Z"
+      },
+      {
+        "id": "1754566356767",
+        "title": "Equipment Tagged Out",
+        "content": "Equipment Tagged Out on 07/08/2025 • Completed by: Jacob Drummond • Steps completed: Ensure the machine is switched off, Switch off the power source/s at the isolating control/s or unplug electrical lead from the GPO, Apply lock to the isolation control or to electrical plug & attach suitable tag/s, Test equipment control buttons to ensure power has been disconnected • Reason:",
+        "createdAt": "2025-08-07T11:32:36.767Z"
+      },
+      {
+        "id": "1754566708164",
+        "title": "Equipment Untagged",
+        "content": "Equipment Untagged on 07/08/2025 • Completed by: Suzie Barry • Steps completed: Perform the required maintenance checks and/or cleaning process, Ensure all guards and protective devices are reinstated, Check that all tools and/or cleaning products are removed from around the machine, Remove lock/s, lockout devices and tag/s, Reconnect power source/s, Ensure everyone is clear of the machine and start machine • Notes:",
+        "createdAt": "2025-08-07T11:38:28.164Z"
       }
     ],
     "TW78863": [
@@ -4754,6 +4888,20 @@
         "title": "Equipment Returned",
         "content": "Equipment returned on 2025-07-29 • Previously lent to: Jon • Due back: 2025-07-30",
         "createdAt": "2025-07-29T11:02:35.069Z"
+      }
+    ],
+    "SSW68436": [
+      {
+        "id": "1754124437117",
+        "title": "Equipment Tagged Out",
+        "content": "Equipment Tagged Out on 02/08/2025 • Completed by: Jacob Drummond • Steps completed: Ensure the machine is switched off, Switch off the power source/s at the isolating control/s or unplug electrical lead from the GPO, Apply lock to the isolation control or to electrical plug & attach suitable tag/s, Test equipment control buttons to ensure power has been disconnected • Reason: Chopped off power lead",
+        "createdAt": "2025-08-02T08:47:17.117Z"
+      },
+      {
+        "id": "1754124472136",
+        "title": "Equipment Untagged",
+        "content": "Equipment Untagged on 02/08/2025 • Completed by: Jacob Drummond • Steps completed: Perform the required maintenance checks and/or cleaning process, Ensure all guards and protective devices are reinstated, Check that all tools and/or cleaning products are removed from around the machine, Remove lock/s, lockout devices and tag/s, Reconnect power source/s, Ensure everyone is clear of the machine and start machine • Notes: Power cord is fixed",
+        "createdAt": "2025-08-02T08:47:52.136Z"
       }
     ]
   },

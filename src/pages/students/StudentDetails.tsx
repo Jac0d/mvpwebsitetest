@@ -15,7 +15,7 @@ import LockResetIcon from '@mui/icons-material/LockReset';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import * as XLSX from 'xlsx';
-import { buttonStyles } from '../../styles/buttonStyles';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 interface StudentDetailsProps {
   students: Student[];
@@ -41,6 +41,7 @@ const yearLevels = ['7', '8', '9', '10', '11', '12'];
 const API_BASE = 'http://localhost:3001';
 
 export function StudentDetails({ students, classes, staff }: StudentDetailsProps) {
+  const { colors, buttonStyles } = useThemedStyles();
   const { id } = useParams();
   const navigate = useNavigate();
   const [tab, setTab] = useState(0);
@@ -355,7 +356,7 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
           right: 0,
           bgcolor: '#fff', 
           zIndex: 1000,
-          borderBottom: '1px solid #e0e7ff',
+          borderBottom: `1px solid ${colors.border}`,
           pt: 1,
           pb: 0.5,
           transition: 'left 0.2s ease-in-out' // Smooth transition when menu collapses
@@ -412,12 +413,12 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
                 </Typography>
                 <Box sx={{ position: 'absolute', bottom: 8, right: 12, display: 'flex', gap: 0.5 }}>
                   <Tooltip title="Edit student details" arrow>
-                    <IconButton size="small" sx={{ color: '#4ecdc4' }} onClick={() => handleEditClick(student)}>
+                    <IconButton size="small" sx={{ color: colors.iconPrimary }} onClick={() => handleEditClick(student)}>
                       <EditIcon />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Reset student's password" arrow>
-                    <IconButton size="small" sx={{ color: '#4ecdc4' }}>
+                    <IconButton size="small" sx={{ color: colors.iconPrimary }}>
                       <LockResetIcon />
                     </IconButton>
                   </Tooltip>
@@ -437,7 +438,7 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, textAlign: 'left' }}>Enrolled Classes</Typography>
                 </Box>
-                <Box sx={{ minHeight: 80, bgcolor: '#f8fafc', borderRadius: 2, p: 2, border: '1px solid #e0e7ff' }}>
+                <Box sx={{ minHeight: 80, bgcolor: colors.containerPaper, borderRadius: 2, p: 2, border: `1px solid ${colors.border}` }}>
                   {enrolledClasses.length > 0 ? (
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                       {enrolledClasses.map((classItem) => (
@@ -448,7 +449,7 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
                           sx={{
                             p: 1.5,
                             borderRadius: 2,
-                            border: '1px solid #e0e7ff',
+                            border: `1px solid ${colors.border}`,
                             bgcolor: '#fff',
                             display: 'flex',
                             alignItems: 'center',
@@ -460,13 +461,13 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
                             '&:hover': {
                               boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
                               transform: 'translateY(-1px)',
-                              borderColor: '#4ecdc4'
+                              borderColor: colors.primary
                             }
                           }}
                         >
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                             <Box sx={{ 
-                              color: '#4ecdc4',
+                              color: colors.iconPrimary,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -549,17 +550,27 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
                   </Box>
                 )}
 
-                <Box sx={{ mt: 2, minHeight: 80, bgcolor: '#f8fafc', borderRadius: 2, p: 2, border: '1px solid #e0e7ff' }}>
+                <Box sx={{ mt: 2 }}>
                   {enrolledClasses.length > 0 ? (
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       {/* Progress Content */}
                       {progressTab === 0 && enrolledClasses.length > 1 ? (
-                        // Show all classes
+                        // Show all classes - each as separate paper
                         enrolledClasses.map((classItem, index) => (
-                          <Box key={classItem.id}>
+                          <Paper
+                            key={classItem.id}
+                            elevation={1}
+                            sx={{
+                              p: 2,
+                              borderRadius: 2,
+                              border: `1px solid ${colors.border}`,
+                              bgcolor: colors.containerPaper,
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)'
+                            }}
+                          >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
                               <Box sx={{ 
-                                color: '#4ecdc4',
+                                color: colors.iconPrimary,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -609,23 +620,22 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
                                   }
                                   
                                   return (
-                                    <Paper
-                                      elevation={0}
-                                      sx={{
-                                        p: 1.5,
-                                        borderRadius: 2,
-                                        border: '1px solid #e0e7ff',
-                                        bgcolor: '#fff',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        gap: 2
-                                      }}
-                                      key={lessonName}
-                                    >
+                                                                          <Box
+                                        sx={{
+                                          p: 1.5,
+                                          borderRadius: 2,
+                                          border: `1px solid ${colors.border}`,
+                                          bgcolor: '#fff',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between',
+                                          gap: 2
+                                        }}
+                                        key={lessonName}
+                                      >
                                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1 }}>
                                         <Box sx={{ 
-                                          color: '#4ecdc4',
+                                          color: colors.iconPrimary,
                                           display: 'flex',
                                           alignItems: 'center',
                                           justifyContent: 'center',
@@ -675,7 +685,7 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
                                           )}
                                         </Box>
                                       )}
-                                    </Paper>
+                                    </Box>
                                   );
                                 })}
                               </Box>
@@ -684,20 +694,29 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
                                 No lessons assigned to this class
                               </Typography>
                             )}
-                          </Box>
+                          </Paper>
                         ))
                       ) : (
-                        // Show specific class
+                        // Show specific class - as single paper
                         (() => {
                           const classIndex = enrolledClasses.length > 1 ? progressTab - 1 : progressTab;
                           const selectedClass = enrolledClasses[classIndex];
                           if (!selectedClass) return null;
                           
                           return (
-                            <Box>
+                            <Paper
+                              elevation={1}
+                              sx={{
+                                p: 2,
+                                borderRadius: 2,
+                                border: `1px solid ${colors.border}`,
+                                bgcolor: colors.containerPaper,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)'
+                              }}
+                            >
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
                                 <Box sx={{ 
-                                  color: '#4ecdc4',
+                                  color: colors.iconPrimary,
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -747,12 +766,11 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
                                     }
                                     
                                     return (
-                                      <Paper
-                                        elevation={0}
+                                      <Box
                                         sx={{
                                           p: 1.5,
                                           borderRadius: 2,
-                                          border: '1px solid #e0e7ff',
+                                          border: `1px solid ${colors.border}`,
                                           bgcolor: '#fff',
                                           display: 'flex',
                                           alignItems: 'center',
@@ -763,7 +781,7 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
                                       >
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1 }}>
                                           <Box sx={{ 
-                                            color: '#4ecdc4',
+                                            color: colors.iconPrimary,
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
@@ -813,7 +831,7 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
                                             )}
                                           </Box>
                                         )}
-                                      </Paper>
+                                      </Box>
                                     );
                                   })}
                                 </Box>
@@ -822,15 +840,17 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
                                   No lessons assigned to this class
                                 </Typography>
                               )}
-                            </Box>
+                            </Paper>
                           );
                         })()
                       )}
                     </Box>
                   ) : (
-                    <Typography sx={{ color: '#bbb', fontSize: 14, textAlign: 'center', py: 2 }}>
-                      No classes enrolled
-                    </Typography>
+                    <Box sx={{ minHeight: 80, bgcolor: colors.containerPaper, borderRadius: 2, p: 2, border: `1px solid ${colors.border}` }}>
+                      <Typography sx={{ color: '#bbb', fontSize: 14, textAlign: 'center', py: 2 }}>
+                        No classes enrolled
+                      </Typography>
+                    </Box>
                   )}
                 </Box>
               </Paper>
@@ -893,9 +913,9 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
           <Button 
             onClick={handleEditStudent}
             sx={{ 
-              bgcolor: '#4ecdc4', 
+              bgcolor: colors.primary, 
               color: 'white', 
-              '&:hover': { bgcolor: '#45b7aa' },
+              '&:hover': { bgcolor: colors.primaryHover },
               px: 3
             }}
           >
@@ -966,7 +986,7 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
                   onClick={e => e.stopPropagation()}
                 />
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Box sx={{ color: '#4ecdc4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                  <Box sx={{ color: colors.iconPrimary, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
                     <SchoolIcon />
                   </Box>
                   <Box>

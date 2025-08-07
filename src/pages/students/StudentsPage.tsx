@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { Box, Typography, Paper, Tabs, Tab, Tooltip, IconButton, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, InputAdornment } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
+import { useTheme } from '../../context/ThemeContext';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import AddIcon from '@mui/icons-material/Add';
@@ -10,13 +11,14 @@ import EditIcon from '@mui/icons-material/Edit';
 import DownloadIcon from '@mui/icons-material/Download';
 import * as XLSX from 'xlsx';
 import { Student } from '../../types/Student';
-import { buttonStyles } from '../../styles/buttonStyles';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 const yearLevels = ['7', '8', '9', '10', '11', '12'];
 
 const API_BASE = 'http://localhost:3001';
 
 export default function StudentsPage() {
+  const { colors, buttonStyles } = useThemedStyles();
   const [tab, setTab] = React.useState(0);
   const [search, setSearch] = React.useState('');
   const [students, setStudents] = React.useState<Student[]>([]);
@@ -405,7 +407,7 @@ export default function StudentsPage() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon sx={{ color: '#b0b0b0' }} />
+                    <SearchIcon sx={{ color: colors.iconPrimary }} />
                   </InputAdornment>
                 ),
               }}
@@ -428,7 +430,7 @@ export default function StudentsPage() {
         </Box>
 
         {/* Tabs */}
-        <Box sx={{ position: 'sticky', top: 0, bgcolor: '#fff', zIndex: 1, borderBottom: '1px solid #e0e7ff', pt: 1, pb: 0.5 }}>
+                        <Box sx={{ position: 'sticky', top: 0, bgcolor: '#fff', zIndex: 1, borderBottom: `1px solid ${colors.border}`, pt: 1, pb: 0.5 }}>
           <Box sx={{ maxWidth: 1000, minWidth: 360, mx: 'auto', px: 8, width: '100%' }}>
             <Tabs 
               value={tab} 
@@ -452,8 +454,8 @@ export default function StudentsPage() {
             {tab === 0 && (
               <>
                 {studentsByYear.filter(group => group.students.length > 0).map(group => (
-                  <Paper key={group.year} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: '#f8fafc', border: '1px solid #e0e7ff' }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', mb: 1, color: '#374151' }}>{`Year ${group.year}`}</Typography>
+                  <Paper key={group.year} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: colors.containerPaper, border: `1px solid ${colors.border}` }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', mb: 1, color: colors.textPrimary }}>{`Year ${group.year}`}</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       {group.students.map(student => (
                         <Box
@@ -465,14 +467,14 @@ export default function StudentsPage() {
                             p: 2,
                             borderRadius: 2,
                             bgcolor: '#fff',
-                            border: '1px solid #e0e7ff',
+                            border: `1px solid ${colors.border}`,
                             boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
                             transition: 'all 0.2s ease-in-out',
                             cursor: 'pointer',
                             '&:hover': {
                               boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
                               transform: 'translateY(-1px)',
-                              borderColor: '#4ecdc4'
+                              borderColor: colors.primary
                             }
                           }}
                           onClick={() => navigate(`/students/${student.id}`)}
@@ -482,13 +484,13 @@ export default function StudentsPage() {
                               sx={{ 
                                 fontWeight: 600, 
                                 fontFamily: 'Montserrat, sans-serif', 
-                                color: '#374151', 
+                                color: colors.textPrimary, 
                                 fontSize: 15
                               }}
                             >
                               {student.name}
                             </Typography>
-                            <Typography sx={{ fontSize: 13, color: '#888', fontFamily: 'Montserrat, sans-serif' }}>
+                            <Typography sx={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'Montserrat, sans-serif' }}>
                               User ID: {student.userID}
                             </Typography>
                           </Box>
@@ -496,7 +498,7 @@ export default function StudentsPage() {
                             <Tooltip title="Reset student's password" arrow>
                               <IconButton 
                                 size="small" 
-                                sx={{ color: '#4ecdc4' }}
+                                sx={{ color: colors.iconPrimary }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   // Handle reset password
@@ -508,7 +510,7 @@ export default function StudentsPage() {
                             <Tooltip title="Edit student details" arrow>
                               <IconButton 
                                 size="small" 
-                                sx={{ color: '#4ecdc4' }} 
+                                sx={{ color: colors.iconPrimary }} 
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleEditClick(student);
@@ -544,8 +546,8 @@ export default function StudentsPage() {
                   const group = studentsByYear.find(g => g.year === year);
                   if (group && group.students.length > 0) {
                     return (
-                      <Paper elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: '#f8fafc', border: '1px solid #e0e7ff' }}>
-                        <Typography variant="h6" sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', mb: 1, color: '#374151' }}>{`Year ${group.year}`}</Typography>
+                      <Paper elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: colors.containerPaper, border: `1px solid ${colors.border}` }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, fontFamily: 'Montserrat, sans-serif', mb: 1, color: colors.textPrimary }}>{`Year ${group.year}`}</Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                           {group.students.map(student => (
                             <Box
@@ -556,16 +558,16 @@ export default function StudentsPage() {
                                 justifyContent: 'space-between',
                                 p: 2,
                                 borderRadius: 2,
-                                bgcolor: '#fff',
-                                border: '1px solid #e0e7ff',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
-                                transition: 'all 0.2s ease-in-out',
-                                cursor: 'pointer',
-                                '&:hover': {
-                                  boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
-                                  transform: 'translateY(-1px)',
-                                  borderColor: '#4ecdc4'
-                                }
+                                                            bgcolor: '#fff',
+                            border: `1px solid ${colors.border}`,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
+                            transition: 'all 0.2s ease-in-out',
+                            cursor: 'pointer',
+                            '&:hover': {
+                              boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
+                              transform: 'translateY(-1px)',
+                              borderColor: colors.primary
+                            }
                               }}
                               onClick={() => navigate(`/students/${student.id}`)}
                             >
@@ -574,41 +576,41 @@ export default function StudentsPage() {
                                   sx={{ 
                                     fontWeight: 600, 
                                     fontFamily: 'Montserrat, sans-serif', 
-                                    color: '#374151', 
+                                    color: colors.textPrimary, 
                                     fontSize: 15
                                   }}
                                 >
                                   {student.name}
                                 </Typography>
-                                <Typography sx={{ fontSize: 13, color: '#888', fontFamily: 'Montserrat, sans-serif' }}>
+                                <Typography sx={{ fontSize: 13, color: colors.textSecondary, fontFamily: 'Montserrat, sans-serif' }}>
                                   User ID: {student.userID}
                                 </Typography>
                               </Box>
                               <Box sx={{ display: 'flex', gap: 1 }}>
-                                <Tooltip title="Reset student's password" arrow>
-                                  <IconButton 
-                                    size="small" 
-                                    sx={{ color: '#4ecdc4' }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      // Handle reset password
-                                    }}
-                                  >
-                                    <LockResetIcon />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Edit student details" arrow>
-                                  <IconButton 
-                                    size="small" 
-                                    sx={{ color: '#4ecdc4' }} 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditClick(student);
-                                    }}
-                                  >
-                                    <EditIcon color="inherit" />
-                                  </IconButton>
-                                </Tooltip>
+                                                              <Tooltip title="Reset student's password" arrow>
+                                <IconButton 
+                                  size="small" 
+                                  sx={{ color: colors.iconPrimary }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // Handle reset password
+                                  }}
+                                >
+                                  <LockResetIcon />
+                                </IconButton>
+                              </Tooltip>
+                                                              <Tooltip title="Edit student details" arrow>
+                                <IconButton 
+                                  size="small" 
+                                  sx={{ color: colors.iconPrimary }} 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditClick(student);
+                                  }}
+                                >
+                                  <EditIcon color="inherit" />
+                                </IconButton>
+                              </Tooltip>
                                 <Tooltip title="Remove / archive student" arrow>
                                   <IconButton 
                                     size="small" 
@@ -793,11 +795,11 @@ export default function StudentsPage() {
               onClick={handleDownloadTemplate}
               variant="outlined"
               sx={{
-                borderColor: '#4ecdc4',
-                color: '#4ecdc4',
+                borderColor: colors.primary,
+                color: colors.primary,
                 '&:hover': {
-                  borderColor: '#45b7aa',
-                  backgroundColor: 'rgba(78, 205, 196, 0.04)'
+                  borderColor: colors.primaryHover,
+                  backgroundColor: `${colors.primary}08`
                 }
               }}
             >
@@ -805,17 +807,17 @@ export default function StudentsPage() {
             </Button>
             
             <Box sx={{ 
-              border: '2px dashed #e0e7ff', 
+              border: `2px dashed ${colors.border}`, 
               borderRadius: 2, 
               p: 3, 
               textAlign: 'center',
-              bgcolor: selectedFile ? '#f0f9ff' : isDragOver ? '#e8f5e8' : '#f8fafc',
-              borderColor: selectedFile ? '#4ecdc4' : isDragOver ? '#4caf50' : '#e0e7ff',
+              bgcolor: selectedFile ? `${colors.primary}08` : isDragOver ? '#e8f5e8' : colors.containerPaper,
+              borderColor: selectedFile ? colors.primary : isDragOver ? '#4caf50' : colors.border,
               transition: 'all 0.2s ease-in-out',
               cursor: 'pointer',
               '&:hover': {
-                borderColor: selectedFile ? '#45b7aa' : '#4ecdc4',
-                bgcolor: selectedFile ? '#f0f9ff' : '#f0f9ff'
+                borderColor: selectedFile ? colors.primaryHover : colors.primary,
+                bgcolor: selectedFile ? `${colors.primary}08` : `${colors.primary}08`
               }
             }}
             onDragOver={handleDragOver}
@@ -825,7 +827,7 @@ export default function StudentsPage() {
           >
             {selectedFile ? (
               <Box>
-                <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#4ecdc4', mb: 1 }}>
+                <Typography sx={{ fontSize: 16, fontWeight: 600, color: colors.primary, mb: 1 }}>
                   File Selected
                 </Typography>
                 <Typography sx={{ fontSize: 14, color: '#374151', mb: 2 }}>
@@ -921,7 +923,7 @@ export default function StudentsPage() {
           </DialogTitle>
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Summary */}
-            <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: 2, border: '1px solid #e0e7ff' }}>
+            <Box sx={{ bgcolor: colors.containerPaper, p: 2, borderRadius: 2, border: `1px solid ${colors.border}` }}>
               <Typography sx={{ fontSize: 18, fontWeight: 600, fontFamily: 'Montserrat, sans-serif', color: '#374151', mb: 1 }}>
                 Summary
               </Typography>
