@@ -907,18 +907,10 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#888' }}>
+          <Button onClick={() => setEditDialogOpen(false)} {...buttonStyles.cancel}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleEditStudent}
-            sx={{ 
-              bgcolor: colors.primary, 
-              color: 'white', 
-              '&:hover': { bgcolor: colors.primaryHover },
-              px: 3
-            }}
-          >
+          <Button onClick={handleEditStudent} {...buttonStyles.primary}>
             Save Changes
           </Button>
         </DialogActions>

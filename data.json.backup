@@ -3943,7 +3943,8 @@
       "code": "123456",
       "location": "Workshop",
       "purchasePrice": 10,
-      "id": "SW96002"
+      "id": "SW96002",
+      "linkedLessonId": "20"
     },
     {
       "name": "Blender",
@@ -3999,6 +4000,15 @@
         }
       ],
       "photo": "/uploads/equipment-photos/equipment-SSW68436-1754124550127-823067989.jpg"
+    },
+    {
+      "name": "Circlular Saw",
+      "type": "Power Tool",
+      "code": "1234565",
+      "location": "Workshop",
+      "purchasePrice": 100,
+      "id": "CSW67079",
+      "linkedLessonId": "44"
     }
   ],
   "rooms": [
@@ -4681,6 +4691,15 @@
       "area": "Industrial",
       "subArea": "Multiuse Workshop Equipment",
       "id": 1754565813606
+    },
+    {
+      "name": "Laser Cutter",
+      "icon": "Factory",
+      "description": "",
+      "category": "Tools",
+      "area": "Industrial",
+      "subArea": "Multiuse Workshop Equipment",
+      "id": 1754912559678
     }
   ],
   "equipmentNotes": {
@@ -4844,6 +4863,12 @@
         "title": "Equipment Tagged Out",
         "content": "Equipment Tagged Out on 07/08/2025 • Completed by: Jacob Drummond • Steps completed: Ensure the machine is switched off, Switch off the power source/s at the isolating control/s or unplug electrical lead from the GPO, Apply lock to the isolation control or to electrical plug & attach suitable tag/s, Test equipment control buttons to ensure power has been disconnected • Reason:",
         "createdAt": "2025-08-07T11:32:36.767Z"
+      },
+      {
+        "id": "1754566708164",
+        "title": "Equipment Untagged",
+        "content": "Equipment Untagged on 07/08/2025 • Completed by: Suzie Barry • Steps completed: Perform the required maintenance checks and/or cleaning process, Ensure all guards and protective devices are reinstated, Check that all tools and/or cleaning products are removed from around the machine, Remove lock/s, lockout devices and tag/s, Reconnect power source/s, Ensure everyone is clear of the machine and start machine • Notes:",
+        "createdAt": "2025-08-07T11:38:28.164Z"
       }
     ],
     "TW78863": [
@@ -4897,6 +4922,34 @@
         "content": "Equipment Untagged on 02/08/2025 • Completed by: Jacob Drummond • Steps completed: Perform the required maintenance checks and/or cleaning process, Ensure all guards and protective devices are reinstated, Check that all tools and/or cleaning products are removed from around the machine, Remove lock/s, lockout devices and tag/s, Reconnect power source/s, Ensure everyone is clear of the machine and start machine • Notes: Power cord is fixed",
         "createdAt": "2025-08-02T08:47:52.136Z"
       }
+    ],
+    "CSW67079": [
+      {
+        "id": "1754911916764",
+        "title": "Equipment Lent",
+        "content": "Equipment lent on 11/08/2025 • Lent to: Brent • Due back: 12/08/2025 • Notes: For Musical",
+        "createdAt": "2025-08-11T11:31:56.764Z"
+      }
+    ],
+    "SW96002": [
+      {
+        "id": "1754911959622",
+        "title": "Equipment Lent",
+        "content": "Equipment lent on 11/08/2025 • Lent to: Suzie Barry • Due back: 10/01/2000 • Notes:",
+        "createdAt": "2025-08-11T11:32:39.622Z"
+      },
+      {
+        "id": "1754911970239",
+        "title": "Equipment Returned",
+        "content": "Equipment returned on 2025-08-11 • Previously lent to: Suzie Barry • Due back: 2000-01-10",
+        "createdAt": "2025-08-11T11:32:50.239Z"
+      },
+      {
+        "id": "1754912460950",
+        "title": "Equipment Lent",
+        "content": "Equipment lent on 11/08/2025 • Lent to: Jacob Drummond • Due back: 12/08/2025 • Notes:",
+        "createdAt": "2025-08-11T11:41:00.950Z"
+      }
     ]
   },
   "equipmentManuals": {
@@ -4933,6 +4986,22 @@
       "dueBackDate": "2025-07-30",
       "notes": "",
       "createdAt": "2025-07-29T09:35:46.514Z"
+    },
+    "CSW67079": {
+      "id": "1754911916734",
+      "lendDate": "2025-08-11",
+      "lentTo": "Brent",
+      "dueBackDate": "2025-08-12",
+      "notes": "For Musical",
+      "createdAt": "2025-08-11T11:31:56.735Z"
+    },
+    "SW96002": {
+      "id": "1754912460920",
+      "lendDate": "2025-08-11",
+      "lentTo": "Jacob Drummond",
+      "dueBackDate": "2025-08-12",
+      "notes": "",
+      "createdAt": "2025-08-11T11:41:00.920Z"
     }
   }
 }

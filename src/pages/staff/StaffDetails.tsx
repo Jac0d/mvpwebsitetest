@@ -927,18 +927,10 @@ export default function StaffDetails() {
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button onClick={() => setEditDialogOpen(false)} sx={{ color: '#888' }}>
+          <Button onClick={() => setEditDialogOpen(false)} {...buttonStyles.cancel}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleEditStaff}
-            sx={{ 
-              bgcolor: colors.primary, 
-              color: 'white', 
-              '&:hover': { bgcolor: colors.primaryHover },
-              px: 3
-            }}
-          >
+          <Button onClick={handleEditStaff} {...buttonStyles.primary}>
             Save Changes
           </Button>
         </DialogActions>

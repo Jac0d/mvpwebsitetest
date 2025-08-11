@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { CssBaseline } from '@mui/material';
 import { createCustomTheme, themePresets, CustomColors } from '../theme';
 
 interface ThemeContextType {
@@ -107,6 +108,7 @@ export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({ childr
   return (
     <ThemeContext.Provider value={contextValue}>
       <ThemeProvider theme={muiTheme}>
+        <CssBaseline />
         {children}
       </ThemeProvider>
     </ThemeContext.Provider>

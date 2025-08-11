@@ -200,12 +200,12 @@ export default function LessonsPage() {
       setNewLesson({ name: '', icon: '', description: '', category: '', area: '', subArea: '' });
       setEditIndex(null);
       setSnackbarSeverity('success');
-      setSnackbarMessage(editIndex !== null ? 'Tool updated successfully!' : 'Tool added successfully!');
+      setSnackbarMessage(editIndex !== null ? 'Lesson updated successfully!' : 'Lesson added successfully!');
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Error saving lesson:', error);
       setSnackbarSeverity('error');
-      setSnackbarMessage(editIndex !== null ? 'Failed to update tool. Please try again.' : 'Failed to add tool. Please try again.');
+      setSnackbarMessage(editIndex !== null ? 'Failed to update lesson. Please try again.' : 'Failed to add lesson. Please try again.');
       setSnackbarOpen(true);
     }
   };
@@ -467,7 +467,7 @@ export default function LessonsPage() {
                 }}
                 {...buttonStyles.primary}
               >
-                Add Tool
+                Add Lesson
               </Button>
             </Box>
           </Box>
@@ -686,12 +686,12 @@ export default function LessonsPage() {
       {/* Add/Edit Lesson Dialog */}
       <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="sm" fullWidth>
                   <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>
-          {editIndex !== null ? 'Edit Tool' : 'Add New Tool'}
+          {editIndex !== null ? 'Edit Lesson' : 'Add New Lesson'}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
-              label="Tool Name*"
+              label="Lesson Name*"
               value={newLesson.name}
               onChange={e => setNewLesson({ ...newLesson, name: e.target.value })}
               size="small"
@@ -782,7 +782,7 @@ export default function LessonsPage() {
             onClick={handleAddEditLesson}
             {...buttonStyles.primary}
           >
-            {editIndex !== null ? 'Save Changes' : 'Add Tool'}
+            {editIndex !== null ? 'Save Changes' : 'Add Lesson'}
           </Button>
         </DialogActions>
       </Dialog>

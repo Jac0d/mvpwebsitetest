@@ -4798,7 +4798,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                     const hasLinkedLesson = pendingLendData?.competencyResult?.hasLinkedLesson;
                     const isStaffMember = pendingLendData?.competencyResult?.isStaffMember;
                     
-                    let message = "Therefore, staff competency cannot be confirmed. Please ensure the user is adequately experienced in the safe and correct use of this equipment before lending.";
+                    let message = "Staff competency cannot be confirmed. While it is recommended to ensure the user is adequately experienced in the safe and correct use of this equipment, you may proceed with the loan if you are confident in their ability.";
                     
                     if (!hasLinkedLesson && !isStaffMember) {
                       message = "There is no lesson linked for this equipment and this person is not registered on the system. " + message;
@@ -4810,7 +4810,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                     
                     return message;
                   })()
-                : "The staff member listed for the loan has not been marked as competent in the use of this equipment. Before continuing with the loan, the staff member must first be assessed and marked as competent in the safe and correct use of the equipment."
+                : "The staff member listed for the loan has not been marked as competent in the use of this equipment. While it is recommended the staff member first be assessed and marked as competent, you may proceed with the loan if you are confident in their ability to safely use the equipment."
               }
             </Typography>
           </DialogContent>
@@ -4821,14 +4821,12 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             >
               Cancel
             </Button>
-            {competencyWarningType === 'noLessonOrStaff' && (
-              <Button
-                onClick={handleConfirmLendWithWarning}
-                {...buttonStyles.primary}
-              >
-                Confirm Loan
-              </Button>
-            )}
+            <Button
+              onClick={handleConfirmLendWithWarning}
+              {...buttonStyles.primary}
+            >
+              Lend Equipment
+            </Button>
           </DialogActions>
         </Dialog>
 
