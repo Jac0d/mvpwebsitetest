@@ -375,7 +375,7 @@ export default function StaffDetails() {
         <Box sx={{ 
           position: 'fixed', 
           top: 64,
-          left: 240,
+          left: { xs: 0, md: '64px', lg: '240px' },
           right: 0,
           bgcolor: '#fff', 
           zIndex: 1000,

@@ -491,10 +491,10 @@ export default function EquipmentPage() {
         <Typography key="equipment" color="text.primary" sx={{ fontWeight: 600, fontSize: 18 }}>Equipment</Typography>
       ]}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', position: 'fixed', top: 64, left: 240, right: 0, zIndex: 1099 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', position: 'fixed', top: 64, left: { xs: 0, md: '64px', lg: '240px' }, right: 0, zIndex: 1099 }}>
         {/* Search, Add Equipment, Add Room */}
         <Box sx={{ bgcolor: '#fff', pt: 3, pb: 1 }}>
-          <Box sx={{ maxWidth: 1000, minWidth: 360, mx: 'auto', px: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ maxWidth: 1000, minWidth: 600, mx: 'auto', px: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
             <TextField
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -534,7 +534,7 @@ export default function EquipmentPage() {
         </Box>
         {/* Room Tabs */}
         <Box sx={{ position: 'sticky', top: 0, bgcolor: '#fff', zIndex: 1, borderBottom: `1px solid ${colors.border}`, pt: 1, pb: 0.5 }}>
-          <Box sx={{ maxWidth: 1000, minWidth: 360, mx: 'auto', px: 8, width: '100%' }}>
+          <Box sx={{ maxWidth: 1000, minWidth: 600, mx: 'auto', px: 8, width: '100%' }}>
             <Tabs 
               value={selectedRoomTab} 
               onChange={handleTabChange} 
@@ -552,7 +552,7 @@ export default function EquipmentPage() {
         </Box>
         {/* Equipment List */}
         <Box sx={{ flex: 1, overflowY: 'auto' }} ref={scrollContainerRef}>
-          <Box sx={{ px: 4, py: 4, maxWidth: 1000, minWidth: 540, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box sx={{ px: 4, py: 4, maxWidth: 1000, minWidth: 600, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
             {rooms.length === 0 ? (
               <Typography sx={{ color: '#bbb', fontSize: 14 }}>No rooms found. Please add a room first.</Typography>
             ) : (
@@ -1102,7 +1102,19 @@ export default function EquipmentPage() {
                 if (lessonDialogTab === 1) area = 'Kitchen';
                 if (lessonDialogTab === 2) area = 'Textiles';
                 if (lessonDialogTab === 3) area = 'Maintenance';
-                const filteredLessons = lessons.filter(lesson => lesson.area === area && lesson.name.toLowerCase().includes(lessonSearch.toLowerCase()));
+                
+                // If there's a search term, search across all areas
+                // If no search term, only show lessons from the selected tab
+                const filteredLessons = lessons.filter(lesson => {
+                  const matchesSearch = lesson.name.toLowerCase().includes(lessonSearch.toLowerCase());
+                  if (lessonSearch.trim()) {
+                    // When searching, show lessons from all areas that match the search
+                    return matchesSearch;
+                  } else {
+                    // When not searching, only show lessons from the selected tab
+                    return lesson.area === area && matchesSearch;
+                  }
+                });
                 // Group by subArea
                 const grouped = filteredLessons.reduce((acc, lesson) => {
                   const sub = lesson.subArea || 'Other';

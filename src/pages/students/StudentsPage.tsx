@@ -394,10 +394,10 @@ export default function StudentsPage() {
         <Typography key="students" color="text.primary" sx={{ fontWeight: 600, fontSize: 18 }}>Students</Typography>
       ]}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', position: 'fixed', top: 64, left: 240, right: 0, zIndex: 1099 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', position: 'fixed', top: 64, left: { xs: 0, md: '64px', lg: '240px' }, right: 0, zIndex: 1099 }}>
         {/* Search and Add Student */}
         <Box sx={{ bgcolor: '#fff', pt: 3, pb: 1 }}>
-          <Box sx={{ maxWidth: 1000, minWidth: 360, mx: 'auto', px: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ maxWidth: 1000, minWidth: 600, mx: 'auto', px: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
             <TextField
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -431,7 +431,7 @@ export default function StudentsPage() {
 
         {/* Tabs */}
                         <Box sx={{ position: 'sticky', top: 0, bgcolor: '#fff', zIndex: 1, borderBottom: `1px solid ${colors.border}`, pt: 1, pb: 0.5 }}>
-          <Box sx={{ maxWidth: 1000, minWidth: 360, mx: 'auto', px: 8, width: '100%' }}>
+          <Box sx={{ maxWidth: 1000, minWidth: 600, mx: 'auto', px: 8, width: '100%' }}>
             <Tabs 
               value={tab} 
               onChange={handleTabChange} 

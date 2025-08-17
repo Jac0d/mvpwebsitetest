@@ -352,7 +352,7 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
         <Box sx={{ 
           position: 'fixed', 
           top: 64, // Account for the main app header
-          left: 240, // Account for the left menu bar
+          left: { xs: 0, md: '64px', lg: '240px' }, // Account for the left menu bar
           right: 0,
           bgcolor: '#fff', 
           zIndex: 1000,

@@ -3961,7 +3961,6 @@
       "location": "Workshop",
       "purchasePrice": 100,
       "id": "SSW68436",
-      "linkedLessonId": "44",
       "maintenanceRecords": [
         {
           "id": "17541245070234hy9dky3w",
@@ -4009,6 +4008,15 @@
       "purchasePrice": 100,
       "id": "CSW67079",
       "linkedLessonId": "44"
+    },
+    {
+      "name": "Sewing Machine",
+      "type": "Portable Appliance",
+      "code": "2345",
+      "location": "Textiles",
+      "purchasePrice": 100,
+      "id": "SMT66471",
+      "linkedLessonId": "1749464774251"
     }
   ],
   "rooms": [

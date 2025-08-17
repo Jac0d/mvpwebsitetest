@@ -1026,12 +1026,12 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
         <Typography color="text.primary" key="current" sx={{ fontWeight: 600, fontSize: 18 }}>{classItem?.className || 'Loading...'}</Typography>
       ]}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', position: 'fixed', top: 64, left: { xs: 0, md: '64px', lg: '240px' }, right: 0, zIndex: 1099 }}>
         {/* Fixed header section */}
         <Box sx={{ 
           position: 'fixed', 
           top: 64, // Account for the main app header
-          left: 240, // Account for the left menu bar
+          left: { xs: 0, md: '64px', lg: '240px' }, // Account for the left menu bar
           right: 0,
           bgcolor: '#fff', 
           zIndex: 1000,
@@ -1063,23 +1063,10 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
           onScroll={handleScroll}
           sx={{ 
             flex: 1, 
-            overflowY: 'auto',
-            '&::-webkit-scrollbar': {
-              width: '8px',
-            },
-            '&::-webkit-scrollbar-track': {
-              background: '#f1f1f1',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              background: '#c1c1c1',
-              borderRadius: '4px',
-            },
-            '&::-webkit-scrollbar-thumb:hover': {
-              background: '#a8a8a8',
-            },
+            overflowY: 'auto'
           }}
         >
-          <Box sx={{ px: 8, py: 4, maxWidth: 1000, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ px: 4, py: 4, maxWidth: 1000, minWidth: 600, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box ref={classInfoRef} sx={{ display: 'flex', gap: 2, minHeight: 70 }}>
               <Paper elevation={1} sx={{ flex: 2, px: 3, py: 2, borderRadius: 2, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0, minHeight: 70 }}>
                 <Typography sx={{ color: '#888', fontWeight: 700, fontSize: 13, mb: 0.5 }}>
@@ -1413,8 +1400,19 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                         if (dialogTab === 1) area = 'Kitchen';
                         if (dialogTab === 2) area = 'Textiles';
                         if (dialogTab === 3) area = 'Maintenance';
-                        const filteredLessons = lessons
-                          .filter(lesson => lesson.area === area && lesson.name.toLowerCase().includes(lessonSearch.toLowerCase()));
+                        
+                        // If there's a search term, search across all areas
+                        // If no search term, only show lessons from the selected tab
+                        const filteredLessons = lessons.filter(lesson => {
+                          const matchesSearch = lesson.name.toLowerCase().includes(lessonSearch.toLowerCase());
+                          if (lessonSearch.trim()) {
+                            // When searching, show lessons from all areas that match the search
+                            return matchesSearch;
+                          } else {
+                            // When not searching, only show lessons from the selected tab
+                            return lesson.area === area && matchesSearch;
+                          }
+                        });
                         // Group by subArea
                         const grouped = filteredLessons.reduce((acc, lesson) => {
                           const sub = lesson.subArea || 'Other';
@@ -1593,8 +1591,8 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                         <Box
                           sx={{
                             display: 'grid',
-                            gridTemplateColumns: `180px${selectedLessons.length > 0 ? ` repeat(${selectedLessons.length}, 44px)` : ''} 150px`,
-                            minWidth: selectedLessons.length > 0 ? gridMinWidth : 180 + 8 + 150,
+                            gridTemplateColumns: `180px${selectedLessons.length > 0 ? ` repeat(${selectedLessons.length}, 44px)` : ''} 180px`,
+                            minWidth: selectedLessons.length > 0 ? gridMinWidth : 180 + 8 + 180,
                             alignItems: 'center',
                             position: 'relative',
                             height: 44,
@@ -1667,7 +1665,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                           {/* Actions column (sticky right) */}
                           <Box
                             sx={{
-                              width: 150, minWidth: 150, maxWidth: 150,
+                              width: 180, minWidth: 180, maxWidth: 180,
                               position: 'sticky', right: 0, zIndex: 2,
                               bgcolor: '#fff', height: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
                               pl: 2,
@@ -1710,8 +1708,8 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                               key={person.userID}
                               sx={{
                                 display: 'grid',
-                                gridTemplateColumns: `180px${selectedLessons.length > 0 ? ` repeat(${selectedLessons.length}, 44px)` : ''} 150px`,
-                                minWidth: selectedLessons.length > 0 ? gridMinWidth : 180 + 8 + 150,
+                                gridTemplateColumns: `180px${selectedLessons.length > 0 ? ` repeat(${selectedLessons.length}, 44px)` : ''} 180px`,
+                                minWidth: selectedLessons.length > 0 ? gridMinWidth : 180 + 8 + 180,
                                 alignItems: 'center',
                                 position: 'relative',
                                 height: 44,
@@ -1850,7 +1848,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                               {/* Actions column (sticky right) */}
                               <Box
                                 sx={{
-                                  width: 150, minWidth: 150, maxWidth: 150,
+                                  width: 180, minWidth: 180, maxWidth: 180,
                                   position: 'sticky', right: 0, zIndex: 2,
                                   bgcolor: '#fff', height: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
                                   pl: 2,
@@ -1863,7 +1861,7 @@ export function ClassDetails({ classes, setClasses, students, setStudents }: Cla
                                   }
                                 }}
                               >
-                                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                <Box sx={{ display: 'flex', gap: 0.5, overflow: 'hidden' }}>
                                   <Tooltip title={`Record competency for ${person.name}`} arrow enterDelay={1000}>
                                     <IconButton
                                       size="small"

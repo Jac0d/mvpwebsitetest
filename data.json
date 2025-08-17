@@ -3961,7 +3961,6 @@
       "location": "Workshop",
       "purchasePrice": 100,
       "id": "SSW68436",
-      "linkedLessonId": "44",
       "maintenanceRecords": [
         {
           "id": "17541245070234hy9dky3w",
@@ -3999,7 +3998,8 @@
           "createdAt": "2025-08-02T08:48:44.703Z"
         }
       ],
-      "photo": "/uploads/equipment-photos/equipment-SSW68436-1754124550127-823067989.jpg"
+      "photo": "/uploads/equipment-photos/equipment-SSW68436-1754124550127-823067989.jpg",
+      "linkedLessonId": "44"
     },
     {
       "name": "Circlular Saw",
@@ -4009,11 +4009,21 @@
       "purchasePrice": 100,
       "id": "CSW67079",
       "linkedLessonId": "44"
+    },
+    {
+      "name": "Sewing Machine",
+      "type": "Portable Appliance",
+      "code": "2345",
+      "location": "Textiles",
+      "purchasePrice": 100,
+      "id": "SMT66471",
+      "linkedLessonId": "1749464774251"
     }
   ],
   "rooms": [
     "Workshop",
-    "Kitchen"
+    "Kitchen",
+    "Textiles"
   ],
   "lessons": [
     {

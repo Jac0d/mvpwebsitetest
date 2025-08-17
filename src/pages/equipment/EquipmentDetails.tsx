@@ -1923,7 +1923,7 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
         <Typography key="details" color="text.primary" sx={{ fontWeight: 600, fontSize: 18 }}>{equipmentItem.name}</Typography>
       ]}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', position: 'fixed', top: 64, left: 240, right: 0, zIndex: 1099 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 64px)', position: 'fixed', top: 64, left: { xs: 0, md: '64px', lg: '240px' }, right: 0, zIndex: 1099 }}>
         {/* Tabs */}
         <Box sx={{ bgcolor: '#fff', borderBottom: `1px solid ${colors.border}`, pt: 1, pb: 0.5 }}>
           <Box sx={{ 
@@ -3846,7 +3846,19 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                 if (lessonDialogTab === 1) area = 'Kitchen';
                 if (lessonDialogTab === 2) area = 'Textiles';
                 if (lessonDialogTab === 3) area = 'Maintenance';
-                const filteredLessons = lessons.filter(lesson => lesson.area === area && lesson.name.toLowerCase().includes(lessonSearch.toLowerCase()));
+                
+                // If there's a search term, search across all areas
+                // If no search term, only show lessons from the selected tab
+                const filteredLessons = lessons.filter(lesson => {
+                  const matchesSearch = lesson.name.toLowerCase().includes(lessonSearch.toLowerCase());
+                  if (lessonSearch.trim()) {
+                    // When searching, show lessons from all areas that match the search
+                    return matchesSearch;
+                  } else {
+                    // When not searching, only show lessons from the selected tab
+                    return lesson.area === area && matchesSearch;
+                  }
+                });
                 // Group by subArea
                 const grouped = filteredLessons.reduce((acc, lesson) => {
                   const sub = lesson.subArea || 'Other';
