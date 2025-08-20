@@ -925,17 +925,12 @@ export function StudentDetails({ students, classes, staff }: StudentDetailsProps
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button onClick={() => setArchiveDialogOpen(false)} sx={{ color: '#888' }}>
+          <Button onClick={() => setArchiveDialogOpen(false)} {...buttonStyles.cancel}>
             Cancel
           </Button>
           <Button 
             onClick={handleArchiveStudent}
-            sx={{ 
-              bgcolor: '#e57373', 
-              color: 'white', 
-              '&:hover': { bgcolor: '#ef5350' },
-              px: 3
-            }}
+            {...buttonStyles.danger}
           >
             Archive Student
           </Button>

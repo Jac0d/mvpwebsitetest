@@ -1,6 +1,7 @@
 import React from 'react';
-import { Box, Typography, Paper, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, InputAdornment, Snackbar, Alert, IconButton, Tooltip, Tabs, Tab, CircularProgress } from '@mui/material';
+import { Box, Typography, Paper, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, InputAdornment, Snackbar, Alert, IconButton, Tooltip, Tabs, Tab, CircularProgress, Link } from '@mui/material';
 import { Layout } from '../../components/layout/Layout';
+import { Link as RouterLink } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
@@ -29,7 +30,7 @@ export interface Lesson {
 }
 
 const lessonAreas = ['Industrial', 'Textiles', 'Kitchen', 'Maintenance'];
-const lessonCategories = ['Safety', 'Tools', 'Machines', 'General'];
+const lessonCategories = ['Safety', 'Tools', 'Machines', 'General', 'Equipment'];
 const industrialSubAreas = [
   'Workshop Safety',
   'Multiuse Workshop Equipment',
@@ -37,6 +38,19 @@ const industrialSubAreas = [
   'Woodworking',
   'Painting & Finishing',
   'Heating & Forming'
+];
+const textilesSubAreas = [
+  'General Safety',
+  'Sewing Equipment',
+  'Cutting & Finishing',
+  'Pressing & Steam Equipment'
+];
+const kitchenSubAreas = [
+  'General Safety',
+  'Food Safety',
+  'Food Preparation',
+  'Cooking Equipment',
+  'Baking Equipment'
 ];
 
 const lessonIcons = {
@@ -131,8 +145,8 @@ export default function LessonsPage() {
     }
   };
 
-  // For Industrial area, filter by search and only show sub-areas with matching lessons
-  const getIndustrialLessonsBySubArea = (lessons: Lesson[]) => {
+  // For areas with sub-areas, filter by search and only show sub-areas with matching lessons
+  const getLessonsBySubArea = (lessons: Lesson[], subAreas: string[]) => {
     // First filter lessons by search
     const filteredLessons = search.trim() 
       ? lessons.filter(lesson => 
@@ -142,13 +156,28 @@ export default function LessonsPage() {
       : lessons;
 
     // Then group by sub-area and only return sub-areas that have matching lessons
-    const subAreas = industrialSubAreas.map(subArea => ({
+    const subAreasWithLessons = subAreas.map(subArea => ({
       subArea,
       lessons: filteredLessons.filter(lesson => lesson.subArea === subArea)
     }));
 
     // Only return sub-areas that have lessons after filtering
-    return subAreas.filter(group => group.lessons.length > 0);
+    return subAreasWithLessons.filter(group => group.lessons.length > 0);
+  };
+
+  // For Industrial area, filter by search and only show sub-areas with matching lessons
+  const getIndustrialLessonsBySubArea = (lessons: Lesson[]) => {
+    return getLessonsBySubArea(lessons, industrialSubAreas);
+  };
+
+  // For Textiles area, filter by search and only show sub-areas with matching lessons
+  const getTextilesLessonsBySubArea = (lessons: Lesson[]) => {
+    return getLessonsBySubArea(lessons, textilesSubAreas);
+  };
+
+  // For Kitchen area, filter by search and only show sub-areas with matching lessons
+  const getKitchenLessonsBySubArea = (lessons: Lesson[]) => {
+    return getLessonsBySubArea(lessons, kitchenSubAreas);
   };
 
   const handleAddEditLesson = async () => {
@@ -158,8 +187,8 @@ export default function LessonsPage() {
       setFieldError('Name, Icon, Category, and Area are required.');
       return;
     }
-    if (area === 'Industrial' && !subArea) {
-      setFieldError('Sub-area is required for Industrial lessons.');
+    if ((area === 'Industrial' || area === 'Textiles' || area === 'Kitchen') && !subArea) {
+      setFieldError('Sub-area is required for Industrial, Textiles, and Kitchen lessons.');
       return;
     }
 
@@ -328,7 +357,7 @@ export default function LessonsPage() {
               <MenuItem key={area} value={area}>{area}</MenuItem>
             ))}
           </TextField>
-          {editingLesson?.area === 'Industrial' && (
+          {(editingLesson?.area === 'Industrial' || editingLesson?.area === 'Textiles' || editingLesson?.area === 'Kitchen') && (
             <TextField
               select
               label="Sub-Area"
@@ -336,7 +365,9 @@ export default function LessonsPage() {
               value={editingLesson?.subArea || ''}
               onChange={(e) => setEditingLesson(prev => prev ? { ...prev, subArea: e.target.value } : null)}
             >
-              {industrialSubAreas.map((subArea) => (
+              {(editingLesson?.area === 'Industrial' ? industrialSubAreas : 
+                editingLesson?.area === 'Textiles' ? textilesSubAreas : 
+                editingLesson?.area === 'Kitchen' ? kitchenSubAreas : []).map((subArea) => (
                 <MenuItem key={subArea} value={subArea}>{subArea}</MenuItem>
               ))}
             </TextField>
@@ -383,11 +414,13 @@ export default function LessonsPage() {
         gap: 2,
         boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
         transition: 'all 0.2s ease-in-out',
+        cursor: 'pointer',
         '&:hover': {
           boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
           transform: 'translateY(-1px)'
         }
       }}
+      onClick={() => window.location.href = `/lessons/${lesson.id}`}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box sx={{ 
@@ -410,7 +443,10 @@ export default function LessonsPage() {
       </Box>
       <IconButton
         size="small"
-        onClick={() => handleEditLesson(lesson)}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleEditLesson(lesson);
+        }}
         sx={{
           color: colors.iconPrimary,
           '&:hover': {
@@ -508,10 +544,12 @@ export default function LessonsPage() {
                 {lessonsByArea.filter(group => group.lessons.length > 0).map(group => (
                   <Paper key={group.area} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: colors.containerPaper, border: `1px solid ${colors.border}` }}>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#374151' }}>{group.area}</Typography>
-                    {group.area === 'Industrial' ? (
-                      // Industrial area with sub-areas
+                    {(group.area === 'Industrial' || group.area === 'Textiles' || group.area === 'Kitchen') ? (
+                      // Areas with sub-areas
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                        {getIndustrialLessonsBySubArea(group.lessons).map(subGroup => (
+                        {(group.area === 'Industrial' ? getIndustrialLessonsBySubArea(group.lessons) :
+                          group.area === 'Textiles' ? getTextilesLessonsBySubArea(group.lessons) :
+                          group.area === 'Kitchen' ? getKitchenLessonsBySubArea(group.lessons) : []).map(subGroup => (
                           <Paper
                             key={subGroup.subArea}
                             elevation={0}
@@ -594,10 +632,12 @@ export default function LessonsPage() {
                     return (
                       <Paper elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: colors.containerPaper, border: `1px solid ${colors.border}` }}>
                         <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#374151' }}>{group.area}</Typography>
-                        {area === 'Industrial' ? (
-                          // Industrial area with sub-areas
+                        {(area === 'Industrial' || area === 'Textiles' || area === 'Kitchen') ? (
+                          // Areas with sub-areas
                           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                            {getIndustrialLessonsBySubArea(group.lessons).map(subGroup => (
+                            {(area === 'Industrial' ? getIndustrialLessonsBySubArea(group.lessons) :
+                              area === 'Textiles' ? getTextilesLessonsBySubArea(group.lessons) :
+                              area === 'Kitchen' ? getKitchenLessonsBySubArea(group.lessons) : []).map(subGroup => (
                               <Paper
                                 key={subGroup.subArea}
                                 elevation={0}
@@ -711,7 +751,7 @@ export default function LessonsPage() {
                 <MenuItem key={area} value={area}>{area}</MenuItem>
               ))}
             </TextField>
-            {newLesson.area === 'Industrial' && (
+            {(newLesson.area === 'Industrial' || newLesson.area === 'Textiles' || newLesson.area === 'Kitchen') && (
               <TextField
                 select
                 label="Sub-Area*"
@@ -721,7 +761,9 @@ export default function LessonsPage() {
                 error={!!fieldError && !newLesson.subArea}
                 fullWidth
               >
-                {industrialSubAreas.map(subArea => (
+                {(newLesson.area === 'Industrial' ? industrialSubAreas : 
+                  newLesson.area === 'Textiles' ? textilesSubAreas : 
+                  newLesson.area === 'Kitchen' ? kitchenSubAreas : []).map(subArea => (
                   <MenuItem key={subArea} value={subArea}>{subArea}</MenuItem>
                 ))}
               </TextField>

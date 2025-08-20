@@ -3998,7 +3998,8 @@
           "createdAt": "2025-08-02T08:48:44.703Z"
         }
       ],
-      "photo": "/uploads/equipment-photos/equipment-SSW68436-1754124550127-823067989.jpg"
+      "photo": "/uploads/equipment-photos/equipment-SSW68436-1754124550127-823067989.jpg",
+      "linkedLessonId": "44"
     },
     {
       "name": "Circlular Saw",
@@ -4008,15 +4009,6 @@
       "purchasePrice": 100,
       "id": "CSW67079",
       "linkedLessonId": "44"
-    },
-    {
-      "name": "Sewing Machine",
-      "type": "Portable Appliance",
-      "code": "2345",
-      "location": "Textiles",
-      "purchasePrice": 100,
-      "id": "SMT66471",
-      "linkedLessonId": "1749464774251"
     }
   ],
   "rooms": [
@@ -4508,7 +4500,7 @@
       "description": "",
       "category": "Machines",
       "area": "Textiles",
-      "subArea": "",
+      "subArea": "Sewing Equipment",
       "id": 1749464774251
     },
     {
@@ -4517,7 +4509,7 @@
       "description": "",
       "category": "Machines",
       "area": "Textiles",
-      "subArea": "",
+      "subArea": "Sewing Equipment",
       "id": 1749464791810
     },
     {
@@ -4526,7 +4518,7 @@
       "description": "",
       "category": "Tools",
       "area": "Textiles",
-      "subArea": "",
+      "subArea": "Cutting & Finishing",
       "id": 1749464863598
     },
     {
@@ -4535,7 +4527,7 @@
       "description": "",
       "category": "Safety",
       "area": "Textiles",
-      "subArea": "",
+      "subArea": "General Safety",
       "id": 1749465011899
     },
     {
@@ -4544,7 +4536,7 @@
       "description": "Steam Iron, Steam Press, and Garment Steamers",
       "category": "Tools",
       "area": "Textiles",
-      "subArea": "",
+      "subArea": "Pressing & Steam Equipment",
       "id": 1749465252917
     },
     {
@@ -4553,7 +4545,7 @@
       "description": "",
       "category": "Tools",
       "area": "Textiles",
-      "subArea": "",
+      "subArea": "Cutting & Finishing",
       "id": 1749465326203
     },
     {
@@ -4562,7 +4554,7 @@
       "description": "",
       "category": "Machines",
       "area": "Textiles",
-      "subArea": "",
+      "subArea": "Sewing Equipment",
       "id": 1749465392705
     },
     {
@@ -4572,7 +4564,7 @@
       "description": "",
       "category": "Equipment",
       "area": "Kitchen",
-      "subArea": "Food Preparation"
+      "subArea": "Cooking Equipment"
     },
     {
       "id": 62,
@@ -4590,7 +4582,7 @@
       "description": "",
       "category": "Equipment",
       "area": "Kitchen",
-      "subArea": "Food Preparation"
+      "subArea": "Baking Equipment"
     },
     {
       "id": 76,
@@ -4608,7 +4600,7 @@
       "description": "",
       "category": "Equipment",
       "area": "Kitchen",
-      "subArea": "Food Preparation"
+      "subArea": "Cooking Equipment"
     },
     {
       "id": 78,
@@ -4617,7 +4609,7 @@
       "description": "",
       "category": "Equipment",
       "area": "Kitchen",
-      "subArea": "Food Preparation"
+      "subArea": "Cooking Equipment"
     },
     {
       "id": 67,
@@ -4653,7 +4645,7 @@
       "description": "",
       "category": "Safety",
       "area": "Kitchen",
-      "subArea": "Food Safety"
+      "subArea": "General Safety"
     },
     {
       "id": 71,
@@ -4662,7 +4654,7 @@
       "description": "",
       "category": "Safety",
       "area": "Kitchen",
-      "subArea": "Food Safety"
+      "subArea": "General Safety"
     },
     {
       "id": 72,
@@ -4671,7 +4663,7 @@
       "description": "",
       "category": "Equipment",
       "area": "Kitchen",
-      "subArea": "Food Preparation"
+      "subArea": "Cooking Equipment"
     },
     {
       "id": 73,
@@ -4680,7 +4672,7 @@
       "description": "",
       "category": "Equipment",
       "area": "Kitchen",
-      "subArea": "Food Preparation"
+      "subArea": "Cooking Equipment"
     },
     {
       "id": 74,
@@ -4689,7 +4681,7 @@
       "description": "",
       "category": "Equipment",
       "area": "Kitchen",
-      "subArea": "Food Preparation"
+      "subArea": "Cooking Equipment"
     },
     {
       "name": "3D Printer",
@@ -5011,5 +5003,249 @@
       "notes": "",
       "createdAt": "2025-08-11T11:41:00.920Z"
     }
-  }
+  },
+  "safetyIcons": [
+    {
+      "id": "1755661684641",
+      "name": "   MUST WEAR GLOVES WHEN HANDLING MATERIALS",
+      "category": "Info",
+      "filename": "icon-1755661684639-86278181.png",
+      "path": "/uploads/safety-icons/icon-1755661684639-86278181.png",
+      "uploadDate": "2025-08-20T03:48:04.641Z"
+    },
+    {
+      "id": "1755661684648",
+      "name": "DUST MASK MUST BE WORN",
+      "category": "Info",
+      "filename": "icon-1755661684648-530774006.png",
+      "path": "/uploads/safety-icons/icon-1755661684648-530774006.png",
+      "uploadDate": "2025-08-20T03:48:04.648Z"
+    },
+    {
+      "id": "1755661684656",
+      "name": "ENTANGLEMENT HAZARD",
+      "category": "Info",
+      "filename": "icon-1755661684652-176444380.png",
+      "path": "/uploads/safety-icons/icon-1755661684652-176444380.png",
+      "uploadDate": "2025-08-20T03:48:04.656Z"
+    },
+    {
+      "id": "1755661684663",
+      "name": "EYE PROTECTION MUST BE WORN",
+      "category": "Info",
+      "filename": "icon-1755661684662-361854452.png",
+      "path": "/uploads/safety-icons/icon-1755661684662-361854452.png",
+      "uploadDate": "2025-08-20T03:48:04.663Z"
+    },
+    {
+      "id": "1755661684666",
+      "name": "HEARING PROTECTION MUST BE WORN",
+      "category": "Info",
+      "filename": "icon-1755661684665-386778761.png",
+      "path": "/uploads/safety-icons/icon-1755661684665-386778761.png",
+      "uploadDate": "2025-08-20T03:48:04.666Z"
+    },
+    {
+      "id": "1755661684668",
+      "name": "LOOSE HAIR MUST BE SECURED",
+      "category": "Info",
+      "filename": "icon-1755661684668-271766958.png",
+      "path": "/uploads/safety-icons/icon-1755661684668-271766958.png",
+      "uploadDate": "2025-08-20T03:48:04.668Z"
+    },
+    {
+      "id": "1755661684671",
+      "name": "NO GLOVES WHILE OPERATING MACHINE",
+      "category": "Info",
+      "filename": "icon-1755661684671-785097591.png",
+      "path": "/uploads/safety-icons/icon-1755661684671-785097591.png",
+      "uploadDate": "2025-08-20T03:48:04.671Z"
+    },
+    {
+      "id": "1755661684675",
+      "name": "PROTECTIVE CLOTHING MUST BE WORN",
+      "category": "Info",
+      "filename": "icon-1755661684675-97486446.png",
+      "path": "/uploads/safety-icons/icon-1755661684675-97486446.png",
+      "uploadDate": "2025-08-20T03:48:04.675Z"
+    },
+    {
+      "id": "1755661684679",
+      "name": "PROTECTIVE FOOTWEAR MUST BE WORN",
+      "category": "Info",
+      "filename": "icon-1755661684679-972619195.png",
+      "path": "/uploads/safety-icons/icon-1755661684679-972619195.png",
+      "uploadDate": "2025-08-20T03:48:04.679Z"
+    },
+    {
+      "id": "1755661684682",
+      "name": "Respirators Required",
+      "category": "PPE",
+      "filename": "icon-1755661684682-482492877.png",
+      "path": "/uploads/safety-icons/icon-1755661684682-482492877.png",
+      "uploadDate": "2025-08-20T03:48:04.682Z"
+    },
+    {
+      "id": "1755661684684",
+      "name": "RESPIRATORY HAZARD",
+      "category": "Info",
+      "filename": "icon-1755661684684-432007424.png",
+      "path": "/uploads/safety-icons/icon-1755661684684-432007424.png",
+      "uploadDate": "2025-08-20T03:48:04.684Z"
+    },
+    {
+      "id": "1755661684686",
+      "name": "RINGS AND JEWELLERY MUST NOT BE WORN",
+      "category": "Info",
+      "filename": "icon-1755661684686-146703504.png",
+      "path": "/uploads/safety-icons/icon-1755661684686-146703504.png",
+      "uploadDate": "2025-08-20T03:48:04.686Z"
+    },
+    {
+      "id": "1755661684688",
+      "name": "WELDING MASK MUST BE WORN",
+      "category": "Info",
+      "filename": "icon-1755661684688-21395720.png",
+      "path": "/uploads/safety-icons/icon-1755661684688-21395720.png",
+      "uploadDate": "2025-08-20T03:48:04.688Z"
+    },
+    {
+      "id": "1755662179310",
+      "name": "EYE AND HEARING PROTECTION MUST BE WORN",
+      "category": "ppe",
+      "filename": "icon-1755662179307-906110975.png",
+      "path": "/uploads/safety-icons/icon-1755662179307-906110975.png",
+      "uploadDate": "2025-08-20T03:56:19.310Z"
+    },
+    {
+      "id": "1755687386190",
+      "name": "MUST WEAR FULL FACE PROTECTION",
+      "category": "ppe",
+      "filename": "icon-1755687386167-929663140.png",
+      "path": "/uploads/safety-icons/icon-1755687386167-929663140.png",
+      "uploadDate": "2025-08-20T10:56:26.190Z"
+    }
+  ],
+  "sopDocuments": [
+    {
+      "id": "sop-1755673063024-182873232",
+      "name": "Safe Operating Procedures for Air Compressor",
+      "description": "SOP for Air Compressor",
+      "lessonId": "1",
+      "sopData": {
+        "schoolName": "",
+        "schoolLogo": "",
+        "title": "Safe Operating Procedures for Air Compressor",
+        "room": "",
+        "dateOfReview": "",
+        "reviewedBy": "",
+        "nextReviewDue": "",
+        "equipmentName": "Air Compressor",
+        "caution": "Handle compressed air safely – misuse can cause harm",
+        "preOperationalChecks": [
+          "Ensure the work area is well ventilated and clear of obstructions",
+          "Inspect air hoses and electrical cords for damage; ensure they do not present a hazard",
+          "Verify that all protective covers, including belt and pulley cover, are securely in place",
+          "Familiarise yourself with the ON/OFF (I/O) switch",
+          "Confirm the pressure regulator is set correctly for the task",
+          "Check the oil level via the sight glass",
+          "Ensure the pressure vessel has been drained of condensation and maintained",
+          "Confirm the pressure gauge is present and functioning"
+        ],
+        "operationalChecks": [
+          "Ensure all attachments are in good condition before use",
+          "Securely hold the air hose and tool when attaching and disconnecting tools",
+          "Check the compressor regularly, noting pressure increase and cut-out/cut-in pressure",
+          "Listen for any air leaks: stop work and report if found",
+          "Adjust pressure regulator to suit work requirements – discuss with your teacher",
+          "Release air from system before disconnecting hoses",
+          "Turn off and disconnect air hoses and electrical leads after use",
+          "Never leave air compressor and equipment unattended"
+        ],
+        "housekeeping": [
+          "Leave the work area clean and safe, remove waste and drain condensation from compressor",
+          "Coil air hoses and electrical leads in large loops for storage"
+        ],
+        "potentialHazards": [
+          "Material blown under pressure",
+          "Unrestrained air hose whipping around",
+          "Compressed air",
+          "Slips, trips and falls",
+          "Excessive noise"
+        ],
+        "notAllowed": [
+          "Do not use compressed air to clean off clothes, workbenches or floor surfaces",
+          "Never direct compressed air at your body or others as it will cause injury"
+        ],
+        "selectedPpeIcons": [
+          "1755662179310",
+          "1755661684668",
+          "1755661684679",
+          "1755661684675",
+          "1755661684686",
+          "1755661684684"
+        ]
+      },
+      "createdAt": "2025-08-20T06:57:43.025Z",
+      "updatedAt": "2025-08-20T10:50:04.446Z",
+      "type": "builder-generated"
+    },
+    {
+      "id": "sop-1755687403547-513144523",
+      "name": "Safe Operating Procedures for Buffing Machine",
+      "description": "SOP for Buffing Machine",
+      "lessonId": "2",
+      "sopData": {
+        "schoolName": "",
+        "schoolLogo": "",
+        "title": "Safe Operating Procedures for Buffing Machine",
+        "room": "",
+        "dateOfReview": "",
+        "reviewedBy": "",
+        "nextReviewDue": "",
+        "equipmentName": "Buffing Machine",
+        "caution": "Caution: One user at a time on buffing machine",
+        "preOperationalChecks": [
+          "Buffing machine must be securely fastened to a bench or anchored stand",
+          "Check that all machine guards are in place",
+          "Check workspaces and walkways to ensure no slip/trip hazards are present",
+          "Locate and ensure you are familiar with the operation of the ON/OFF starter",
+          "Both ends of the machine spindle must be covered at all times",
+          "Use appropriate mop type and polishing compound for the task",
+          "Inspect the mops for damage and any embedded objects",
+          "Faulty equipment must not be used. Immediately report suspect equipment"
+        ],
+        "operationalChecks": [
+          "Never leave the machine running unattended, and stay until it has completely stopped spinning",
+          "Remain clear of spinning parts e.g.avoid bending down near machine whilst it is running",
+          "Use the front of the wheel only",
+          "Work only below the centre of the spindle",
+          "Small work must be securely supported with a wooden backing",
+          "Work should be held so that edges cannot catch"
+        ],
+        "housekeeping": [
+          "Switch off the machine",
+          "Leave machine and floor in a safe, clean and tidy state"
+        ],
+        "potentialHazards": [
+          "Work can be snatched if improperly presented to mop\t",
+          "Hair or clothing entanglement in moving machine parts",
+          "Eye injuries"
+        ],
+        "notAllowed": [
+          "Never hold work with gloves, apron, material or clothing",
+          "Never work on the side of the mop"
+        ],
+        "selectedPpeIcons": [
+          "1755661684671",
+          "1755661684679",
+          "1755661684675",
+          "1755661684656"
+        ]
+      },
+      "createdAt": "2025-08-20T10:56:43.548Z",
+      "updatedAt": "2025-08-20T10:56:43.548Z",
+      "type": "builder-generated"
+    }
+  ]
 }

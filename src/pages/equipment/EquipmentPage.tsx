@@ -65,6 +65,8 @@ export default function EquipmentPage() {
   const [equipmentToDelete, setEquipmentToDelete] = React.useState<Equipment | null>(null);
   const [downloadDialogOpen, setDownloadDialogOpen] = React.useState(false);
   const [selectedRoomsForDownload, setSelectedRoomsForDownload] = React.useState<string[]>([]);
+
+  
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Lesson linking state
@@ -484,6 +486,10 @@ export default function EquipmentPage() {
     setDownloadDialogOpen(false);
   };
 
+
+
+
+
   return (
     <Layout
       title="Equipment"
@@ -516,6 +522,7 @@ export default function EquipmentPage() {
             >
               Download Excel
             </Button>
+
             <Button
               {...buttonStyles.primary}
               startIcon={<AddIcon />}
@@ -557,95 +564,92 @@ export default function EquipmentPage() {
               <Typography sx={{ color: '#bbb', fontSize: 14 }}>No rooms found. Please add a room first.</Typography>
             ) : (
               selectedRoomTab === 0 ? (
-                // All Rooms: group by room, only show rooms with matching equipment
-                rooms
-                  .map(room => {
-                    const roomEquipment = searchedEquipment.filter(eq => eq.location === room);
-                    if (roomEquipment.length === 0) return null;
-                    return (
-                      <Paper key={room} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: colors.containerPaper, border: `1px solid ${colors.border}`, position: 'relative' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                          <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151' }}>{room}</Typography>
-                          <Tooltip title="Room options" arrow>
-                            <IconButton 
-                              size="small" 
-                              sx={{ color: colors.iconPrimary }} 
-                              onClick={(e) => handleRoomMenuClick(e, room)}
-                            >
-                              <MoreVertIcon sx={{ fontSize: 20 }}/>
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          {roomEquipment.length === 0 ? (
-                            <Typography sx={{ color: '#bbb', fontSize: 14, ml: 1 }}>No equipment in this room matches your search.</Typography>
-                          ) : (
-                            roomEquipment.map((eq, idx) => (
-                              <Box key={eq.id} sx={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'space-between', 
-                                p: 2, 
-                                borderRadius: 2, 
-                                bgcolor: '#fff', 
-                                border: `1px solid ${colors.border}`,
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
-                                transition: 'all 0.2s ease-in-out',
-                                cursor: 'pointer',
-                                '&:hover': {
-                                  boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
-                                  transform: 'translateY(-1px)',
-                                  bgcolor: '#f8fafc'
-                                }
-                              }}
-                              onClick={() => navigate(`/equipment/${eq.id}`)}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                                  {eq.photo ? (
-                                    <img src={`${API_BASE}${eq.photo}`} alt={eq.name} style={{ width: 56, height: 56, borderRadius: '8px', objectFit: 'cover' }} />
-                                  ) : (
-                                    <Box sx={{ width: 56, height: 56, borderRadius: '8px', bgcolor: colors.border, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                      {/* You can put an icon here if you want */}
-                                    </Box>
-                                  )}
-                                  <Box>
-                                    <Typography sx={{ fontWeight: 600, color: '#374151', fontSize: 15 }}>{eq.name}</Typography>
-                                    <Typography sx={{ fontSize: 13, color: '#6b7280' }}>
-                                      Type: {eq.type} {eq.code ? `| Serial Number: ${eq.code}` : ''}
-                                    </Typography>
+                // All Rooms: show all rooms, even if they don't have equipment
+                rooms.map(room => {
+                  const roomEquipment = searchedEquipment.filter(eq => eq.location === room);
+                  return (
+                    <Paper key={room} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2, bgcolor: colors.containerPaper, border: `1px solid ${colors.border}`, position: 'relative' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151' }}>{room}</Typography>
+                        <Tooltip title="Room options" arrow>
+                          <IconButton 
+                            size="small" 
+                            sx={{ color: colors.iconPrimary }} 
+                            onClick={(e) => handleRoomMenuClick(e, room)}
+                          >
+                            <MoreVertIcon sx={{ fontSize: 20 }}/>
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {roomEquipment.length === 0 ? (
+                          <Typography sx={{ color: '#bbb', fontSize: 14, ml: 1 }}>No equipment in this room matches your search.</Typography>
+                        ) : (
+                          roomEquipment.map((eq, idx) => (
+                            <Box key={eq.id} sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'space-between', 
+                              p: 2, 
+                              borderRadius: 2, 
+                              bgcolor: '#fff', 
+                              border: `1px solid ${colors.border}`,
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
+                              transition: 'all 0.2s ease-in-out',
+                              cursor: 'pointer',
+                              '&:hover': {
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
+                                transform: 'translateY(-1px)',
+                                bgcolor: '#f8fafc'
+                              }
+                            }}
+                            onClick={() => navigate(`/equipment/${eq.id}`)}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                                {eq.photo ? (
+                                  <img src={`${API_BASE}${eq.photo}`} alt={eq.name} style={{ width: 56, height: 56, borderRadius: '8px', objectFit: 'cover' }} />
+                                ) : (
+                                  <Box sx={{ width: 56, height: 56, borderRadius: '8px', bgcolor: colors.border, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    {/* You can put an icon here if you want */}
                                   </Box>
-                                </Box>
-                                <Box sx={{ display: 'flex', gap: 1 }}>
-                                  <Tooltip title="Edit" arrow>
-                                    <IconButton 
-                                      size="small" 
-                                      sx={{ color: colors.iconPrimary }} 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleEditClick(equipment.findIndex(e => e.id === eq.id));
-                                      }}>
-                                      <EditIcon sx={{ fontSize: 20 }}/>
-                                    </IconButton>
-                                  </Tooltip>
-                                  <Tooltip title="Delete" arrow>
-                                    <IconButton 
-                                      size="small" 
-                                      sx={{ color: '#e57373' }} 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteClick(equipment.findIndex(e => e.id === eq.id));
-                                      }}>
-                                      <DeleteIcon sx={{ fontSize: 20 }}/>
-                                    </IconButton>
-                                  </Tooltip>
+                                )}
+                                <Box>
+                                  <Typography sx={{ fontWeight: 600, color: '#374151', fontSize: 15 }}>{eq.name}</Typography>
+                                  <Typography sx={{ fontSize: 13, color: '#6b7280' }}>
+                                    Type: {eq.type} {eq.code ? `| Serial Number: ${eq.code}` : ''}
+                                  </Typography>
                                 </Box>
                               </Box>
-                            ))
-                          )}
-                        </Box>
-                      </Paper>
-                    )
-                  })
-                  .filter(Boolean)
+                              <Box sx={{ display: 'flex', gap: 1 }}>
+                                <Tooltip title="Edit" arrow>
+                                  <IconButton 
+                                    size="small" 
+                                    sx={{ color: colors.iconPrimary }} 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditClick(equipment.findIndex(e => e.id === eq.id));
+                                    }}>
+                                    <EditIcon sx={{ fontSize: 20 }}/>
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Delete" arrow>
+                                  <IconButton 
+                                    size="small" 
+                                    sx={{ color: '#e57373' }} 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteClick(equipment.findIndex(e => e.id === eq.id));
+                                    }}>
+                                    <DeleteIcon sx={{ fontSize: 20 }}/>
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            </Box>
+                          ))
+                        )}
+                      </Box>
+                    </Paper>
+                  )
+                })
               ) : (
                 // Single Room View
                 (() => {
@@ -740,6 +744,9 @@ export default function EquipmentPage() {
             )}
           </Box>
         </Box>
+
+
+
         {/* Dialogs and Snackbars */}
         <Dialog open={dialogOpen} onClose={handleDialogClose} PaperProps={{ sx: { borderRadius: 3, p: 1, minWidth: 420 } }}>
           <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>{editIndex !== null ? 'Edit Equipment' : 'Add Equipment'}</DialogTitle>
@@ -1191,6 +1198,8 @@ export default function EquipmentPage() {
             </Button>
           </DialogActions>
         </Dialog>
+
+
 
         <Snackbar open={snackbarOpen} autoHideDuration={4000} onClose={() => setSnackbarOpen(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
           <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
