@@ -9,6 +9,7 @@ import UploadIcon from '@mui/icons-material/Upload';
 import DownloadIcon from '@mui/icons-material/Download';
 import DescriptionIcon from '@mui/icons-material/Description';
 import BuildIcon from '@mui/icons-material/Build';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 const API_BASE = 'http://localhost:3001';
@@ -587,7 +588,9 @@ export default function LessonDetails() {
                             }
                           }}
                         >
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}
+                            onClick={() => navigate(`/lessons/${lessonId}/sop-builder?view=${sop.id}`)}
+                          >
                             <Box sx={{ 
                               color: colors.iconPrimary,
                               display: 'flex',
@@ -616,22 +619,22 @@ export default function LessonDetails() {
                           <Box sx={{ display: 'flex', gap: 1 }}>
                             {sop.type === 'builder-generated' ? (
                               <>
-                                <Tooltip title="View SOP" arrow>
+                                <Tooltip title="Download PDF" arrow>
+                                  <IconButton 
+                                    size="small" 
+                                    sx={{ color: colors.iconPrimary }} 
+                                    onClick={() => navigate(`/lessons/${lessonId}/sop-builder?view=${sop.id}&download=true`)}
+                                  >
+                                    <DownloadIcon sx={{ fontSize: 20 }}/>
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Edit SOP" arrow>
                                   <IconButton 
                                     size="small" 
                                     sx={{ color: colors.iconPrimary }} 
                                     onClick={() => navigate(`/lessons/${lessonId}/sop-builder?edit=${sop.id}`)}
                                   >
                                     <EditIcon sx={{ fontSize: 20 }}/>
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Download PDF" arrow>
-                                  <IconButton 
-                                    size="small" 
-                                    sx={{ color: colors.iconPrimary }} 
-                                    onClick={() => handleSopDownload(sop)}
-                                  >
-                                    <DownloadIcon sx={{ fontSize: 20 }}/>
                                   </IconButton>
                                 </Tooltip>
                               </>

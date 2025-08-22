@@ -2305,10 +2305,10 @@ app.post('/sop-documents/save', (req, res) => {
 app.put('/sop-documents/:sopId/update', (req, res) => {
   try {
     const { sopId } = req.params;
-    const { lessonId, sopData } = req.body;
+    const { lessonId, equipmentId, sopData } = req.body;
     
-    if (!lessonId || !sopData) {
-      return res.status(400).json({ success: false, message: 'Lesson ID and SOP data are required' });
+    if (!sopData) {
+      return res.status(400).json({ success: false, message: 'SOP data is required' });
     }
 
     const data = loadData();
@@ -2327,6 +2327,8 @@ app.put('/sop-documents/:sopId/update', (req, res) => {
       ...data.sopDocuments[sopIndex],
       name: sopData.title || 'Safe Operating Procedures',
       description: `SOP for ${sopData.equipmentName || 'equipment'}`,
+      lessonId: lessonId || data.sopDocuments[sopIndex].lessonId,
+      equipmentId: equipmentId || data.sopDocuments[sopIndex].equipmentId,
       sopData: sopData,
       updatedAt: new Date().toISOString()
     };
@@ -2337,6 +2339,171 @@ app.put('/sop-documents/:sopId/update', (req, res) => {
   } catch (error) {
     console.error('Error updating SOP:', error);
     res.status(500).json({ success: false, message: 'Failed to update SOP' });
+  }
+});
+
+// Equipment SOP Management Endpoints
+
+// Get SOP documents for specific equipment
+app.get('/equipment/:equipmentId/sops', (req, res) => {
+  try {
+    const { equipmentId } = req.params;
+    const data = loadData();
+    
+    if (!data.sopDocuments) {
+      return res.json([]);
+    }
+
+    // Find SOPs that are linked to this equipment
+    const equipmentSops = data.sopDocuments.filter(sop => 
+      sop.equipmentId === equipmentId || 
+      (sop.sopData && sop.sopData.equipmentName && 
+       data.equipment && data.equipment.find(eq => eq.id === equipmentId && eq.name === sop.sopData.equipmentName))
+    );
+
+    res.json(equipmentSops);
+  } catch (error) {
+    console.error('Error fetching equipment SOPs:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch equipment SOPs' });
+  }
+});
+
+// Save SOP created from SOP Builder for equipment
+app.post('/equipment/:equipmentId/sops', (req, res) => {
+  try {
+    const { equipmentId } = req.params;
+    const { sopData, lessonId } = req.body;
+    
+    if (!sopData) {
+      return res.status(400).json({ success: false, message: 'SOP data is required' });
+    }
+
+    const data = loadData();
+    
+    // Verify equipment exists
+    const equipment = data.equipment.find(eq => eq.id === equipmentId);
+    if (!equipment) {
+      return res.status(404).json({ success: false, message: 'Equipment not found' });
+    }
+
+    if (!data.sopDocuments) {
+      data.sopDocuments = [];
+    }
+
+    const newSop = {
+      id: `sop-${Date.now()}-${Math.round(Math.random() * 1E9)}`,
+      name: sopData.title || 'Safe Operating Procedures',
+      description: `SOP for ${sopData.equipmentName || equipment.name}`,
+      lessonId: lessonId || null,
+      equipmentId: equipmentId,
+      sopData: {
+        ...sopData,
+        room: equipment.location, // Automatically set room from equipment location
+        equipmentName: equipment.name // Ensure equipment name is set
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      type: 'builder-generated'
+    };
+
+    data.sopDocuments.push(newSop);
+    saveData(data);
+
+    res.json({ success: true, sop: newSop });
+  } catch (error) {
+    console.error('Error saving equipment SOP:', error);
+    res.status(500).json({ success: false, message: 'Failed to save equipment SOP' });
+  }
+});
+
+// Update SOP for equipment
+app.put('/equipment/:equipmentId/sops/:sopId', (req, res) => {
+  try {
+    const { equipmentId, sopId } = req.params;
+    const { sopData, lessonId } = req.body;
+    
+    if (!sopData) {
+      return res.status(400).json({ success: false, message: 'SOP data is required' });
+    }
+
+    const data = loadData();
+    
+    // Verify equipment exists
+    const equipment = data.equipment.find(eq => eq.id === equipmentId);
+    if (!equipment) {
+      return res.status(404).json({ success: false, message: 'Equipment not found' });
+    }
+
+    if (!data.sopDocuments) {
+      return res.status(404).json({ success: false, message: 'SOP not found' });
+    }
+
+    // Find SOP by ID, checking both equipmentId and lessonId cases
+    let sopIndex = data.sopDocuments.findIndex(sop => sop.id === sopId && sop.equipmentId === equipmentId);
+    
+    // If not found with equipmentId, check if it's a lesson SOP that needs to be converted
+    if (sopIndex === -1) {
+      sopIndex = data.sopDocuments.findIndex(sop => sop.id === sopId);
+      if (sopIndex === -1) {
+        return res.status(404).json({ success: false, message: 'SOP not found' });
+      }
+      // Convert lesson SOP to equipment SOP by adding equipmentId
+      data.sopDocuments[sopIndex].equipmentId = equipmentId;
+    }
+
+    // Update the SOP data
+    data.sopDocuments[sopIndex] = {
+      ...data.sopDocuments[sopIndex],
+      name: sopData.title || 'Safe Operating Procedures',
+      description: `SOP for ${sopData.equipmentName || equipment.name}`,
+      sopData: {
+        ...sopData,
+        room: equipment.location, // Automatically set room from equipment location
+        equipmentName: equipment.name // Ensure equipment name is set
+      },
+      updatedAt: new Date().toISOString()
+    };
+
+    saveData(data);
+
+    res.json({ success: true, sop: data.sopDocuments[sopIndex] });
+  } catch (error) {
+    console.error('Error updating equipment SOP:', error);
+    res.status(500).json({ success: false, message: 'Failed to update equipment SOP' });
+  }
+});
+
+// Delete SOP for equipment
+app.delete('/equipment/:equipmentId/sops/:sopId', (req, res) => {
+  try {
+    const { equipmentId, sopId } = req.params;
+    const data = loadData();
+    
+    if (!data.sopDocuments) {
+      return res.status(404).json({ success: false, message: 'SOP not found' });
+    }
+
+    // Find SOP by ID, checking both equipmentId and lessonId cases
+    let sopIndex = data.sopDocuments.findIndex(sop => sop.id === sopId && sop.equipmentId === equipmentId);
+    
+    // If not found with equipmentId, check if it's a lesson SOP that needs to be converted
+    if (sopIndex === -1) {
+      sopIndex = data.sopDocuments.findIndex(sop => sop.id === sopId);
+      if (sopIndex === -1) {
+        return res.status(404).json({ success: false, message: 'SOP not found' });
+      }
+      // Convert lesson SOP to equipment SOP by adding equipmentId
+      data.sopDocuments[sopIndex].equipmentId = equipmentId;
+    }
+
+    // Remove the SOP
+    data.sopDocuments.splice(sopIndex, 1);
+    saveData(data);
+
+    res.json({ success: true, message: 'SOP deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting equipment SOP:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete equipment SOP' });
   }
 });
 

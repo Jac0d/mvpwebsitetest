@@ -117,6 +117,18 @@
         "Metal Lathe": {
           "progress": 0,
           "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
+          "progress": 0,
+          "competent": false
         }
       },
       "tenant_id": 1
@@ -188,6 +200,18 @@
           "competent": false
         },
         "Metal Lathe": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
           "progress": 0,
           "competent": false
         }
@@ -269,6 +293,18 @@
           "competent": false
         },
         "Metal Lathe": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
           "progress": 0,
           "competent": false
         }
@@ -432,6 +468,18 @@
         "Metal Lathe": {
           "progress": 0,
           "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
+          "progress": 0,
+          "competent": false
         }
       },
       "tenant_id": 1
@@ -550,6 +598,18 @@
         "Metal Lathe": {
           "progress": 0,
           "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
+          "progress": 0,
+          "competent": false
         }
       },
       "tenant_id": 1
@@ -629,6 +689,18 @@
           "competent": false
         },
         "Metal Lathe": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
           "progress": 0,
           "competent": false
         }
@@ -810,6 +882,18 @@
         "Metal Lathe": {
           "progress": 0,
           "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
+          "progress": 0,
+          "competent": false
         }
       },
       "tenant_id": 1
@@ -899,6 +983,18 @@
         "Metal Lathe": {
           "progress": 0,
           "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
+          "progress": 0,
+          "competent": false
         }
       },
       "tenant_id": 1
@@ -978,6 +1074,18 @@
           "competent": false
         },
         "Metal Lathe": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
           "progress": 0,
           "competent": false
         }
@@ -1067,6 +1175,18 @@
           "competent": false
         },
         "Metal Lathe": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
           "progress": 0,
           "competent": false
         }
@@ -1190,6 +1310,18 @@
         "Metal Lathe": {
           "progress": 0,
           "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
+          "progress": 0,
+          "competent": false
         }
       },
       "tenant_id": 1
@@ -1261,6 +1393,18 @@
           "competent": false
         },
         "Metal Lathe": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
           "progress": 0,
           "competent": false
         }
@@ -1472,6 +1616,18 @@
         "Metal Lathe": {
           "progress": 0,
           "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
+          "progress": 0,
+          "competent": false
         }
       },
       "tenant_id": 1
@@ -1634,6 +1790,18 @@
         "Metal Lathe": {
           "progress": 0,
           "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
+          "progress": 0,
+          "competent": false
         }
       },
       "tenant_id": 1
@@ -1737,6 +1905,18 @@
           "competent": false
         },
         "Metal Lathe": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
           "progress": 0,
           "competent": false
         }
@@ -1860,6 +2040,18 @@
         "Metal Lathe": {
           "progress": 0,
           "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
+          "progress": 0,
+          "competent": false
         }
       },
       "tenant_id": 1
@@ -1949,6 +2141,18 @@
         "Metal Lathe": {
           "progress": 0,
           "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
+          "progress": 0,
+          "competent": false
         }
       },
       "tenant_id": 1
@@ -2020,6 +2224,18 @@
           "competent": false
         },
         "Metal Lathe": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
           "progress": 0,
           "competent": false
         }
@@ -2161,6 +2377,18 @@
         "Metal Lathe": {
           "progress": 0,
           "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
+          "progress": 0,
+          "competent": false
         }
       },
       "tenant_id": 1
@@ -2297,6 +2525,18 @@
           "competent": false
         },
         "Metal Lathe": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Workshop Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Essential Machine Safety": {
+          "progress": 0,
+          "competent": false
+        },
+        "Dust Hazards": {
           "progress": 0,
           "competent": false
         }
@@ -3587,29 +3827,6 @@
       "tenant_id": 1
     },
     {
-      "id": "12t2025jd",
-      "yearLevels": [
-        12
-      ],
-      "className": "Test",
-      "classCode": "12t2025jd",
-      "room": "Test",
-      "teachers": [
-        "jacob.drummond"
-      ],
-      "selectedLessons": [
-        "Essential Workshop Safety",
-        "Essential Machine Safety",
-        "Dust Hazards",
-        "Safety Signage",
-        "Buffing Machine",
-        "Air Compressor",
-        "Drill Press"
-      ],
-      "studentIds": [],
-      "tenant_id": 1
-    },
-    {
       "id": "7h2025jd",
       "yearLevels": [
         7
@@ -3809,7 +4026,8 @@
           "photos": [],
           "createdAt": "2025-07-28T11:36:38.045Z"
         }
-      ]
+      ],
+      "linkedLessonId": "1"
     },
     {
       "name": "Drill",
@@ -3874,6 +4092,30 @@
             "General Condition"
           ],
           "createdAt": "2025-07-23T11:50:32.043Z"
+        },
+        {
+          "id": "1755734015854jo850xkw4",
+          "inspectionDate": "2025-08-20",
+          "completedBy": "Jacob Drummond",
+          "nextInspectionDue": "2025-09-20",
+          "inspectionAreas": [
+            "General Condition",
+            "Guards & Safety Covers",
+            "Emergency Stop",
+            "Power Supply / Cables",
+            "Controls & Switches",
+            "Moving Parts / Belts",
+            "Fasteners / Fittings",
+            "Noise & Vibration",
+            "Signage & Labels",
+            "Filters / Vents",
+            "Function Test",
+            "Lockout / Tagout Items",
+            "Cleanliness",
+            "SOP Accessibility",
+            "Maintenance Log Updated"
+          ],
+          "createdAt": "2025-08-20T23:53:35.854Z"
         }
       ],
       "maintenanceRecords": [
@@ -3912,8 +4154,18 @@
           "nextServiceDue": "2026-01-23",
           "photos": [],
           "createdAt": "2025-07-23T11:50:55.911Z"
+        },
+        {
+          "id": "1755734056753zn1xs9gj8",
+          "serviceDate": "2025-08-20",
+          "workUndertaken": "General Maintenance",
+          "completedBy": "Joe Bloggs",
+          "nextServiceDue": "2026-02-20",
+          "photos": [],
+          "createdAt": "2025-08-20T23:54:16.753Z"
         }
-      ]
+      ],
+      "linkedLessonId": "8"
     },
     {
       "name": "Oven",
@@ -3944,7 +4196,7 @@
       "location": "Workshop",
       "purchasePrice": 10,
       "id": "SW96002",
-      "linkedLessonId": "20"
+      "linkedLessonId": "1"
     },
     {
       "name": "Blender",
@@ -4009,6 +4261,15 @@
       "purchasePrice": 100,
       "id": "CSW67079",
       "linkedLessonId": "44"
+    },
+    {
+      "name": "Buffer Wheel",
+      "type": "Machine",
+      "code": "12348hl ",
+      "location": "Workshop",
+      "purchasePrice": 1000,
+      "id": "BWW94179",
+      "linkedLessonId": "2"
     }
   ],
   "rooms": [
@@ -4869,6 +5130,18 @@
         "title": "Equipment Untagged",
         "content": "Equipment Untagged on 07/08/2025 • Completed by: Suzie Barry • Steps completed: Perform the required maintenance checks and/or cleaning process, Ensure all guards and protective devices are reinstated, Check that all tools and/or cleaning products are removed from around the machine, Remove lock/s, lockout devices and tag/s, Reconnect power source/s, Ensure everyone is clear of the machine and start machine • Notes:",
         "createdAt": "2025-08-07T11:38:28.164Z"
+      },
+      {
+        "id": "1755733874872",
+        "title": "Equipment Tagged Out",
+        "content": "Equipment Tagged Out on 20/08/2025 • Completed by: Jacob Drummond • Steps completed: Ensure the machine is switched off, Switch off the power source/s at the isolating control/s or unplug electrical lead from the GPO, Apply lock to the isolation control or to electrical plug & attach suitable tag/s, Test equipment control buttons to ensure power has been disconnected • Reason: Air Lead Broken",
+        "createdAt": "2025-08-20T23:51:14.872Z"
+      },
+      {
+        "id": "1755733915389",
+        "title": "Equipment Untagged",
+        "content": "Equipment Untagged on 22/08/2025 • Completed by: Jacob Drummond • Steps completed: Perform the required maintenance checks and/or cleaning process, Ensure all guards and protective devices are reinstated, Check that all tools and/or cleaning products are removed from around the machine, Remove lock/s, lockout devices and tag/s, Reconnect power source/s, Ensure everyone is clear of the machine and start machine • Notes: Air Lead fixed",
+        "createdAt": "2025-08-20T23:51:55.389Z"
       }
     ],
     "TW78863": [
@@ -4907,6 +5180,18 @@
         "title": "Equipment Returned",
         "content": "Equipment returned on 2025-07-29 • Previously lent to: Jon • Due back: 2025-07-30",
         "createdAt": "2025-07-29T11:02:35.069Z"
+      },
+      {
+        "id": "1755733975968",
+        "title": "Equipment Lent",
+        "content": "Equipment lent on 20/08/2025 • Lent to: Steve Drummond • Due back: 21/08/2025 • Notes: Notes",
+        "createdAt": "2025-08-20T23:52:55.968Z"
+      },
+      {
+        "id": "1755733989062",
+        "title": "Equipment Returned",
+        "content": "Equipment returned on 2025-08-20 • Previously lent to: Steve Drummond • Due back: 2025-08-21",
+        "createdAt": "2025-08-20T23:53:09.062Z"
       }
     ],
     "SSW68436": [
@@ -5240,11 +5525,77 @@
           "1755661684671",
           "1755661684679",
           "1755661684675",
-          "1755661684656"
+          "1755661684656",
+          "1755687386190",
+          "1755661684663"
         ]
       },
       "createdAt": "2025-08-20T10:56:43.548Z",
-      "updatedAt": "2025-08-20T10:56:43.548Z",
+      "updatedAt": "2025-08-20T11:53:03.536Z",
+      "type": "builder-generated"
+    },
+    {
+      "id": "sop-1755862778642-693390742",
+      "name": "Safe Operating Procedures for Air Compressor",
+      "description": "SOP for Air Compressor",
+      "lessonId": null,
+      "equipmentId": "KW19925",
+      "sopData": {
+        "schoolName": "",
+        "schoolLogo": "",
+        "title": "Safe Operating Procedures for Air Compressor",
+        "room": "Workshop",
+        "dateOfReview": "",
+        "reviewedBy": "",
+        "nextReviewDue": "",
+        "equipmentName": "Air Compressor",
+        "caution": "Handle compressed air safely – misuse can cause harm",
+        "preOperationalChecks": [
+          "Ensure the work area is well ventilated and clear of obstructions",
+          "Inspect air hoses and electrical cords for damage; ensure they do not present a hazard",
+          "Verify that all protective covers, including belt and pulley cover, are securely in place",
+          "Familiarise yourself with the ON/OFF (I/O) switch",
+          "Confirm the pressure regulator is set correctly for the task",
+          "Check the oil level via the sight glass",
+          "Ensure the pressure vessel has been drained of condensation and maintained",
+          "Confirm the pressure gauge is present and functioning"
+        ],
+        "operationalChecks": [
+          "Ensure all attachments are in good condition before use",
+          "Securely hold the air hose and tool when attaching and disconnecting tools",
+          "Check the compressor regularly, noting pressure increase and cut-out/cut-in pressure",
+          "Listen for any air leaks: stop work and report if found",
+          "Adjust pressure regulator to suit work requirements – discuss with your teacher",
+          "Release air from system before disconnecting hoses",
+          "Turn off and disconnect air hoses and electrical leads after use",
+          "Never leave air compressor and equipment unattended"
+        ],
+        "housekeeping": [
+          "Leave the work area clean and safe, remove waste and drain condensation from compressor",
+          "Coil air hoses and electrical leads in large loops for storage"
+        ],
+        "potentialHazards": [
+          "Material blown under pressure",
+          "Unrestrained air hose whipping around",
+          "Compressed air",
+          "Slips, trips and falls",
+          "Excessive noise"
+        ],
+        "notAllowed": [
+          "Do not use compressed air to clean off clothes, workbenches or floor surfaces",
+          "Never direct compressed air at your body or others as it will cause injury"
+        ],
+        "selectedPpeIcons": [
+          "1755662179310",
+          "1755661684668",
+          "1755661684679",
+          "1755661684675",
+          "1755661684686",
+          "1755661684684"
+        ]
+      },
+      "createdAt": "2025-08-22T11:39:38.642Z",
+      "updatedAt": "2025-08-22T11:39:38.642Z",
       "type": "builder-generated"
     }
   ]

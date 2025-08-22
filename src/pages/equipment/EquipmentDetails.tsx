@@ -31,6 +31,7 @@ import HandshakeIcon from '@mui/icons-material/Handshake';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export interface Equipment {
@@ -1843,6 +1844,70 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
     setPendingLendData(null);
   };
 
+  // SOP handlers
+  const handleCreateSop = () => {
+    if (equipmentItem?.id) {
+      navigate(`/equipment/${equipmentItem.id}/sop-builder`);
+    }
+  };
+
+  const handleSopClick = (sop: any) => {
+    setSelectedSop(sop);
+    setSopReviewData({
+      schoolName: '',
+      dateOfReview: new Date().toISOString().split('T')[0],
+      reviewedBy: '',
+      nextReviewDue: ''
+    });
+    setSopReviewDialogOpen(true);
+  };
+
+  const handleSopDownload = (sop: any) => {
+    const params = new URLSearchParams({
+      view: sop.id,
+      download: 'true',
+      schoolName: sopReviewData.schoolName,
+      dateOfReview: sopReviewData.dateOfReview,
+      reviewedBy: sopReviewData.reviewedBy,
+      nextReviewDue: sopReviewData.nextReviewDue
+    });
+    
+    navigate(`/lessons/${linkedLesson.id}/sop-builder?${params.toString()}`);
+    setSopReviewDialogOpen(false);
+  };
+
+  const handleSopView = (sop: any) => {
+    const params = new URLSearchParams({
+      view: sop.id,
+      schoolName: sopReviewData.schoolName,
+      dateOfReview: sopReviewData.dateOfReview,
+      reviewedBy: sopReviewData.reviewedBy,
+      nextReviewDue: sopReviewData.nextReviewDue
+    });
+    
+    navigate(`/lessons/${linkedLesson.id}/sop-builder?${params.toString()}`);
+    setSopReviewDialogOpen(false);
+  };
+
+  const handleCreateNewSop = () => {
+    const params = new URLSearchParams({
+      ...(selectedSop && { loadTemplate: 'true', selectedSopId: selectedSop.id }),
+      schoolName: sopReviewData.schoolName,
+      dateOfReview: sopReviewData.dateOfReview,
+      reviewedBy: sopReviewData.reviewedBy,
+      nextReviewDue: sopReviewData.nextReviewDue
+    });
+    
+    navigate(`/lessons/${linkedLesson.id}/sop-builder?${params.toString()}`);
+    setSopReviewDialogOpen(false);
+  };
+
+  const handleCreateFromTemplate = (templateSop: any) => {
+    setSelectedSop(templateSop);
+    setSopSelectionDialogOpen(false);
+    setSopReviewDialogOpen(true);
+  };
+
   const proceedWithLending = (lendData: any) => {
     if (!equipmentItem?.id) {
       setLendError('Equipment not found.');
@@ -1900,6 +1965,49 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
         showNotification('Failed to lend equipment.', 'error');
       });
   };
+
+  // SOP state
+  const [sopFiles, setSopFiles] = useState<any[]>([]);
+  const [lessonSopTemplates, setLessonSopTemplates] = useState<any[]>([]);
+  const [sopReviewDialogOpen, setSopReviewDialogOpen] = useState(false);
+  const [sopSelectionDialogOpen, setSopSelectionDialogOpen] = useState(false);
+  const [selectedSop, setSelectedSop] = useState<any>(null);
+  const [sopReviewData, setSopReviewData] = useState({
+    schoolName: '',
+    dateOfReview: '',
+    reviewedBy: '',
+    nextReviewDue: ''
+  });
+
+  // Fetch SOP documents for this equipment (not the lesson)
+  useEffect(() => {
+    if (equipmentItem?.id) {
+      fetch(`${API_BASE}/equipment/${equipmentItem.id}/sops`)
+        .then(res => res.json())
+        .then(data => setSopFiles(data))
+        .catch(error => {
+          console.error('Error fetching equipment SOPs:', error);
+          setSopFiles([]);
+        });
+    } else {
+      setSopFiles([]);
+    }
+  }, [equipmentItem?.id]);
+
+  // Fetch lesson SOP templates for selection
+  useEffect(() => {
+    if (linkedLesson?.id) {
+      fetch(`${API_BASE}/sop-documents/lesson/${linkedLesson.id}`)
+        .then(res => res.json())
+        .then(data => setLessonSopTemplates(data))
+        .catch(error => {
+          console.error('Error fetching lesson SOP templates:', error);
+          setLessonSopTemplates([]);
+        });
+    } else {
+      setLessonSopTemplates([]);
+    }
+  }, [linkedLesson?.id]);
 
   if (!equipmentItem) {
     return (
@@ -2670,14 +2778,136 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                     <SecurityIcon sx={{ color: colors.iconPrimary }} />
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>Safe Operating Procedures (SOPs)</Typography>
                   </Box>
-                  <Button {...buttonStyles.primary} size="small" startIcon={<AddIcon />}>
-                    Add SOP
-                  </Button>
+                  {linkedLesson && (
+                    <Button 
+                      {...buttonStyles.primary} 
+                      size="small" 
+                      startIcon={<BuildIcon />}
+                      onClick={handleCreateSop}
+                    >
+                      Create SOP
+                    </Button>
+                  )}
                 </Box>
                 <Box sx={{ minHeight: 80, bgcolor: colors.containerPaper, borderRadius: 2, p: 2, border: `1px solid ${colors.border}` }}>
-                  <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
-                    No SOPs uploaded yet. Click "Add SOP" to upload safety procedures and operating instructions.
-                  </Typography>
+                  {!linkedLesson ? (
+                    <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
+                      Link a lesson to this equipment to create SOPs with pre-filled content from lesson SOPs.
+                    </Typography>
+                  ) : sopFiles.length > 0 ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {sopFiles.map((sop) => (
+                        <Paper
+                          key={sop.id}
+                          elevation={0}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            border: `1px solid ${colors.border}`,
+                            bgcolor: '#fff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: 2,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
+                            transition: 'all 0.2s ease-in-out',
+                            cursor: 'pointer',
+                            '&:hover': {
+                              boxShadow: '0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.12)',
+                              transform: 'translateY(-1px)'
+                            }
+                          }}
+                          onClick={() => handleSopClick(sop)}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                            <Box sx={{ 
+                              color: colors.iconPrimary,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: 24
+                            }}>
+                              <DescriptionIcon />
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography sx={{ fontWeight: 600, color: '#374151', fontSize: 15 }}>
+                                {sop.name}
+                              </Typography>
+                              <Typography sx={{ fontSize: 13, color: '#6b7280' }}>
+                                {sop.description || 'No description'}
+                              </Typography>
+                              <Typography sx={{ fontSize: 12, color: '#9ca3af' }}>
+                                {sop.type === 'builder-generated' ? (
+                                  `Created: ${new Date(sop.createdAt).toLocaleDateString()} • Builder Generated`
+                                ) : (
+                                  `Uploaded: ${new Date(sop.uploadedAt).toLocaleDateString()} • ${sop.fileType === 'application/pdf' ? 'PDF' : 'Word Document'}`
+                                )}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Box sx={{ display: 'flex', gap: 1 }}>
+                            {sop.type === 'builder-generated' ? (
+                              <>
+                                <Tooltip title="Edit SOP" arrow>
+                                  <IconButton 
+                                    size="small" 
+                                    sx={{ color: colors.iconPrimary }} 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/equipment/${equipmentItem.id}/sop-builder?edit=${sop.id}`);
+                                    }}
+                                  >
+                                    <EditIcon sx={{ fontSize: 20 }}/>
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="View SOP" arrow>
+                                  <IconButton 
+                                    size="small" 
+                                    sx={{ color: colors.iconPrimary }} 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSopClick(sop);
+                                    }}
+                                  >
+                                    <VisibilityIcon sx={{ fontSize: 20 }}/>
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Download PDF" arrow>
+                                  <IconButton 
+                                    size="small" 
+                                    sx={{ color: colors.iconPrimary }} 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSopClick(sop);
+                                    }}
+                                  >
+                                    <DownloadIcon sx={{ fontSize: 20 }}/>
+                                  </IconButton>
+                                </Tooltip>
+                              </>
+                            ) : (
+                              <Tooltip title="Generate SOP" arrow>
+                                <IconButton 
+                                  size="small" 
+                                  sx={{ color: colors.iconPrimary }} 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSopClick(sop);
+                                  }}
+                                >
+                                  <DownloadIcon sx={{ fontSize: 20 }}/>
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </Box>
+                        </Paper>
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
+                      No SOP documents created yet for {linkedLesson.name}. Click "Create SOP" to create a new SOP with review information.
+                    </Typography>
+                  )}
                 </Box>
               </Paper>
             </div>
@@ -4839,6 +5069,165 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
             >
               Lend Equipment
             </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* SOP Selection Dialog */}
+        <Dialog open={sopSelectionDialogOpen} onClose={() => setSopSelectionDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>
+            Select SOP Template
+          </DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Typography sx={{ fontSize: 16, color: '#374151', mb: 2 }}>
+              {lessonSopTemplates.length} SOP template{lessonSopTemplates.length !== 1 ? 's' : ''} found for {linkedLesson?.name}. Please select which template you'd like to use as a base for your new SOP.
+            </Typography>
+            
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {lessonSopTemplates.map((sop) => (
+                <Paper
+                  key={sop.id}
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    border: `1px solid ${colors.border}`,
+                    bgcolor: '#fff',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      transform: 'translateY(-1px)',
+                    }
+                  }}
+                  onClick={() => handleCreateFromTemplate(sop)}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ 
+                      color: colors.iconPrimary,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 24
+                    }}>
+                      <DescriptionIcon />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography sx={{ fontWeight: 600, color: '#374151', fontSize: 15 }}>
+                        {sop.name}
+                      </Typography>
+                      <Typography sx={{ fontSize: 13, color: '#6b7280' }}>
+                        {sop.description || 'No description'}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: '#9ca3af' }}>
+                        {sop.type === 'builder-generated' ? (
+                          `Created: ${new Date(sop.createdAt).toLocaleDateString()} • Builder Generated`
+                        ) : (
+                          `Uploaded: ${new Date(sop.uploadedAt).toLocaleDateString()} • ${sop.fileType === 'application/pdf' ? 'PDF' : 'Word Document'}`
+                        )}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Paper>
+              ))}
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button {...buttonStyles.cancel} onClick={() => setSopSelectionDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              {...buttonStyles.secondary}
+              onClick={() => {
+                setSopSelectionDialogOpen(false);
+                setSopReviewDialogOpen(true);
+              }}
+            >
+              Create Blank SOP
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* SOP Review Dialog */}
+        <Dialog open={sopReviewDialogOpen} onClose={() => setSopReviewDialogOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>
+            {selectedSop ? 'SOP Review Information' : 'Create New SOP'}
+          </DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Typography sx={{ fontSize: 16, color: '#374151', mb: 2 }}>
+              {selectedSop 
+                ? 'Please provide review information for the SOP document.'
+                : 'Please provide review information for the new SOP document.'
+              }
+            </Typography>
+            
+            <TextField
+              label="School Name"
+              value={sopReviewData.schoolName}
+              onChange={(e) => setSopReviewData(prev => ({ ...prev, schoolName: e.target.value }))}
+              fullWidth
+              size="small"
+              placeholder="Enter school name"
+            />
+            
+            <TextField
+              label="Date of Review"
+              type="date"
+              value={sopReviewData.dateOfReview}
+              onChange={(e) => setSopReviewData(prev => ({ ...prev, dateOfReview: e.target.value }))}
+              fullWidth
+              size="small"
+              InputLabelProps={{ shrink: true }}
+            />
+            
+            <TextField
+              label="Reviewed By"
+              value={sopReviewData.reviewedBy}
+              onChange={(e) => setSopReviewData(prev => ({ ...prev, reviewedBy: e.target.value }))}
+              fullWidth
+              size="small"
+              placeholder="Enter reviewer name"
+            />
+            
+            <TextField
+              label="Next Review Due"
+              type="date"
+              value={sopReviewData.nextReviewDue}
+              onChange={(e) => setSopReviewData(prev => ({ ...prev, nextReviewDue: e.target.value }))}
+              fullWidth
+              size="small"
+              InputLabelProps={{ shrink: true }}
+            />
+          </DialogContent>
+          <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
+            <Button {...buttonStyles.cancel} onClick={() => setSopReviewDialogOpen(false)}>
+              Cancel
+            </Button>
+            {selectedSop ? (
+              <>
+                <Button 
+                  {...buttonStyles.secondary}
+                  onClick={() => handleSopView(selectedSop)}
+                  startIcon={<VisibilityIcon />}
+                >
+                  View SOP
+                </Button>
+                <Button 
+                  {...buttonStyles.primary}
+                  onClick={() => handleSopDownload(selectedSop)}
+                  startIcon={<DownloadIcon />}
+                >
+                  Download PDF
+                </Button>
+              </>
+            ) : (
+              <Button 
+                {...buttonStyles.primary}
+                onClick={handleCreateNewSop}
+                startIcon={<BuildIcon />}
+              >
+                Create SOP
+              </Button>
+            )}
           </DialogActions>
         </Dialog>
 

@@ -12,6 +12,7 @@ import { EquipmentDetails } from './pages/equipment/EquipmentDetails';
 import LessonsPage from './pages/lessons/LessonsPage';
 import LessonDetails from './pages/lessons/LessonDetails';
 import SopBuilder from './pages/lessons/SopBuilder';
+import EquipmentSopBuilder from './pages/equipment/EquipmentSopBuilder';
 import ButtonPreview from './pages/ButtonStylesPreview';
 import ThemeSelector from './pages/ThemeSelector';
 import { Student } from './types/Student';
@@ -92,6 +93,7 @@ export default function App() {
           <Route path="/lessons/:lessonId/sop-builder" element={<SopBuilder />} />
           <Route path="/equipment" element={<EquipmentPage />} />
           <Route path="/equipment/:id" element={<EquipmentDetails equipment={equipment} />} />
+          <Route path="/equipment/:equipmentId/sop-builder" element={<EquipmentSopBuilder />} />
           <Route path="/classes/:id" element={<ClassDetails classes={classes} setClasses={setClasses} students={students} setStudents={setStudents} />} />
           <Route path="/button-styles" element={<ButtonPreview />} />
           <Route path="/theme-settings" element={<ThemeSelector />} />
