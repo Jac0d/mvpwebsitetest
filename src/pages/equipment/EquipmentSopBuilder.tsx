@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Box, 
   Typography, 
@@ -18,10 +18,6 @@ import {
   Alert,
   Snackbar,
   Link,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   FormHelperText,
   Collapse,
   Card,
@@ -34,7 +30,6 @@ import SaveIcon from '@mui/icons-material/Save';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import WarningIcon from '@mui/icons-material/Warning';
 import SecurityIcon from '@mui/icons-material/Security';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import HearingIcon from '@mui/icons-material/Hearing';
 import PersonIcon from '@mui/icons-material/Person';
 import BlockIcon from '@mui/icons-material/Block';
@@ -43,7 +38,6 @@ import InfoIcon from '@mui/icons-material/Info';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import IconManager from '../lessons/IconManager';
 import html2pdf from 'html2pdf.js';
 
 const API_BASE = 'http://localhost:3001';
@@ -70,6 +64,7 @@ export default function EquipmentSopBuilder() {
   const { colors, buttonStyles } = useThemedStyles();
   const { equipmentId } = useParams<{ equipmentId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [sopData, setSopData] = useState({
     schoolName: '',
@@ -91,10 +86,12 @@ export default function EquipmentSopBuilder() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info'>('success');
-  const [iconManagerOpen, setIconManagerOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [safetyIcons, setSafetyIcons] = useState<SafetyIcon[]>([]);
-  const [isViewMode, setIsViewMode] = useState(false);
+  const isViewMode = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.has('view');
+  }, [location.search]);
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
     basicInfo: true,
     safetyChecks: false,
@@ -129,14 +126,28 @@ export default function EquipmentSopBuilder() {
             const editSopId = urlParams.get('edit');
             const viewSopId = urlParams.get('view');
             const download = urlParams.get('download');
-            
-            if (viewSopId) {
-              setIsViewMode(true);
-            }
+            const loadTemplate = urlParams.get('loadTemplate');
+            const selectedSopId = urlParams.get('selectedSopId');
+            const schoolName = urlParams.get('schoolName');
+            const dateOfReview = urlParams.get('dateOfReview');
+            const reviewedBy = urlParams.get('reviewedBy');
+            const nextReviewDue = urlParams.get('nextReviewDue');
 
             if (download) {
               setTimeout(handleDownloadPDF, 1000);
             }
+
+            const applyReviewParams = () => {
+              if (schoolName || dateOfReview || reviewedBy || nextReviewDue) {
+                setSopData(prev => ({
+                  ...prev,
+                  ...(schoolName && { schoolName }),
+                  ...(dateOfReview && { dateOfReview }),
+                  ...(reviewedBy && { reviewedBy }),
+                  ...(nextReviewDue && { nextReviewDue }),
+                }));
+              }
+            };
 
             if (editSopId || viewSopId) {
               const sopId = editSopId || viewSopId;
@@ -148,11 +159,32 @@ export default function EquipmentSopBuilder() {
                   if (existingSop && existingSop.sopData) {
                     setSopData(prev => ({
                       ...prev,
-                      ...existingSop.sopData
+                      ...existingSop.sopData,
+                      title: `Safe Operating Procedures for ${foundEquipment.name}`,
+                      equipmentName: foundEquipment.name,
+                      room: foundEquipment.location
                     }));
+                    applyReviewParams();
                   }
                 })
                 .catch(error => console.error('Error fetching existing SOP:', error));
+            } else if (loadTemplate && selectedSopId) {
+              fetch(`${API_BASE}/sop-documents`)
+                .then(res => res.json())
+                .then(data => {
+                  const templateSop = data.find((sop: any) => sop.id === selectedSopId);
+                  if (templateSop && templateSop.sopData) {
+                    setSopData(prev => ({
+                      ...prev,
+                      ...templateSop.sopData,
+                      title: `Safe Operating Procedures for ${foundEquipment.name}`,
+                      equipmentName: foundEquipment.name,
+                      room: foundEquipment.location
+                    }));
+                    applyReviewParams();
+                  }
+                })
+                .catch(error => console.error('Error fetching template SOP:', error));
             } else {
               // If creating a new SOP, check for linked lesson SOP to copy from
               fetch(`${API_BASE}/equipment/${equipmentId}/lessons`)
@@ -177,6 +209,7 @@ export default function EquipmentSopBuilder() {
                             };
                             setCopiedSopData(copiedData);
                             setCopiedContentDialogOpen(true);
+                            applyReviewParams();
                           }
                         }
                       })
@@ -185,6 +218,7 @@ export default function EquipmentSopBuilder() {
                 })
                 .catch(error => console.error('Error fetching linked lesson:', error));
             }
+            applyReviewParams();
           }
         })
         .catch(error => console.error('Error fetching equipment:', error));
@@ -195,7 +229,7 @@ export default function EquipmentSopBuilder() {
         .then(data => setSafetyIcons(data))
         .catch(error => console.error('Error fetching safety icons:', error));
     }
-  }, [equipmentId]);
+  }, [equipmentId, location.search]);
 
   // Validation function
   const validateSopData = () => {
@@ -231,7 +265,7 @@ export default function EquipmentSopBuilder() {
 
   // Enhanced PDF generation
   const handleDownloadPDF = async () => {
-    if (!validateSopData()) {
+    if (!isViewMode && !validateSopData()) {
       setSnackbarMessage('Please fix validation errors before generating PDF');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
@@ -257,7 +291,7 @@ export default function EquipmentSopBuilder() {
 
       const opt = {
         margin: [10, 10, 10, 10],
-        filename: `SOP_${sopData.equipmentName || 'Document'}.pdf`,
+        filename: `${(sopData.equipmentName || 'equipment').replace(/[^a-z0-9]+/gi, '_')}_SOP.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
           scale: 2,
@@ -284,13 +318,6 @@ export default function EquipmentSopBuilder() {
       setSnackbarMessage('PDF downloaded successfully!');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
-      
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('download')) {
-        setTimeout(() => {
-          navigate(`/equipment/${equipmentId}`);
-        }, 1500);
-      }
     } catch (error) {
       console.error('PDF generation error:', error);
       setSnackbarMessage('Error generating PDF. Please try again.');
@@ -340,9 +367,6 @@ export default function EquipmentSopBuilder() {
         setSnackbarMessage(editSopId ? 'SOP updated successfully!' : 'SOP saved successfully!');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
-        setTimeout(() => {
-          navigate(`/equipment/${equipmentId}`);
-        }, 1500);
       } else {
         setSnackbarMessage('Failed to save SOP: ' + (data.message || 'Unknown error'));
         setSnackbarSeverity('error');
@@ -361,6 +385,43 @@ export default function EquipmentSopBuilder() {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section]
+    }));
+  };
+
+  const formatDateForDisplay = (value: string | undefined) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString('en-GB');
+  };
+
+  const addItemToArray = (arrayName: keyof typeof sopData, item: string) => {
+    if (item.trim()) {
+      setSopData(prev => ({
+        ...prev,
+        [arrayName]: [...(prev[arrayName] as string[]), item.trim()]
+      }));
+      if (validationErrors[arrayName]) {
+        setValidationErrors(prevErrors => {
+          const newErrors = { ...prevErrors };
+          delete newErrors[arrayName];
+          return newErrors;
+        });
+      }
+    }
+  };
+
+  const removeItemFromArray = (arrayName: keyof typeof sopData, index: number) => {
+    setSopData(prev => ({
+      ...prev,
+      [arrayName]: (prev[arrayName] as string[]).filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateItemInArray = (arrayName: keyof typeof sopData, index: number, value: string) => {
+    setSopData(prev => ({
+      ...prev,
+      [arrayName]: (prev[arrayName] as string[]).map((item, i) => (i === index ? value : item))
     }));
   };
 
@@ -479,12 +540,6 @@ export default function EquipmentSopBuilder() {
                     onClick={handleSave}
                   >
                     Save SOP
-                  </Button>
-                  <Button
-                    {...buttonStyles.secondary}
-                    onClick={() => setIconManagerOpen(true)}
-                  >
-                    Manage Icons
                   </Button>
                 </>
               )}
@@ -823,7 +878,7 @@ export default function EquipmentSopBuilder() {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 10 }}>
-                      Date of Review: {sopData.dateOfReview || 'Date'}
+                      Date of Review: {formatDateForDisplay(sopData.dateOfReview) || 'Date'}
                     </Typography>
                   </Box>
                   <Box>
@@ -833,7 +888,7 @@ export default function EquipmentSopBuilder() {
                   </Box>
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 10 }}>
-                      Next Review Due: {sopData.nextReviewDue || 'Due Date'}
+                      Next Review Due: {formatDateForDisplay(sopData.nextReviewDue) || 'Due Date'}
                     </Typography>
                   </Box>
                   <Box>
@@ -876,17 +931,6 @@ export default function EquipmentSopBuilder() {
               {snackbarMessage}
             </Alert>
           </Snackbar>
-
-                     <IconManager 
-             open={iconManagerOpen}
-             onClose={() => setIconManagerOpen(false)}
-             onIconSelect={(icon) => {
-               const newSelected = sopData.selectedPpeIcons.includes(icon.id)
-                 ? sopData.selectedPpeIcons.filter(id => id !== icon.id)
-                 : [...sopData.selectedPpeIcons, icon.id];
-               setSopData(prev => ({ ...prev, selectedPpeIcons: newSelected }));
-             }}
-           />
 
            {/* Copied Content Dialog */}
            <Dialog 
@@ -941,23 +985,603 @@ export default function EquipmentSopBuilder() {
              </DialogContent>
              <DialogActions>
                <Button 
+                {...buttonStyles.secondary}
                  onClick={handleRejectCopiedContent}
-                 variant="outlined"
-                 color="secondary"
                >
                  Start Fresh
                </Button>
                <Button 
+                {...buttonStyles.primary}
                  onClick={handleAcceptCopiedContent}
-                 variant="contained"
-                 color="primary"
                >
                  Copy Content
                </Button>
              </DialogActions>
            </Dialog>
 
-           {/* Edit Dialog would go here - similar to the lesson SOP builder */}
+          {/* Edit SOP Content Dialog */}
+          <Dialog 
+            open={editDialogOpen} 
+            onClose={() => setEditDialogOpen(false)}
+            maxWidth="lg"
+            fullWidth
+          >
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6">Edit SOP Content</Typography>
+              <Button
+                {...buttonStyles.secondary}
+                size="small"
+                onClick={() => {
+                  if (validateSopData()) {
+                    setEditDialogOpen(false);
+                  } else {
+                    setSnackbarMessage('Please fix validation errors before closing');
+                    setSnackbarSeverity('error');
+                    setSnackbarOpen(true);
+                  }
+                }}
+              >
+                Save & Close
+              </Button>
+            </DialogTitle>
+            <DialogContent sx={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 1 }}>
+                
+                {/* Basic Information Section */}
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="h6">Basic Information</Typography>
+                      <IconButton onClick={() => toggleSection('basicInfo')}>
+                        {expandedSections.basicInfo ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      </IconButton>
+                    </Box>
+                    <Collapse in={expandedSections.basicInfo}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <TextField
+                          label="Equipment Name"
+                          value={sopData.equipmentName}
+                          onChange={(e) => setSopData(prev => ({ 
+                            ...prev, 
+                            equipmentName: e.target.value,
+                            title: `Safe Operating Procedures for ${e.target.value}`
+                          }))}
+                          fullWidth
+                          error={!!validationErrors.equipmentName}
+                          helperText={validationErrors.equipmentName}
+                          required
+                        />
+                        <TextField
+                          label="Room/Location"
+                          value={sopData.room}
+                          onChange={(e) => setSopData(prev => ({ ...prev, room: e.target.value }))}
+                          fullWidth
+                        />
+                        <TextField
+                          label="Caution Statement"
+                          multiline
+                          rows={2}
+                          value={sopData.caution}
+                          onChange={(e) => setSopData(prev => ({ ...prev, caution: e.target.value }))}
+                          fullWidth
+                          error={!!validationErrors.caution}
+                          helperText={validationErrors.caution}
+                          required
+                        />
+                      </Box>
+                    </Collapse>
+                  </CardContent>
+                </Card>
+
+                {/* PPE Icons Section */}
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="h6">Required PPE Icons</Typography>
+                      <IconButton onClick={() => toggleSection('ppe')}>
+                        {expandedSections.ppe ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      </IconButton>
+                    </Box>
+                    <Collapse in={expandedSections.ppe}>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          Select the required personal protective equipment icons for this SOP
+                        </Typography>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 1 }}>
+                          {safetyIcons.map((icon) => (
+                            <Box
+                              key={icon.id}
+                              sx={{
+                                border: `2px solid ${sopData.selectedPpeIcons.includes(icon.id) ? colors.primary : colors.border}`,
+                                borderRadius: 1,
+                                p: 1,
+                                cursor: 'pointer',
+                                bgcolor: sopData.selectedPpeIcons.includes(icon.id) ? `${colors.primary}20` : 'transparent',
+                                '&:hover': { bgcolor: `${colors.primary}10` },
+                                transition: 'all 0.2s ease'
+                              }}
+                              onClick={() => {
+                                const newSelected = sopData.selectedPpeIcons.includes(icon.id)
+                                  ? sopData.selectedPpeIcons.filter(id => id !== icon.id)
+                                  : [...sopData.selectedPpeIcons, icon.id];
+                                setSopData(prev => ({ ...prev, selectedPpeIcons: newSelected }));
+                                if (validationErrors.selectedPpeIcons) {
+                                  setValidationErrors(prevErrors => {
+                                    const newErrors = { ...prevErrors };
+                                    delete newErrors.selectedPpeIcons;
+                                    return newErrors;
+                                  });
+                                }
+                              }}
+                            >
+                              <img 
+                                src={`${API_BASE}${icon.path}`}
+                                alt={icon.name}
+                                style={{ width: '50px', height: '50px', objectFit: 'contain', marginBottom: '4px' }}
+                              />
+                              <Typography variant="caption" sx={{ fontSize: '10px', display: 'block', textAlign: 'center' }}>
+                                {icon.name}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                        {validationErrors.selectedPpeIcons && (
+                          <FormHelperText error sx={{ mt: 1 }}>{validationErrors.selectedPpeIcons}</FormHelperText>
+                        )}
+                      </Box>
+                    </Collapse>
+                  </CardContent>
+                </Card>
+
+                {/* Safety Checks Section */}
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="h6">Safety Checks</Typography>
+                      <IconButton onClick={() => toggleSection('safetyChecks')}>
+                        {expandedSections.safetyChecks ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      </IconButton>
+                    </Box>
+                    <Collapse in={expandedSections.safetyChecks}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        
+                        {/* Pre-Operational Checks */}
+                        <Box>
+                          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>Pre-Operational Safety Checks</Typography>
+                          <Box sx={{ mb: 1 }}>
+                            <TextField
+                              label="Paste multiple items (separated by line breaks)"
+                              multiline
+                              rows={3}
+                              placeholder="Paste your content here and it will automatically split into individual items..."
+                              fullWidth
+                              size="small"
+                              onPaste={(e) => {
+                                e.preventDefault();
+                                const pastedText = e.clipboardData.getData('text');
+                                const items = pastedText
+                                  .split(/\r?\n+/)
+                                  .map(item => item.trim())
+                                  .filter(item => item.length > 0);
+
+                                if (items.length === 0) {
+                                  return;
+                                }
+
+                                setSopData(prev => ({
+                                  ...prev,
+                                  preOperationalChecks: [...prev.preOperationalChecks, ...items]
+                                }));
+
+                                if (validationErrors.preOperationalChecks) {
+                                  setValidationErrors(prevErrors => {
+                                    const newErrors = { ...prevErrors };
+                                    delete newErrors.preOperationalChecks;
+                                    return newErrors;
+                                  });
+                                }
+                              }}
+                            />
+                            <Button
+                              onClick={() => {
+                                setSopData(prev => ({
+                                  ...prev,
+                                  preOperationalChecks: [...prev.preOperationalChecks, '']
+                                }));
+                              }}
+                              size="small"
+                              variant="outlined"
+                              sx={{ mt: 0.5 }}
+                            >
+                              Add Single Check
+                            </Button>
+                          </Box>
+                          {sopData.preOperationalChecks.map((check, index) => (
+                            <Box key={index} sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                              <TextField
+                                value={check}
+                                onChange={(e) => updateItemInArray('preOperationalChecks', index, e.target.value)}
+                                fullWidth
+                                size="small"
+                                placeholder={`Check ${index + 1}`}
+                              />
+                              <IconButton
+                                onClick={() => removeItemFromArray('preOperationalChecks', index)}
+                                size="small"
+                                color="error"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
+                          ))}
+                          {validationErrors.preOperationalChecks && (
+                            <FormHelperText error>{validationErrors.preOperationalChecks}</FormHelperText>
+                          )}
+                        </Box>
+
+                        {/* Operational Checks */}
+                        <Box>
+                          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>Operational Safety Checks</Typography>
+                          <Box sx={{ mb: 1 }}>
+                            <TextField
+                              label="Paste multiple items (separated by line breaks)"
+                              multiline
+                              rows={3}
+                              placeholder="Paste your content here and it will automatically split into individual items..."
+                              fullWidth
+                              size="small"
+                              onPaste={(e) => {
+                                e.preventDefault();
+                                const pastedText = e.clipboardData.getData('text');
+                                const items = pastedText
+                                  .split(/\r?\n+/)
+                                  .map(item => item.trim())
+                                  .filter(item => item.length > 0);
+
+                                if (items.length === 0) {
+                                  return;
+                                }
+
+                                setSopData(prev => ({
+                                  ...prev,
+                                  operationalChecks: [...prev.operationalChecks, ...items]
+                                }));
+
+                                if (validationErrors.operationalChecks) {
+                                  setValidationErrors(prevErrors => {
+                                    const newErrors = { ...prevErrors };
+                                    delete newErrors.operationalChecks;
+                                    return newErrors;
+                                  });
+                                }
+                              }}
+                            />
+                            <Button
+                              onClick={() => {
+                                setSopData(prev => ({
+                                  ...prev,
+                                  operationalChecks: [...prev.operationalChecks, '']
+                                }));
+                              }}
+                              size="small"
+                              variant="outlined"
+                              sx={{ mt: 0.5 }}
+                            >
+                              Add Single Check
+                            </Button>
+                          </Box>
+                          {sopData.operationalChecks.map((check, index) => (
+                            <Box key={index} sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                              <TextField
+                                value={check}
+                                onChange={(e) => updateItemInArray('operationalChecks', index, e.target.value)}
+                                fullWidth
+                                size="small"
+                                placeholder={`Check ${index + 1}`}
+                              />
+                              <IconButton
+                                onClick={() => removeItemFromArray('operationalChecks', index)}
+                                size="small"
+                                color="error"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
+                          ))}
+                          {validationErrors.operationalChecks && (
+                            <FormHelperText error>{validationErrors.operationalChecks}</FormHelperText>
+                          )}
+                        </Box>
+
+                        {/* Housekeeping */}
+                        <Box>
+                          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>Housekeeping</Typography>
+                          <Box sx={{ mb: 1 }}>
+                            <TextField
+                              label="Paste multiple items (separated by line breaks)"
+                              multiline
+                              rows={3}
+                              placeholder="Paste your content here and it will automatically split into individual items..."
+                              fullWidth
+                              size="small"
+                              onPaste={(e) => {
+                                e.preventDefault();
+                                const pastedText = e.clipboardData.getData('text');
+                                const items = pastedText
+                                  .split(/\r?\n+/)
+                                  .map(item => item.trim())
+                                  .filter(item => item.length > 0);
+
+                                if (items.length === 0) {
+                                  return;
+                                }
+
+                                setSopData(prev => ({
+                                  ...prev,
+                                  housekeeping: [...prev.housekeeping, ...items]
+                                }));
+                              }}
+                            />
+                            <Button
+                              onClick={() => {
+                                setSopData(prev => ({
+                                  ...prev,
+                                  housekeeping: [...prev.housekeeping, '']
+                                }));
+                              }}
+                              size="small"
+                              variant="outlined"
+                              sx={{ mt: 0.5 }}
+                            >
+                              Add Single Item
+                            </Button>
+                          </Box>
+                          {sopData.housekeeping.map((item, index) => (
+                            <Box key={index} sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                              <TextField
+                                value={item}
+                                onChange={(e) => updateItemInArray('housekeeping', index, e.target.value)}
+                                fullWidth
+                                size="small"
+                                placeholder={`Item ${index + 1}`}
+                              />
+                              <IconButton
+                                onClick={() => removeItemFromArray('housekeeping', index)}
+                                size="small"
+                                color="error"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    </Collapse>
+                  </CardContent>
+                </Card>
+
+                {/* Hazards Section */}
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="h6">Hazards & Restrictions</Typography>
+                      <IconButton onClick={() => toggleSection('hazards')}>
+                        {expandedSections.hazards ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      </IconButton>
+                    </Box>
+                    <Collapse in={expandedSections.hazards}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        
+                        {/* Potential Hazards */}
+                        <Box>
+                          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>Potential Hazards</Typography>
+                          <Box sx={{ mb: 1 }}>
+                            <TextField
+                              label="Paste multiple items (separated by line breaks)"
+                              multiline
+                              rows={3}
+                              placeholder="Paste your content here and it will automatically split into individual items..."
+                              fullWidth
+                              size="small"
+                              onPaste={(e) => {
+                                e.preventDefault();
+                                const pastedText = e.clipboardData.getData('text');
+                                const items = pastedText
+                                  .split(/\r?\n+/)
+                                  .map(item => item.trim())
+                                  .filter(item => item.length > 0);
+
+                                if (items.length === 0) {
+                                  return;
+                                }
+
+                                setSopData(prev => ({
+                                  ...prev,
+                                  potentialHazards: [...prev.potentialHazards, ...items]
+                                }));
+
+                                if (validationErrors.potentialHazards) {
+                                  setValidationErrors(prevErrors => {
+                                    const newErrors = { ...prevErrors };
+                                    delete newErrors.potentialHazards;
+                                    return newErrors;
+                                  });
+                                }
+                              }}
+                            />
+                            <Button
+                              onClick={() => {
+                                setSopData(prev => ({
+                                  ...prev,
+                                  potentialHazards: [...prev.potentialHazards, '']
+                                }));
+                              }}
+                              size="small"
+                              variant="outlined"
+                              sx={{ mt: 0.5 }}
+                            >
+                              Add Single Hazard
+                            </Button>
+                          </Box>
+                          {sopData.potentialHazards.map((hazard, index) => (
+                            <Box key={index} sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                              <TextField
+                                value={hazard}
+                                onChange={(e) => updateItemInArray('potentialHazards', index, e.target.value)}
+                                fullWidth
+                                size="small"
+                                placeholder={`Hazard ${index + 1}`}
+                              />
+                              <IconButton
+                                onClick={() => removeItemFromArray('potentialHazards', index)}
+                                size="small"
+                                color="error"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
+                          ))}
+                          {validationErrors.potentialHazards && (
+                            <FormHelperText error>{validationErrors.potentialHazards}</FormHelperText>
+                          )}
+                        </Box>
+
+                        {/* Not Allowed */}
+                        <Box>
+                          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>Not Allowed</Typography>
+                          <Box sx={{ mb: 1 }}>
+                            <TextField
+                              label="Paste multiple items (separated by line breaks)"
+                              multiline
+                              rows={3}
+                              placeholder="Paste your content here and it will automatically split into individual items..."
+                              fullWidth
+                              size="small"
+                              onPaste={(e) => {
+                                e.preventDefault();
+                                const pastedText = e.clipboardData.getData('text');
+                                const items = pastedText
+                                  .split(/\r?\n+/)
+                                  .map(item => item.trim())
+                                  .filter(item => item.length > 0);
+
+                                if (items.length === 0) {
+                                  return;
+                                }
+
+                                setSopData(prev => ({
+                                  ...prev,
+                                  notAllowed: [...prev.notAllowed, ...items]
+                                }));
+                              }}
+                            />
+                            <Button
+                              onClick={() => {
+                                setSopData(prev => ({
+                                  ...prev,
+                                  notAllowed: [...prev.notAllowed, '']
+                                }));
+                              }}
+                              size="small"
+                              variant="outlined"
+                              sx={{ mt: 0.5 }}
+                            >
+                              Add Single Item
+                            </Button>
+                          </Box>
+                          {sopData.notAllowed.map((item, index) => (
+                            <Box key={index} sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                              <TextField
+                                value={item}
+                                onChange={(e) => updateItemInArray('notAllowed', index, e.target.value)}
+                                fullWidth
+                                size="small"
+                                placeholder={`Restriction ${index + 1}`}
+                              />
+                              <IconButton
+                                onClick={() => removeItemFromArray('notAllowed', index)}
+                                size="small"
+                                color="error"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    </Collapse>
+                  </CardContent>
+                </Card>
+
+                {/* Review Information Section */}
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="h6">Review Information</Typography>
+                      <IconButton onClick={() => toggleSection('review')}>
+                        {expandedSections.review ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      </IconButton>
+                    </Box>
+                    <Collapse in={expandedSections.review}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <TextField
+                          label="School Name"
+                          value={sopData.schoolName}
+                          onChange={(e) => setSopData(prev => ({ ...prev, schoolName: e.target.value }))}
+                          fullWidth
+                        />
+                        <TextField
+                          label="Date of Review"
+                          type="date"
+                          value={sopData.dateOfReview}
+                          onChange={(e) => setSopData(prev => ({ ...prev, dateOfReview: e.target.value }))}
+                          fullWidth
+                          InputLabelProps={{ shrink: true }}
+                        />
+                        <TextField
+                          label="Reviewed By"
+                          value={sopData.reviewedBy}
+                          onChange={(e) => setSopData(prev => ({ ...prev, reviewedBy: e.target.value }))}
+                          fullWidth
+                        />
+                        <TextField
+                          label="Next Review Due"
+                          type="date"
+                          value={sopData.nextReviewDue}
+                          onChange={(e) => setSopData(prev => ({ ...prev, nextReviewDue: e.target.value }))}
+                          fullWidth
+                          InputLabelProps={{ shrink: true }}
+                        />
+                      </Box>
+                    </Collapse>
+                  </CardContent>
+                </Card>
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button 
+                {...buttonStyles.cancel}
+                onClick={() => setEditDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                {...buttonStyles.primary}
+                onClick={() => {
+                  if (validateSopData()) {
+                    setEditDialogOpen(false);
+                  } else {
+                    setSnackbarMessage('Please fix validation errors before saving');
+                    setSnackbarSeverity('error');
+                    setSnackbarOpen(true);
+                  }
+                }}
+              >
+                Save Changes
+              </Button>
+            </DialogActions>
+          </Dialog>
+
         </Box>
       </Layout>
     </>

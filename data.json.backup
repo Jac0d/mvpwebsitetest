@@ -3888,6 +3888,21 @@
         "mmftv1yw"
       ],
       "tenant_id": 1
+    },
+    {
+      "id": "12t2025jd",
+      "yearLevels": [
+        12
+      ],
+      "className": "TEst",
+      "classCode": "12t2025jd",
+      "room": "Test",
+      "teachers": [
+        "jacob.drummond"
+      ],
+      "selectedLessons": [],
+      "studentIds": [],
+      "tenant_id": 1
     }
   ],
   "equipment": [
@@ -4270,6 +4285,23 @@
       "purchasePrice": 1000,
       "id": "BWW94179",
       "linkedLessonId": "2"
+    },
+    {
+      "name": "Dropsaw",
+      "type": "Power Tool",
+      "code": "12345678",
+      "location": "Workshop",
+      "purchasePrice": 1000,
+      "id": "DW48284",
+      "linkedLessonId": "45"
+    },
+    {
+      "name": "Mitre Saw",
+      "type": "Power Tool",
+      "code": "1w290u",
+      "location": "Workshop",
+      "purchasePrice": 1,
+      "id": "MSW98674"
     }
   ],
   "rooms": [
@@ -5596,6 +5628,260 @@
       },
       "createdAt": "2025-08-22T11:39:38.642Z",
       "updatedAt": "2025-08-22T11:39:38.642Z",
+      "type": "builder-generated"
+    },
+    {
+      "id": "sop-1755862964212-570333612",
+      "name": "Safe Operating Procedures for Buffer Wheel",
+      "description": "SOP for Buffer Wheel",
+      "lessonId": null,
+      "equipmentId": "BWW94179",
+      "sopData": {
+        "schoolName": "",
+        "schoolLogo": "",
+        "title": "Safe Operating Procedures for Buffer Wheel",
+        "room": "Workshop",
+        "dateOfReview": "",
+        "reviewedBy": "",
+        "nextReviewDue": "",
+        "equipmentName": "Buffer Wheel",
+        "caution": "Caution: One user at a time on buffing machine",
+        "preOperationalChecks": [
+          "Buffing machine must be securely fastened to a bench or anchored stand",
+          "Check that all machine guards are in place",
+          "Check workspaces and walkways to ensure no slip/trip hazards are present",
+          "Locate and ensure you are familiar with the operation of the ON/OFF starter",
+          "Both ends of the machine spindle must be covered at all times",
+          "Use appropriate mop type and polishing compound for the task",
+          "Inspect the mops for damage and any embedded objects",
+          "Faulty equipment must not be used. Immediately report suspect equipment"
+        ],
+        "operationalChecks": [
+          "Never leave the machine running unattended, and stay until it has completely stopped spinning",
+          "Remain clear of spinning parts e.g.avoid bending down near machine whilst it is running",
+          "Use the front of the wheel only",
+          "Work only below the centre of the spindle",
+          "Small work must be securely supported with a wooden backing",
+          "Work should be held so that edges cannot catch"
+        ],
+        "housekeeping": [
+          "Switch off the machine",
+          "Leave machine and floor in a safe, clean and tidy state"
+        ],
+        "potentialHazards": [
+          "Work can be snatched if improperly presented to mop\t",
+          "Hair or clothing entanglement in moving machine parts",
+          "Eye injuries"
+        ],
+        "notAllowed": [
+          "Never hold work with gloves, apron, material or clothing",
+          "Never work on the side of the mop"
+        ],
+        "selectedPpeIcons": [
+          "1755661684671",
+          "1755661684679",
+          "1755661684675",
+          "1755661684656",
+          "1755687386190",
+          "1755661684663"
+        ]
+      },
+      "createdAt": "2025-08-22T11:42:44.212Z",
+      "updatedAt": "2025-08-22T11:42:44.212Z",
+      "type": "builder-generated"
+    },
+    {
+      "id": "sop-1762772143171-309582461",
+      "name": "Safe Operating Procedures for Compound Mitre Saw",
+      "description": "SOP for Compound Mitre Saw",
+      "lessonId": "45",
+      "sopData": {
+        "schoolName": "",
+        "schoolLogo": "",
+        "title": "Safe Operating Procedures for Compound Mitre Saw",
+        "room": "Workshop",
+        "dateOfReview": "",
+        "reviewedBy": "",
+        "nextReviewDue": "",
+        "equipmentName": "Compound Mitre Saw",
+        "caution": "Never operate a faulty electrical power tool. Report it to your teacher. ",
+        "preOperationalChecks": [
+          "Ensure the machine has a suitable safe work area.",
+          "Ensure material to be cut is free of loose knots and foreign materials i.e. nails. Material which is badly twisted or bowed should not be used.",
+          "Ensure the material to be cut is securely supported and at a good working height.",
+          "Check that the blade nut/stud is tight and that the blade is free of chips and cracks i.e. chipped teeth.",
+          "Tighten the adjustment levers and check that the saw guard/s are in place and in good working condition.",
+          "Check that the saw is stable and securely attached to the bench or trolley. If fitted to a trolley, lock the wheels prior to use.",
+          "Familiarise yourself with the operation of the ON/OFF switch.",
+          "Clear your work area of any slip/trip hazards and waste materials."
+        ],
+        "operationalChecks": [
+          "The maximum cut for the saw must not be exceeded.",
+          "Material should be sitting flat on the base, securely clamped and supported up against the rear fence.",
+          "Do not start the saw with the blade touching the material. Allow the saw to reach full speed before starting.",
+          "If required, set the mitre angle for the task, ensuring the adjustment lever is located in the notch of the base and locked by tightening the knob.",
+          "Avoid reaching over the path of the saw line. Do not cross arms when cutting.",
+          "Keep non-trigger hand, especially the thumb, well clear of the line of the cut.",
+          "After finishing a cut, release the switch, hold the saw arm down and wait for the blade to stop before removing the work piece or off-cuts.",
+          "Inspect blade guard/s and mechanism regularly. Ensure waste does not prevent correct operation.",
+          "Before making any adjustments to the saw, bring the machine to a complete standstill and then disconnect the AC plug from the power source."
+        ],
+        "housekeeping": [
+          "Switch off and isolate the table router after use. Ensure all guards are closed.",
+          "Leave the work area in a safe, clean and tidy condition."
+        ],
+        "potentialHazards": [
+          "Moving, rotating and sharp parts",
+          "Noise",
+          "Electricity",
+          "Dust and fumes",
+          "Eye injuries",
+          "Pinch and squash"
+        ],
+        "notAllowed": [
+          "DO NOT operate this saw in moist or wet conditions."
+        ],
+        "selectedPpeIcons": [
+          "1755661684663",
+          "1755661684668",
+          "1755661684679",
+          "1755661684675",
+          "1755661684666",
+          "1755661684686"
+        ]
+      },
+      "createdAt": "2025-11-10T10:55:43.171Z",
+      "updatedAt": "2025-11-10T10:55:43.171Z",
+      "type": "builder-generated"
+    },
+    {
+      "id": "sop-1762772287959-881854209",
+      "name": "Safe Operating Procedures for Dropsaw",
+      "description": "SOP for Dropsaw",
+      "lessonId": null,
+      "equipmentId": "DW48284",
+      "sopData": {
+        "schoolName": "",
+        "schoolLogo": "",
+        "title": "Safe Operating Procedures for Dropsaw",
+        "room": "Workshop",
+        "dateOfReview": "",
+        "reviewedBy": "",
+        "nextReviewDue": "",
+        "equipmentName": "Dropsaw",
+        "caution": "Never operate a faulty electrical power tool. Report it to your teacher. ",
+        "preOperationalChecks": [
+          "Ensure the machine has a suitable safe work area.",
+          "Ensure material to be cut is free of loose knots and foreign materials i.e. nails. Material which is badly twisted or bowed should not be used.",
+          "Ensure the material to be cut is securely supported and at a good working height.",
+          "Check that the blade nut/stud is tight and that the blade is free of chips and cracks i.e. chipped teeth.",
+          "Tighten the adjustment levers and check that the saw guard/s are in place and in good working condition.",
+          "Check that the saw is stable and securely attached to the bench or trolley. If fitted to a trolley, lock the wheels prior to use.",
+          "Familiarise yourself with the operation of the ON/OFF switch.",
+          "Clear your work area of any slip/trip hazards and waste materials."
+        ],
+        "operationalChecks": [
+          "The maximum cut for the saw must not be exceeded.",
+          "Material should be sitting flat on the base, securely clamped and supported up against the rear fence.",
+          "Do not start the saw with the blade touching the material. Allow the saw to reach full speed before starting.",
+          "If required, set the mitre angle for the task, ensuring the adjustment lever is located in the notch of the base and locked by tightening the knob.",
+          "Avoid reaching over the path of the saw line. Do not cross arms when cutting.",
+          "Keep non-trigger hand, especially the thumb, well clear of the line of the cut.",
+          "After finishing a cut, release the switch, hold the saw arm down and wait for the blade to stop before removing the work piece or off-cuts.",
+          "Inspect blade guard/s and mechanism regularly. Ensure waste does not prevent correct operation.",
+          "Before making any adjustments to the saw, bring the machine to a complete standstill and then disconnect the AC plug from the power source."
+        ],
+        "housekeeping": [
+          "Switch off and isolate the table router after use. Ensure all guards are closed.",
+          "Leave the work area in a safe, clean and tidy condition."
+        ],
+        "potentialHazards": [
+          "Moving, rotating and sharp parts",
+          "Noise",
+          "Electricity",
+          "Dust and fumes",
+          "Eye injuries",
+          "Pinch and squash"
+        ],
+        "notAllowed": [
+          "DO NOT operate this saw in moist or wet conditions."
+        ],
+        "selectedPpeIcons": [
+          "1755661684663",
+          "1755661684668",
+          "1755661684679",
+          "1755661684675",
+          "1755661684666",
+          "1755661684686"
+        ]
+      },
+      "createdAt": "2025-11-10T10:58:07.959Z",
+      "updatedAt": "2025-11-10T10:58:07.959Z",
+      "type": "builder-generated"
+    },
+    {
+      "id": "sop-1762773132646-528990050",
+      "name": "Safe Operating Procedures for Dropsaw",
+      "description": "SOP for Dropsaw",
+      "lessonId": null,
+      "equipmentId": "DW48284",
+      "sopData": {
+        "schoolName": "",
+        "schoolLogo": "",
+        "title": "Safe Operating Procedures for Dropsaw",
+        "room": "Workshop",
+        "dateOfReview": "",
+        "reviewedBy": "",
+        "nextReviewDue": "",
+        "equipmentName": "Dropsaw",
+        "caution": "Never operate a faulty electrical power tool. Report it to your teacher. ",
+        "preOperationalChecks": [
+          "Ensure the machine has a suitable safe work area.",
+          "Ensure material to be cut is free of loose knots and foreign materials i.e. nails. Material which is badly twisted or bowed should not be used.",
+          "Ensure the material to be cut is securely supported and at a good working height.",
+          "Check that the blade nut/stud is tight and that the blade is free of chips and cracks i.e. chipped teeth.",
+          "Tighten the adjustment levers and check that the saw guard/s are in place and in good working condition.",
+          "Check that the saw is stable and securely attached to the bench or trolley. If fitted to a trolley, lock the wheels prior to use.",
+          "Familiarise yourself with the operation of the ON/OFF switch.",
+          "Clear your work area of any slip/trip hazards and waste materials."
+        ],
+        "operationalChecks": [
+          "The maximum cut for the saw must not be exceeded.",
+          "Material should be sitting flat on the base, securely clamped and supported up against the rear fence.",
+          "Do not start the saw with the blade touching the material. Allow the saw to reach full speed before starting.",
+          "If required, set the mitre angle for the task, ensuring the adjustment lever is located in the notch of the base and locked by tightening the knob.",
+          "Avoid reaching over the path of the saw line. Do not cross arms when cutting.",
+          "Keep non-trigger hand, especially the thumb, well clear of the line of the cut.",
+          "After finishing a cut, release the switch, hold the saw arm down and wait for the blade to stop before removing the work piece or off-cuts.",
+          "Inspect blade guard/s and mechanism regularly. Ensure waste does not prevent correct operation.",
+          "Before making any adjustments to the saw, bring the machine to a complete standstill and then disconnect the AC plug from the power source."
+        ],
+        "housekeeping": [
+          "Switch off and isolate the table router after use. Ensure all guards are closed.",
+          "Leave the work area in a safe, clean and tidy condition."
+        ],
+        "potentialHazards": [
+          "Moving, rotating and sharp parts",
+          "Noise",
+          "Electricity",
+          "Dust and fumes",
+          "Eye injuries",
+          "Pinch and squash"
+        ],
+        "notAllowed": [
+          "DO NOT operate this saw in moist or wet conditions."
+        ],
+        "selectedPpeIcons": [
+          "1755661684663",
+          "1755661684668",
+          "1755661684679",
+          "1755661684675",
+          "1755661684666",
+          "1755661684686"
+        ]
+      },
+      "createdAt": "2025-11-10T11:12:12.647Z",
+      "updatedAt": "2025-11-10T11:12:12.647Z",
       "type": "builder-generated"
     }
   ]

@@ -1421,6 +1421,13 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
           setLinkedLesson(result.linkedLesson);
           setLinkLessonDialogOpen(false);
           showNotification('Lesson linked successfully!', 'success');
+          if (result.equipmentSop) {
+            setSopFiles(prev => {
+              if (!prev) return [result.equipmentSop];
+              const alreadyPresent = prev.some((sop: any) => sop.id === result.equipmentSop.id);
+              return alreadyPresent ? prev : [...prev, result.equipmentSop];
+            });
+          }
         } else {
           console.error('Failed to link lesson');
           showNotification('Failed to link lesson.', 'error');
@@ -1844,6 +1851,59 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
     setPendingLendData(null);
   };
 
+  const staffNames = React.useMemo(
+    () => staff.map(person => person?.name).filter((name): name is string => !!name),
+    [staff]
+  );
+
+  const setNextReviewDueInOneYear = () => {
+    const baseDateString = sopReviewData.dateOfReview || sopReviewData.nextReviewDue;
+    const baseDate = baseDateString ? new Date(baseDateString) : new Date();
+    if (Number.isNaN(baseDate.getTime())) {
+      const today = new Date();
+      today.setFullYear(today.getFullYear() + 1);
+      setSopReviewData(prev => ({ ...prev, nextReviewDue: today.toISOString().split('T')[0] }));
+      return;
+    }
+    const nextReview = new Date(baseDate);
+    nextReview.setFullYear(nextReview.getFullYear() + 1);
+    setSopReviewData(prev => ({ ...prev, nextReviewDue: nextReview.toISOString().split('T')[0] }));
+  };
+
+  const resolveSopBuilderPath = (targetSop?: any) => {
+    if (targetSop?.equipmentId) {
+      return `/equipment/${targetSop.equipmentId}/sop-builder`;
+    }
+    if (
+      targetSop?.sopData?.equipmentName &&
+      equipmentItem?.name &&
+      targetSop.sopData.equipmentName === equipmentItem.name &&
+      equipmentItem?.id
+    ) {
+      return `/equipment/${equipmentItem.id}/sop-builder`;
+    }
+    if (targetSop?.lessonId) {
+      return `/lessons/${targetSop.lessonId}/sop-builder`;
+    }
+    if (equipmentItem?.id) {
+      return `/equipment/${equipmentItem.id}/sop-builder`;
+    }
+    if (linkedLesson?.id) {
+      return `/lessons/${linkedLesson.id}/sop-builder`;
+    }
+    return null;
+  };
+
+  const buildSopQueryParams = (entries: Record<string, string | undefined | null>) => {
+    const params = new URLSearchParams();
+    Object.entries(entries).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.set(key, value);
+      }
+    });
+    return params;
+  };
+
   // SOP handlers
   const handleCreateSop = () => {
     if (equipmentItem?.id) {
@@ -1863,42 +1923,42 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
   };
 
   const handleSopDownload = (sop: any) => {
-    const params = new URLSearchParams({
-      view: sop.id,
+    const route = resolveSopBuilderPath(sop);
+    if (!route) {
+      showNotification('Unable to open SOP.', 'error');
+      return;
+    }
+
+    const params = buildSopQueryParams({
+      view: String(sop.id),
       download: 'true',
       schoolName: sopReviewData.schoolName,
       dateOfReview: sopReviewData.dateOfReview,
       reviewedBy: sopReviewData.reviewedBy,
       nextReviewDue: sopReviewData.nextReviewDue
     });
-    
-    navigate(`/lessons/${linkedLesson.id}/sop-builder?${params.toString()}`);
-    setSopReviewDialogOpen(false);
-  };
 
-  const handleSopView = (sop: any) => {
-    const params = new URLSearchParams({
-      view: sop.id,
-      schoolName: sopReviewData.schoolName,
-      dateOfReview: sopReviewData.dateOfReview,
-      reviewedBy: sopReviewData.reviewedBy,
-      nextReviewDue: sopReviewData.nextReviewDue
-    });
-    
-    navigate(`/lessons/${linkedLesson.id}/sop-builder?${params.toString()}`);
+    navigate(`${route}?${params.toString()}`);
     setSopReviewDialogOpen(false);
   };
 
   const handleCreateNewSop = () => {
-    const params = new URLSearchParams({
-      ...(selectedSop && { loadTemplate: 'true', selectedSopId: selectedSop.id }),
+    const targetRoute = resolveSopBuilderPath(selectedSop || { equipmentId: equipmentItem?.id });
+
+    if (!targetRoute) {
+      showNotification('Unable to open SOP builder.', 'error');
+      return;
+    }
+
+    const params = buildSopQueryParams({
+      ...(selectedSop && { loadTemplate: 'true', selectedSopId: String(selectedSop.id) }),
       schoolName: sopReviewData.schoolName,
       dateOfReview: sopReviewData.dateOfReview,
       reviewedBy: sopReviewData.reviewedBy,
       nextReviewDue: sopReviewData.nextReviewDue
     });
-    
-    navigate(`/lessons/${linkedLesson.id}/sop-builder?${params.toString()}`);
+
+    navigate(`${targetRoute}?${params.toString()}`);
     setSopReviewDialogOpen(false);
   };
 
@@ -2778,21 +2838,19 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                     <SecurityIcon sx={{ color: colors.iconPrimary }} />
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>Safe Operating Procedures (SOPs)</Typography>
                   </Box>
-                  {linkedLesson && (
-                    <Button 
-                      {...buttonStyles.primary} 
-                      size="small" 
-                      startIcon={<BuildIcon />}
-                      onClick={handleCreateSop}
-                    >
-                      Create SOP
-                    </Button>
-                  )}
+                  <Button 
+                    {...buttonStyles.primary} 
+                    size="small" 
+                    startIcon={<BuildIcon />}
+                    onClick={handleCreateSop}
+                  >
+                    Customise SOP
+                  </Button>
                 </Box>
                 <Box sx={{ minHeight: 80, bgcolor: colors.containerPaper, borderRadius: 2, p: 2, border: `1px solid ${colors.border}` }}>
-                  {!linkedLesson ? (
+                  {!linkedLesson && sopFiles.length === 0 ? (
                     <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
-                      Link a lesson to this equipment to create SOPs with pre-filled content from lesson SOPs.
+                      You can create a brand new SOP for this equipment. Link a lesson later if you want to reuse existing templates.
                     </Typography>
                   ) : sopFiles.length > 0 ? (
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -2846,66 +2904,25 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                             </Box>
                           </Box>
                           <Box sx={{ display: 'flex', gap: 1 }}>
-                            {sop.type === 'builder-generated' ? (
-                              <>
-                                <Tooltip title="Edit SOP" arrow>
-                                  <IconButton 
-                                    size="small" 
-                                    sx={{ color: colors.iconPrimary }} 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      navigate(`/equipment/${equipmentItem.id}/sop-builder?edit=${sop.id}`);
-                                    }}
-                                  >
-                                    <EditIcon sx={{ fontSize: 20 }}/>
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="View SOP" arrow>
-                                  <IconButton 
-                                    size="small" 
-                                    sx={{ color: colors.iconPrimary }} 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleSopClick(sop);
-                                    }}
-                                  >
-                                    <VisibilityIcon sx={{ fontSize: 20 }}/>
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Download PDF" arrow>
-                                  <IconButton 
-                                    size="small" 
-                                    sx={{ color: colors.iconPrimary }} 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleSopClick(sop);
-                                    }}
-                                  >
-                                    <DownloadIcon sx={{ fontSize: 20 }}/>
-                                  </IconButton>
-                                </Tooltip>
-                              </>
-                            ) : (
-                              <Tooltip title="Generate SOP" arrow>
-                                <IconButton 
-                                  size="small" 
-                                  sx={{ color: colors.iconPrimary }} 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleSopClick(sop);
-                                  }}
-                                >
-                                  <DownloadIcon sx={{ fontSize: 20 }}/>
-                                </IconButton>
-                              </Tooltip>
-                            )}
+                            <Tooltip title="Download PDF" arrow>
+                              <IconButton 
+                                size="small" 
+                                sx={{ color: colors.iconPrimary }} 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSopClick(sop);
+                                }}
+                              >
+                                <DownloadIcon sx={{ fontSize: 20 }}/>
+                              </IconButton>
+                            </Tooltip>
                           </Box>
                         </Paper>
                       ))}
                     </Box>
                   ) : (
                     <Typography sx={{ color: '#6b7280', fontSize: 14, fontStyle: 'italic' }}>
-                      No SOP documents created yet for {linkedLesson.name}. Click "Create SOP" to create a new SOP with review information.
+                      No SOP documents created yet. Click "Customise SOP" to create a new SOP with review information.
                     </Typography>
                   )}
                 </Box>
@@ -5179,53 +5196,69 @@ export function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
               InputLabelProps={{ shrink: true }}
             />
             
-            <TextField
-              label="Reviewed By"
-              value={sopReviewData.reviewedBy}
-              onChange={(e) => setSopReviewData(prev => ({ ...prev, reviewedBy: e.target.value }))}
-              fullWidth
-              size="small"
-              placeholder="Enter reviewer name"
+            <Autocomplete
+              options={staffNames}
+              freeSolo
+              value={sopReviewData.reviewedBy || ''}
+              onChange={(_, newValue) => {
+                setSopReviewData(prev => ({
+                  ...prev,
+                  reviewedBy: typeof newValue === 'string' ? newValue : (newValue ?? '')
+                }));
+              }}
+              inputValue={sopReviewData.reviewedBy || ''}
+              onInputChange={(_, newInputValue) => {
+                setSopReviewData(prev => ({ ...prev, reviewedBy: newInputValue }));
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Reviewed By"
+                  size="small"
+                  placeholder="Enter reviewer name"
+                />
+              )}
             />
             
-            <TextField
-              label="Next Review Due"
-              type="date"
-              value={sopReviewData.nextReviewDue}
-              onChange={(e) => setSopReviewData(prev => ({ ...prev, nextReviewDue: e.target.value }))}
-              fullWidth
-              size="small"
-              InputLabelProps={{ shrink: true }}
-            />
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
+              <TextField
+                label="Next Review Due"
+                type="date"
+                value={sopReviewData.nextReviewDue}
+                onChange={(e) => setSopReviewData(prev => ({ ...prev, nextReviewDue: e.target.value }))}
+                fullWidth
+                size="small"
+                InputLabelProps={{ shrink: true }}
+                sx={{ flex: 1 }}
+              />
+              <Button
+                {...buttonStyles.secondary}
+                size="small"
+                onClick={setNextReviewDueInOneYear}
+              >
+                1 Year
+              </Button>
+            </Box>
           </DialogContent>
           <DialogActions sx={{ pb: 2, pr: 3, pl: 3 }}>
             <Button {...buttonStyles.cancel} onClick={() => setSopReviewDialogOpen(false)}>
               Cancel
             </Button>
             {selectedSop ? (
-              <>
-                <Button 
-                  {...buttonStyles.secondary}
-                  onClick={() => handleSopView(selectedSop)}
-                  startIcon={<VisibilityIcon />}
-                >
-                  View SOP
-                </Button>
-                <Button 
-                  {...buttonStyles.primary}
-                  onClick={() => handleSopDownload(selectedSop)}
-                  startIcon={<DownloadIcon />}
-                >
-                  Download PDF
-                </Button>
-              </>
+              <Button 
+                {...buttonStyles.primary}
+                onClick={() => handleSopDownload(selectedSop)}
+                startIcon={<DownloadIcon />}
+              >
+                Download PDF
+              </Button>
             ) : (
               <Button 
                 {...buttonStyles.primary}
                 onClick={handleCreateNewSop}
                 startIcon={<BuildIcon />}
               >
-                Create SOP
+                Customise SOP
               </Button>
             )}
           </DialogActions>

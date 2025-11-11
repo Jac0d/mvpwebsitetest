@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Box, 
   Typography, 
@@ -11,9 +11,6 @@ import {
   DialogTitle, 
   DialogContent, 
   DialogActions,
-  Grid,
-  Chip,
-  Divider,
   List,
   ListItem,
   ListItemIcon,
@@ -21,18 +18,11 @@ import {
   Alert,
   Snackbar,
   Link,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   FormHelperText,
-  Stepper,
-  Step,
-  StepLabel,
-  StepContent,
   Collapse,
   Card,
-  CardContent
+  CardContent,
+  Autocomplete
 } from '@mui/material';
 import { Layout } from '../../components/layout/Layout';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
@@ -78,6 +68,7 @@ export default function SopBuilder() {
   const { colors, buttonStyles } = useThemedStyles();
   const { lessonId } = useParams<{ lessonId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [lesson, setLesson] = useState<any>(null);
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
@@ -104,8 +95,10 @@ export default function SopBuilder() {
   const [iconManagerOpen, setIconManagerOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [safetyIcons, setSafetyIcons] = useState<SafetyIcon[]>([]);
-  const [selectedPpeIcons, setSelectedPpeIcons] = useState<{ [key: string]: SafetyIcon }>({});
-  const [isViewMode, setIsViewMode] = useState(false);
+  const isViewMode = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.has('view');
+  }, [location.search]);
   const [activeStep, setActiveStep] = useState(0);
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
     basicInfo: true,
@@ -116,6 +109,7 @@ export default function SopBuilder() {
   });
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [staffNames, setStaffNames] = useState<string[]>([]);
 
   // Validation function
   const validateSopData = () => {
@@ -192,10 +186,6 @@ export default function SopBuilder() {
       const loadTemplate = urlParams.get('loadTemplate');
       const selectedSopId = urlParams.get('selectedSopId');
       
-      if (viewSopId) {
-        setIsViewMode(true);
-      }
-
       if (download) {
         setTimeout(handleDownloadPDF, 1000); // Delay to allow content to render
       }
@@ -250,11 +240,26 @@ export default function SopBuilder() {
         }));
       }
     }
-  }, [lessonId]);
+  }, [lessonId, location.search]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/staff`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setStaffNames(
+            data
+              .map((person: any) => person?.name)
+              .filter((name: any): name is string => typeof name === 'string' && name.trim().length > 0)
+          );
+        }
+      })
+      .catch(error => console.error('Error fetching staff:', error));
+  }, []);
 
   // Enhanced PDF generation with better error handling
   const handleDownloadPDF = async () => {
-    if (!validateSopData()) {
+    if (!isViewMode && !validateSopData()) {
       setSnackbarMessage('Please fix validation errors before generating PDF');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
@@ -281,7 +286,7 @@ export default function SopBuilder() {
 
       const opt = {
         margin: [10, 10, 10, 10],
-        filename: `SOP_${sopData.equipmentName || sopData.title || 'Document'}.pdf`,
+        filename: `${(sopData.equipmentName || sopData.title || 'equipment').replace(/[^a-z0-9]+/gi, '_')}_SOP.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
           scale: 2,
@@ -309,13 +314,6 @@ export default function SopBuilder() {
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
       
-      // If in download-only mode, navigate back
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('download')) {
-        setTimeout(() => {
-          navigate(`/lessons/${lessonId}`);
-        }, 1500);
-      }
     } catch (error) {
       console.error('PDF generation error:', error);
       setSnackbarMessage('Error generating PDF. Please try again.');
@@ -366,10 +364,6 @@ export default function SopBuilder() {
         setSnackbarMessage(editSopId ? 'SOP updated successfully!' : 'SOP saved successfully!');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
-        // Navigate back to lesson details after saving
-        setTimeout(() => {
-          navigate(`/lessons/${lessonId}`);
-        }, 1500);
       } else {
         setSnackbarMessage('Failed to save SOP: ' + (data.message || 'Unknown error'));
         setSnackbarSeverity('error');
@@ -394,15 +388,23 @@ export default function SopBuilder() {
   };
 
   const handleIconSelect = (icon: SafetyIcon) => {
-    setSelectedPpeIcons(prev => ({
-      ...prev,
-      [icon.category]: icon
-    }));
-  };
-
-  const getIconForCategory = (category: string) => {
-    const icon = selectedPpeIcons[category] || safetyIcons.find(i => i.category === category);
-    return icon;
+    setSopData(prev => {
+      const alreadySelected = prev.selectedPpeIcons.includes(icon.id);
+      const updatedIcons = alreadySelected
+        ? prev.selectedPpeIcons.filter(id => id !== icon.id)
+        : [...prev.selectedPpeIcons, icon.id];
+      return {
+        ...prev,
+        selectedPpeIcons: updatedIcons
+      };
+    });
+    if (validationErrors.selectedPpeIcons) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.selectedPpeIcons;
+        return newErrors;
+      });
+    }
   };
 
   const toggleSection = (section: string) => {
@@ -410,6 +412,27 @@ export default function SopBuilder() {
       ...prev,
       [section]: !prev[section]
     }));
+  };
+
+  const formatDateForDisplay = (value: string | undefined) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString('en-GB');
+  };
+
+  const setNextReviewDueInOneYear = () => {
+    const baseDateString = sopData.dateOfReview || sopData.nextReviewDue;
+    const baseDate = baseDateString ? new Date(baseDateString) : new Date();
+    if (Number.isNaN(baseDate.getTime())) {
+      const today = new Date();
+      today.setFullYear(today.getFullYear() + 1);
+      setSopData(prev => ({ ...prev, nextReviewDue: today.toISOString().split('T')[0] }));
+      return;
+    }
+    const nextReview = new Date(baseDate);
+    nextReview.setFullYear(nextReview.getFullYear() + 1);
+    setSopData(prev => ({ ...prev, nextReviewDue: nextReview.toISOString().split('T')[0] }));
   };
 
   // Add item to array with validation
@@ -948,17 +971,17 @@ export default function SopBuilder() {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
                 <Box>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 10 }}>
-                    Date of Review: {sopData.dateOfReview || 'Date'}
+                      Date of Review: {formatDateForDisplay(sopData.dateOfReview) || 'Date'}
                   </Typography>
                 </Box>
                 <Box>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 10 }}>
-                    Reviewed By: {sopData.reviewedBy || 'Reviewer Name'}
+                      Reviewed By: {sopData.reviewedBy || 'Reviewer Name'}
                   </Typography>
                 </Box>
                 <Box>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 10 }}>
-                    Next Review Due: {sopData.nextReviewDue || 'Due Date'}
+                      Next Review Due: {formatDateForDisplay(sopData.nextReviewDue) || 'Due Date'}
                   </Typography>
                 </Box>
                 <Box>
@@ -1018,6 +1041,8 @@ export default function SopBuilder() {
           <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Edit SOP Content</Typography>
             <Button
+              {...buttonStyles.secondary}
+              size="small"
               onClick={() => {
                 if (validateSopData()) {
                   setEditDialogOpen(false);
@@ -1027,8 +1052,6 @@ export default function SopBuilder() {
                   setSnackbarOpen(true);
                 }
               }}
-              variant="outlined"
-              size="small"
             >
               Save & Close
             </Button>
@@ -1162,15 +1185,25 @@ export default function SopBuilder() {
                               e.preventDefault();
                               const pastedText = e.clipboardData.getData('text');
                               const items = pastedText
-                                .split(/\n+/)
+                                .split(/\r?\n+/)
                                 .map(item => item.trim())
                                 .filter(item => item.length > 0);
-                              
-                              if (items.length > 1) {
-                                setSopData(prev => ({
-                                  ...prev,
-                                  preOperationalChecks: [...prev.preOperationalChecks, ...items]
-                                }));
+
+                              if (items.length === 0) {
+                                return;
+                              }
+
+                              setSopData(prev => ({
+                                ...prev,
+                                preOperationalChecks: [...prev.preOperationalChecks, ...items]
+                              }));
+
+                              if (validationErrors.preOperationalChecks) {
+                                setValidationErrors(prevErrors => {
+                                  const newErrors = { ...prevErrors };
+                                  delete newErrors.preOperationalChecks;
+                                  return newErrors;
+                                });
                               }
                             }}
                           />
@@ -1226,15 +1259,25 @@ export default function SopBuilder() {
                               e.preventDefault();
                               const pastedText = e.clipboardData.getData('text');
                               const items = pastedText
-                                .split(/\n+/)
+                                .split(/\r?\n+/)
                                 .map(item => item.trim())
                                 .filter(item => item.length > 0);
-                              
-                              if (items.length > 1) {
-                                setSopData(prev => ({
-                                  ...prev,
-                                  operationalChecks: [...prev.operationalChecks, ...items]
-                                }));
+
+                              if (items.length === 0) {
+                                return;
+                              }
+
+                              setSopData(prev => ({
+                                ...prev,
+                                operationalChecks: [...prev.operationalChecks, ...items]
+                              }));
+
+                              if (validationErrors.operationalChecks) {
+                                setValidationErrors(prevErrors => {
+                                  const newErrors = { ...prevErrors };
+                                  delete newErrors.operationalChecks;
+                                  return newErrors;
+                                });
                               }
                             }}
                           />
@@ -1290,16 +1333,18 @@ export default function SopBuilder() {
                               e.preventDefault();
                               const pastedText = e.clipboardData.getData('text');
                               const items = pastedText
-                                .split(/\n+/)
+                                .split(/\r?\n+/)
                                 .map(item => item.trim())
                                 .filter(item => item.length > 0);
-                              
-                              if (items.length > 1) {
-                                setSopData(prev => ({
-                                  ...prev,
-                                  housekeeping: [...prev.housekeeping, ...items]
-                                }));
+
+                              if (items.length === 0) {
+                                return;
                               }
+
+                              setSopData(prev => ({
+                                ...prev,
+                                housekeeping: [...prev.housekeeping, ...items]
+                              }));
                             }}
                           />
                           <Button
@@ -1367,15 +1412,25 @@ export default function SopBuilder() {
                               e.preventDefault();
                               const pastedText = e.clipboardData.getData('text');
                               const items = pastedText
-                                .split(/\n+/)
+                                .split(/\r?\n+/)
                                 .map(item => item.trim())
                                 .filter(item => item.length > 0);
-                              
-                              if (items.length > 1) {
-                                setSopData(prev => ({
-                                  ...prev,
-                                  potentialHazards: [...prev.potentialHazards, ...items]
-                                }));
+
+                              if (items.length === 0) {
+                                return;
+                              }
+
+                              setSopData(prev => ({
+                                ...prev,
+                                potentialHazards: [...prev.potentialHazards, ...items]
+                              }));
+
+                              if (validationErrors.potentialHazards) {
+                                setValidationErrors(prevErrors => {
+                                  const newErrors = { ...prevErrors };
+                                  delete newErrors.potentialHazards;
+                                  return newErrors;
+                                });
                               }
                             }}
                           />
@@ -1431,16 +1486,18 @@ export default function SopBuilder() {
                               e.preventDefault();
                               const pastedText = e.clipboardData.getData('text');
                               const items = pastedText
-                                .split(/\n+/)
+                                .split(/\r?\n+/)
                                 .map(item => item.trim())
                                 .filter(item => item.length > 0);
-                              
-                              if (items.length > 1) {
-                                setSopData(prev => ({
-                                  ...prev,
-                                  notAllowed: [...prev.notAllowed, ...items]
-                                }));
+
+                              if (items.length === 0) {
+                                return;
                               }
+
+                              setSopData(prev => ({
+                                ...prev,
+                                notAllowed: [...prev.notAllowed, ...items]
+                              }));
                             }}
                           />
                           <Button
@@ -1506,49 +1563,75 @@ export default function SopBuilder() {
                         fullWidth
                         InputLabelProps={{ shrink: true }}
                       />
-                      <TextField
-                        label="Reviewed By"
-                        value={sopData.reviewedBy}
-                        onChange={(e) => setSopData(prev => ({ ...prev, reviewedBy: e.target.value }))}
-                        fullWidth
+                      <Autocomplete
+                        options={staffNames}
+                        freeSolo
+                        value={sopData.reviewedBy || ''}
+                        onChange={(_, newValue) => {
+                          setSopData(prev => ({
+                            ...prev,
+                            reviewedBy: typeof newValue === 'string' ? newValue : (newValue ?? '')
+                          }));
+                        }}
+                        inputValue={sopData.reviewedBy || ''}
+                        onInputChange={(_, newInputValue) => {
+                          setSopData(prev => ({ ...prev, reviewedBy: newInputValue }));
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Reviewed By"
+                            fullWidth
+                            placeholder="Enter reviewer name"
+                          />
+                        )}
                       />
-                      <TextField
-                        label="Next Review Due"
-                        type="date"
-                        value={sopData.nextReviewDue}
-                        onChange={(e) => setSopData(prev => ({ ...prev, nextReviewDue: e.target.value }))}
-                        fullWidth
-                        InputLabelProps={{ shrink: true }}
-                      />
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
+                        <TextField
+                          label="Next Review Due"
+                          type="date"
+                          value={sopData.nextReviewDue}
+                          onChange={(e) => setSopData(prev => ({ ...prev, nextReviewDue: e.target.value }))}
+                          fullWidth
+                          InputLabelProps={{ shrink: true }}
+                          sx={{ flex: 1 }}
+                        />
+                        <Button
+                          {...buttonStyles.secondary}
+                          size="small"
+                          onClick={setNextReviewDueInOneYear}
+                        >
+                          1 Year
+                        </Button>
+                      </Box>
                     </Box>
                   </Collapse>
                 </CardContent>
               </Card>
             </Box>
           </DialogContent>
-          <DialogActions>
-            <Button 
-              onClick={() => setEditDialogOpen(false)}
-              variant="outlined"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => {
-                if (validateSopData()) {
-                  setEditDialogOpen(false);
-                } else {
-                  setSnackbarMessage('Please fix validation errors before saving');
-                  setSnackbarSeverity('error');
-                  setSnackbarOpen(true);
-                }
-              }}
-              variant="contained"
-              color="primary"
-            >
-              Save Changes
-            </Button>
-          </DialogActions>
+            <DialogActions>
+              <Button 
+                {...buttonStyles.cancel}
+                onClick={() => setEditDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                {...buttonStyles.primary}
+                onClick={() => {
+                  if (validateSopData()) {
+                    setEditDialogOpen(false);
+                  } else {
+                    setSnackbarMessage('Please fix validation errors before saving');
+                    setSnackbarSeverity('error');
+                    setSnackbarOpen(true);
+                  }
+                }}
+              >
+                Save Changes
+              </Button>
+            </DialogActions>
         </Dialog>
       </Box>
       </Layout>

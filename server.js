@@ -1445,9 +1445,116 @@ app.post('/equipment/:id/lessons', (req, res) => {
   
   // Link the lesson
   data.equipment[equipmentIndex].linkedLessonId = String(lessonId);
+
+  if (!data.sopDocuments) {
+    data.sopDocuments = [];
+  }
+
+  const hasExistingEquipmentSop = data.sopDocuments.some(
+    (sop) => String(sop.equipmentId) === String(id)
+  );
+
+  let createdEquipmentSop = null;
+
+  if (!hasExistingEquipmentSop) {
+    const equipment = data.equipment[equipmentIndex];
+    const lessonSops = data.sopDocuments.filter(
+      (sop) =>
+        String(sop.lessonId) === String(lessonId) &&
+        sop.sopData &&
+        typeof sop.sopData === 'object'
+    );
+
+    const selectMostRecentSop = () => {
+      if (lessonSops.length === 0) return null;
+      const cloned = [...lessonSops];
+      cloned.sort((a, b) => {
+        const getDateValue = (value) => {
+          if (!value) return 0;
+          const date = new Date(value);
+          return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+        };
+        const bDate =
+          getDateValue(b.updatedAt) ||
+          getDateValue(b.createdAt);
+        const aDate =
+          getDateValue(a.updatedAt) ||
+          getDateValue(a.createdAt);
+        return bDate - aDate;
+      });
+      return cloned[0];
+    };
+
+    const sourceSop = selectMostRecentSop();
+
+    const defaultSopData = {
+      schoolName: '',
+      schoolLogo: '',
+      title: `Safe Operating Procedures for ${equipment.name}`,
+      room: equipment.location || '',
+      dateOfReview: '',
+      reviewedBy: '',
+      nextReviewDue: '',
+      equipmentName: equipment.name,
+      caution: '',
+      preOperationalChecks: [],
+      operationalChecks: [],
+      housekeeping: [],
+      potentialHazards: [],
+      notAllowed: [],
+      selectedPpeIcons: []
+    };
+
+    const sourceSopData = sourceSop?.sopData && typeof sourceSop.sopData === 'object'
+      ? sourceSop.sopData
+      : null;
+
+    const mergedSopData = {
+      ...defaultSopData,
+      ...(sourceSopData || {}),
+      title: `Safe Operating Procedures for ${equipment.name}`,
+      equipmentName: equipment.name,
+      room: equipment.location || (sourceSopData?.room || ''),
+      preOperationalChecks: Array.isArray(sourceSopData?.preOperationalChecks)
+        ? [...sourceSopData.preOperationalChecks]
+        : [],
+      operationalChecks: Array.isArray(sourceSopData?.operationalChecks)
+        ? [...sourceSopData.operationalChecks]
+        : [],
+      housekeeping: Array.isArray(sourceSopData?.housekeeping)
+        ? [...sourceSopData.housekeeping]
+        : [],
+      potentialHazards: Array.isArray(sourceSopData?.potentialHazards)
+        ? [...sourceSopData.potentialHazards]
+        : [],
+      notAllowed: Array.isArray(sourceSopData?.notAllowed)
+        ? [...sourceSopData.notAllowed]
+        : [],
+      selectedPpeIcons: Array.isArray(sourceSopData?.selectedPpeIcons)
+        ? [...sourceSopData.selectedPpeIcons]
+        : []
+    };
+
+    const nowIso = new Date().toISOString();
+
+    createdEquipmentSop = {
+      id: `sop-${Date.now()}-${Math.round(Math.random() * 1e9)}`,
+      name: mergedSopData.title || `Safe Operating Procedures for ${equipment.name}`,
+      description: `SOP for ${equipment.name}`,
+      lessonId: String(lessonId),
+      equipmentId: String(id),
+      sopData: mergedSopData,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+      type: 'builder-generated'
+    };
+
+    data.sopDocuments.push(createdEquipmentSop);
+  }
+
   saveData(data);
 
-  res.json({ success: true, linkedLesson: lesson });
+  res.json({ success: true, linkedLesson: lesson, equipmentSop: createdEquipmentSop });
 });
 
 app.delete('/equipment/:id/lessons', (req, res) => {
